@@ -169,6 +169,8 @@ async def hello(ctx):
         await ctx.send(content=f"{ctx.author.mention} Sex bro?")
     elif ctx.author.id == 380988746197237760:  # Aryaman
         await ctx.send("Moshi Moshi from Rasputin chan", file=discord.File('assets/Rasputin.jpeg'))
+    elif ctx.author.id == 758721255477477376: # Gijo
+        await ctx.send("All hail The Homie, Claimer of Ass!")
     else:
         greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!"])
         owner = client.get_user(411166117084528640)
