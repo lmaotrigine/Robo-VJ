@@ -5,5 +5,9 @@ readonly/*
 # pycharm
 .idea/
 .env
+<<<<<<< HEAD
 assets/*.json
+=======
+*.json
+>>>>>>> 64f7b726ab89bf91986a1d7dcd03bf7e7a5818e5
 restart_from_channel.txt
