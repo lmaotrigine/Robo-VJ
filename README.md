@@ -15,11 +15,8 @@
   JISHAKU_HIDE=true
   ```
 3. To copy the remote database from source to target:
-  - If PostgreSQL not installed, run `psql_quick_setup.sh`
-  - Quick setup:
-  ```
-  $ pg_dump -C -h source_host -U postgres source_db | psql -h target_host -U postgres target_db
-  ```
+  - If PostgreSQL not installed, follow instructions [here](https://www.postgresql.org/download/linux/ubuntu/)
+  - Quick setup: `$ pg_dump -C -h source_host -U postgres source_db | psql -h target_host -U postgres target_db`
   - Recommeded setup for large databases:
     - on source: `$ pg_dump -U postgres -O source_db source_db.sql`
     - copy `source_db.sql` to target server
