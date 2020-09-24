@@ -78,8 +78,8 @@ async def close_db():
 # initialise client
 client = commands.Bot(command_prefix=get_prefix, status=discord.Status.dnd, activity=discord.Activity(
     name=f"!help", type=discord.ActivityType.listening),
-    help_command=EmbedHelpCommand(dm_help=None),
-    #help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
+    #help_command=EmbedHelpCommand(dm_help=None),
+    help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
     case_insensitive=True)
 client.version = __version__
 client.prefixes = {}
