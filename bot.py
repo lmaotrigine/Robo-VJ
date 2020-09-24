@@ -23,6 +23,8 @@ load_dotenv()
 TOKEN = os.getenv('SCOREKEEPER_TOKEN')
 HOST = os.getenv('HOST')
 PASSWORD = os.getenv('PASSWORD')
+DATABASE = os.getenv('DATABASE') or 'scorekeeper_data'
+USER = os.getenv('DBUSERNAME') or 'postgres'
 
 def pfx_helper(message):
     """helper to get prefix"""
@@ -63,7 +65,7 @@ def get_uptime():
 
     return text
 async def create_db_pool():
-    credentials = {"user": "postgres", "password": PASSWORD, "database": "scorekeeper_data", "host": HOST}
+    credentials = {"user": USER, "password": PASSWORD, "database": DATABASE, "host": HOST}
     try:
         client.db = await asyncpg.create_pool(**credentials)
     except KeyboardInterrupt:
@@ -75,7 +77,7 @@ async def close_db():
 
 # initialise client
 client = commands.Bot(command_prefix=get_prefix, status=discord.Status.dnd, activity=discord.Activity(
-    name=f"!help", type=discord.ActivityType.listening), help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None), 
+    name=f"!help", type=discord.ActivityType.listening), help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
     case_insensitive=True)
 client.version = __version__
 client.prefixes = {}
@@ -109,7 +111,7 @@ async def before_startup():
 # Return prefix on being mentioned
 @client.event
 async def on_message(message):
-    if message.content.strip() in ['<@743900453649252464>', '<@!743900453649252464>']: 
+    if message.content.strip() in ['<@743900453649252464>', '<@!743900453649252464>']:
         pfx = pfx_helper(message)
         await message.channel.send(f"My prefix is `{pfx}`. Use `{pfx}help` for more information.")
     await client.process_commands(message)
