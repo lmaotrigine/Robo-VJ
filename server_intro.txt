@@ -1,0 +1,10 @@
+Welcome @everyone. I'm glad you could make it out here.
+This server was originally created for another such fundraiser I had conducted a few months ago for the affected members of the event production industry in the UK. I have since purged the server and slightly repurposed the set to fit this audience.
+However, I do concede that there will persist some shady fundae in the set, and I apologise in advance for the same.
+More than winning, what matters in quizzes like this is that you learn something new and have a bit of fun to distract from everyday life.
+Feel free to stick around in the server afterwards if you liked the quiz. I cannot promise anything now but there is a chance that new quizzes may be on the way. Watch <#743834763965759499> for more updates on this.
+If you have any questions at all about the quiz, or about Discord in general, you may DM <@752112370284757023>.
+
+After the original server disbanded, my ever-so-faithful (cough, cough) team of moderators went away with the crowd. Hence, I've had to take matters into my own hands and create a bot to handle the moderation functions easily.
+I'd like you all to meet <@743900453649252464>, the fruit of my labours. The prefix for this bot is `!`. Feel free to explore its functionality. Start off by saying `!hello`. For a full list of commands you are allowed to use, send `!help Scores`.
+Take some time to familiarise yourself with the server and feel free to ask for clarifications. Start by socialising in <#718378271800033321> and you will be assigned teams shortly.

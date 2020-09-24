@@ -1,0 +1,14 @@
+[Unit]
+Description=Bot
+After=multi-user.target
+[Service]
+WorkingDirectory=/home/mordor/discord-bot
+User=mordor
+Group=mordor
+ExecStart=/usr/bin/python3.8 /home/mordor/discord-bot/bot.py
+Type=simple
+Restart=always
+RestartSec=20
+
+[Install]
+WantedBy=multi-user.target
