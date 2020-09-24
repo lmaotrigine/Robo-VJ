@@ -1,4 +1,4 @@
-discord.py[voice]
+git+https://github.com/Rapptz/discord.py@master
 git+https://github.com/ssut/py-googletrans@master
 asyncpg>=0.21.0
 Pillow>=7.2.0
