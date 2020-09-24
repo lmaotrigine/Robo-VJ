@@ -2,6 +2,7 @@
 **/__pycache__/
 *~
 readonly/
-
+# pycharm
+.idea/
 .env
 restart_from_channel.txt
