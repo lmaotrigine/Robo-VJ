@@ -24,8 +24,11 @@ class MeOnly(commands.Cog, name="Bot owner specific commands"):
     def __init__(self, client):
         self.client = client
         self.AUTOAPPROVE = {}
-        with open('readonly/autoapprove_messages.json', 'r') as file:
-            self.messages = json.load(file)
+        try:
+            with open('readonly/autoapprove_messages.json', 'r') as file:
+                self.messages = json.load(file)
+        except:
+            open('readonly/autoapprove_messages.json', 'w').close()
         self._last_result = None
 
     def cleanup_code(self, content):
