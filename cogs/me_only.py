@@ -25,10 +25,10 @@ class MeOnly(commands.Cog, name="Bot owner specific commands"):
         self.client = client
         self.AUTOAPPROVE = {}
         try:
-            with open('readonly/autoapprove_messages.json', 'r') as file:
+            with open('assets/autoapprove_messages.json', 'r') as file:
                 self.messages = json.load(file)
         except:
-            open('readonly/autoapprove_messages.json', 'w').close()
+            open('assets/autoapprove_messages.json', 'w').close()
         self._last_result = None
 
     def cleanup_code(self, content):
@@ -62,7 +62,7 @@ class MeOnly(commands.Cog, name="Bot owner specific commands"):
         message = await ctx.send(Text)
         await message.add_reaction('✅')
         self.messages[str(ctx.guild.id)] = message.id
-        with open('readonly/autoapprove_messages.json', 'w') as file:
+        with open('assets/autoapprove_messages.json', 'w') as file:
             json.dump(self.messages, file, indent=2)
 
     @commands.command(hidden=True)
@@ -70,7 +70,7 @@ class MeOnly(commands.Cog, name="Bot owner specific commands"):
     async def pinrules(self, ctx):
         if not ctx.author.id == 411166117084528640:
             return
-        with open("server_rules.txt", "r") as file:
+        with open("assets/server_rules.txt", "r") as file:
             rules = file.read()
         await ctx.message.delete()
         msg = await ctx.send(rules)
@@ -81,7 +81,7 @@ class MeOnly(commands.Cog, name="Bot owner specific commands"):
     async def pinintro(self, ctx):
         if not ctx.author.id == 411166117084528640:
             return
-        with open("server_intro.txt", "r") as file:
+        with open("assets/server_intro.txt", "r") as file:
             intro = file.read()
         await ctx.message.delete()
         msg = await ctx.send(intro)

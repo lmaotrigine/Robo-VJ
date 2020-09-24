@@ -156,19 +156,17 @@ async def hello(ctx):
     elif ctx.author.id == 173357402639433729:  # Jay
         await ctx.send(f"Hello {ctx.author.mention}. Got any gummy bears on you?")
     elif ctx.author.id == 439065755242332160:  # PJ
-        await ctx.send(file=discord.File('PJ.jpeg'))
+        await ctx.send(f"{ctx.author.mention}", file=discord.File('assets/PJ.jpeg'))
     elif ctx.author.id == 557595185903566879:  # Kannan
-        await ctx.send(content=f"{ctx.author.mention} Oink oink, ya Capitalist Pig!")
-        await ctx.send(file=discord.File('kannan.jpg'))
+        await ctx.send(content=f"{ctx.author.mention} Oink oink, ya Capitalist Pig!", file=discord.File('assets/kannan.jpg'))
     elif ctx.author.id == 312265075933315074:  # Jakus
-        await ctx.send(content="Jaaaaaaaaaaaaaake 😍😍🥰🥰")
-        await ctx.send(file=discord.File('Jake.gif'))
+        await ctx.send(content="Jaaaaaaaaaaaaaake 😍😍🥰🥰", file=discord.File('assets/Jake.gif'))
     elif ctx.author.id == 727521754313916487:  # kwee
         await ctx.send(content="Kweeeeeeeeeeeeeeeeeeeeeeee")
     elif ctx.author.id == 712327512826314835:  # Sanjeev
         await ctx.send(content=f"{ctx.author.mention} Sex bro?")
     elif ctx.author.id == 380988746197237760:  # Aryaman
-        await ctx.send("Moshi Moshi from Rasputin chan", file=discord.File('Rasputin.jpeg'))
+        await ctx.send("Moshi Moshi from Rasputin chan", file=discord.File('assets/Rasputin.jpeg'))
     else:
         greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!"])
         owner = client.get_user(411166117084528640)
