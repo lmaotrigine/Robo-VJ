@@ -13,7 +13,7 @@ import discord
 from discord.ext import commands, tasks
 
 
-__version__ = "1.2.0"
+__version__ = "1.2.4"
 __author__ = "Varun J"
 
 RUDE_PPL = {}
