@@ -5,4 +5,5 @@ readonly/*
 # pycharm
 .idea/
 .env
+*.json
 restart_from_channel.txt
