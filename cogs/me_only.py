@@ -25,10 +25,10 @@ class MeOnly(commands.Cog, name="Bot owner specific commands"):
         self.client = client
         self.AUTOAPPROVE = {}
         try:
-            with open('readonly/autoapprove_messages.json', 'r') as file:
+            with open('autoapprove_messages.json', 'r') as file:
                 self.messages = json.load(file)
         except:
-            open('readonly/autoapprove_messages.json', 'w').close()
+            open('autoapprove_messages.json', 'w').close()
         self._last_result = None
 
     def cleanup_code(self, content):
@@ -62,7 +62,7 @@ class MeOnly(commands.Cog, name="Bot owner specific commands"):
         message = await ctx.send(Text)
         await message.add_reaction('✅')
         self.messages[str(ctx.guild.id)] = message.id
-        with open('readonly/autoapprove_messages.json', 'w') as file:
+        with open('autoapprove_messages.json', 'w') as file:
             json.dump(self.messages, file, indent=2)
 
     @commands.command(hidden=True)
