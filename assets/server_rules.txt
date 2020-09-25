@@ -3,10 +3,15 @@ $These are some rules for the server as a whole, and some general guidelines abo
 Do note that these rules are flexible and subject to change for each quiz. In such cases, the specific rules will be explained by the QM.
 
 1. Mute yourself on the bounce voice channel as a rule. Unmute yourself only when you wish to speak to the QM. Alternatively, use push to talk.
+
 2. Any and all queries you have for the moderators may be sent to <@!752112370284757023> by DM.
+
 3. Be polite. No NSFW (unless questions so demand), no spamming, no advertising, no bigotry, don't be a fascist.
+
 4. Don't Google please. We operate on trust here, and if you're caught, you will be banned immediately. (We tried implementing a browser lock after creating a clone of the app but not only was it high maintenance, we got a C&D from Discord)
+
 5. Most quizzes here follow the pounce and bounce format. Pounces are tracked through a bot.
+
 6. Voice channels for team discussions are provided to discuss written rounds. All questions and hints will be given in the bounce channel by the QM.
 
 
