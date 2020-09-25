@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import googletrans
 import io
-import asyncio
 
 GUILD_ID = 718378271800033318
 NO_MIC_BOUNCE_ID = 758217695748554802
