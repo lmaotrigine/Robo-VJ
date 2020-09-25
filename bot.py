@@ -13,7 +13,7 @@ import discord
 from discord.ext import commands, tasks
 
 
-__version__ = "1.2.4"
+__version__ = "1.3.0"
 __author__ = "Varun J"
 
 RUDE_PPL = {}
@@ -150,7 +150,7 @@ async def on_guild_join(guild):
     embed.description = f"""Robo VJ was originally made to keep scores during online quizzes, but has since evolved to support moderation commands and some fun here and there.
     For a full list of commands, use `{pfx}help`.
 
-    Some easter egg commands are not included in the help page. Others like the `util` group have been deliberately hidden because they are reserved for the bot owner.
+    Some easter egg commands are not included in the help page. Others like the `utils` group have been deliberately hidden because they are reserved for the bot owner.
 
     If you have any questions, or need help with the bot, or want to report bugs or request features, [click here](https://discord.gg/rqgRyF8) to join the support server."""
     embed.set_footer(text=f"Made by {client.owner}", icon_url=client.owner.avatar_url)
@@ -187,7 +187,7 @@ async def hello(ctx):
         await ctx.send("All hail The Homie, Claimer of Ass!")
     else:
         greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!"])
-        owner = client.get_user(411166117084528640)
+        owner = client.get_user(client.owner_id)
         await ctx.send(f"{greeting} I'm a robot! {owner.name}#{owner.discriminator} made me.")
 
 
@@ -195,7 +195,7 @@ async def hello(ctx):
 async def invite(ctx):
     """Get the invite link to add the bot to your server"""
     embed = discord.Embed(title="Click here to add me to your server", colour=discord.Colour(0xFF0000),
-                          url="https://discord.com/api/oauth2/authorize?client_id=743900453649252464&permissions=8&scope=bot")
+                          url=f"https://discord.com/api/oauth2/authorize?client_id={client.user.id}&permissions=8&scope=bot")
     embed.set_author(name=client.user.display_name if ctx.guild is None else ctx.guild.me.display_name, icon_url=client.user.avatar_url)
     await ctx.send(embed=embed)
 
