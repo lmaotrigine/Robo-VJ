@@ -135,7 +135,7 @@ class Utilities(commands.Cog):
             if test:
                 await self.client.db.execute("UPDATE servers SET prefix = $1 WHERE guild_id = $2", pfx, ctx.guild.id)
             else:
-                await self.client.db.execute(f"""INSERT INTO servers (guild_id, prefix) VALUES ($1, $2)""", ctx.guild.id, pfx)
+                await self.client.db.execute("INSERT INTO servers (guild_id, prefix) VALUES ($1, $2)", ctx.guild.id, pfx)
         await self.client.db.release(connection)
 
         #prefixes[str(ctx.guild.id)] = pfx

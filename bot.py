@@ -134,6 +134,7 @@ async def on_guild_join(guild):
         connection = await client.db.acquire()
         async with connection.transaction():
             await client.db.execute(f"""INSERT INTO servers (guild_id, prefix) VALUES ({guild.id}, '!')""")
+            await client.db.execute("INSERT INTO named_servers (guild_id, name) VALUES ($1, $2)", guild.id, guild.name)
         await client.db.release(connection)
     pfx = client.prefixes[guild.id]
     if guild.system_channel:
@@ -151,6 +152,10 @@ async def on_guild_join(guild):
     embed.set_footer(text=f"Made by {client.get_user(client.owner_id)}", icon_url=client.get_user(client.owner_id).avatar_url)
     await send_here.send(embed=embed)
 
+@client.event
+async def on_guild_update(before, after):
+    if before.name != after.name:
+        await client.db.execute("UPDATE named_servers SET name = $1 WHERE guild_id = $2", after.name, after.id)
 
 # General commands
 @client.command(aliases=["hi"])
