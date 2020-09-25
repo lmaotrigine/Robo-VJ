@@ -121,7 +121,7 @@ async def on_message(message):
 
 
 # Load cogs
-client.load_extension("jishaku")
+client.load_extension("cogs.admin")
 for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
         client.load_extension(f'cogs.{filename[:-3]}')
