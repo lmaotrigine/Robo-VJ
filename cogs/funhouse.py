@@ -26,14 +26,14 @@ class Funhouse(commands.Cog):
             if message.channel == message.guild.get_channel(INTRO_ID):
                 if not message.author.guild_permissions.manage_guild:
                     await asyncio.sleep(5)
-                    await message.guild.get_channel(INTRO_ID).set_permissions(ctx.author, read_messages=False)
+                    await message.guild.get_channel(INTRO_ID).set_permissions(ctx.author, send_messages=False)
 
     @commands.command(hidden=True)
     @commands.guild_only()
     async def resetintro(self, ctx, member: discord.Member):
         if not ctx.author == ctx.guild.owner:
             return
-        await ctx.guild.get_channel(INTRO_ID).set_permissions(ctx.author, read_messages=True)
+        await ctx.guild.get_channel(INTRO_ID).set_permissions(ctx.author, send_messages=True)
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
