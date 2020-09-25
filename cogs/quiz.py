@@ -184,6 +184,20 @@ class QMOnly(GameState, name="QM Commands"):
             to_send += f"\n{', '.join(higher_roles)} still {'have' if len(higher_roles) > 1 else 'has'} other roles."
         await ctx.send(to_send)
 
+    @commands.command(name="cleanup", aliases=['clean'])
+    @commands.guild_only()
+    async def cleanup_teams(self, ctx):
+        """Clears all team and spectator roles. Has a cooldown in place to avoid hitting rate limits."""
+        if not "QM" in [role.name for role in ctx.author.roles]:
+            return
+        teams = [role for role in guild.roles if role.name.lower().startswith('team')]
+        teams.append(discord.utils.get(guild.roles, name="Spectator"))
+        for team in teams:
+            await (client.get_command("purgeroles"))(ctx, role)
+            await asyncio.sleep(1)
+            await ctx.send(f"Purged {team}")
+        await ctx.send("Cleanup complete.")
+
     @commands.command()
     @commands.guild_only()
     async def points(self, ctx, *args):
