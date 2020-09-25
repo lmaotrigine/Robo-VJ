@@ -77,7 +77,7 @@ async def close_db():
 
 # initialise client
 client = commands.Bot(command_prefix=get_prefix, status=discord.Status.dnd, activity=discord.Activity(
-    name=f"!help", type=discord.ActivityType.listening),
+    name=f"!help", type=discord.ActivityType.listening), owner_id=411166117084528640,
     #help_command=EmbedHelpCommand(dm_help=None),
     help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
     case_insensitive=True)
@@ -96,7 +96,7 @@ async def startup():
     print("----------------")
 
     client.session = aiohttp.ClientSession(loop=client.loop)
-    client.owner = await client.fetch_user(client.owner_id)
+    client.owner = client.get_user(client.owner_id)
     data = await client.db.fetch("SELECT * FROM servers")
     for record in data:
         client.prefixes[record['guild_id']] = record['prefix']
@@ -130,12 +130,13 @@ for filename in os.listdir('./cogs'):
 # update prefixes on joining a server
 @client.event
 async def on_guild_join(guild):
-    if guild.id not in client.prefixes.keys():
+    if guild.id not in client.prefixes.keys() or not await client.db.fetchrow("SELECT prefix FROM servers WHERE guild_id = $1", guild.id):
         client.prefixes[guild.id] = '!'
         connection = await client.db.acquire()
         async with connection.transaction():
             await client.db.execute(f"INSERT INTO servers (guild_id, prefix) VALUES ({guild.id}, '!')")
-            await client.db.execute("INSERT INTO named_servers (guild_id, name) VALUES ($1, $2)", guild.id, guild.name)
+            if not await client.db.fetchrow("SELECT name FROM named_servers WHERE guild_id = $1", guild.id):
+                await client.db.execute("INSERT INTO named_servers (guild_id, name) VALUES ($1, $2)", guild.id, guild.name)
         await client.db.release(connection)
     pfx = client.prefixes[guild.id]
     if guild.system_channel:
