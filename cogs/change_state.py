@@ -14,7 +14,7 @@ class ChangeState(commands.Cog):
     @tasks.loop(count=1)
     async def change(self):
         num_guilds = len(self.client.guilds)
-        await self.client.change_presence(status=discord.Status.dnd, activity=discord.Activity(name=f"!help in {num_guilds} {['server' if num_guilds == 1 else 'servers'][0]}",
+        await self.client.change_presence(status=discord.Status.dnd, activity=discord.Activity(name=f"!help in {num_guilds} {'server' if num_guilds == 1 else 'servers'}",
         type=discord.ActivityType.listening))
 
     @change.before_loop
@@ -29,13 +29,13 @@ class ChangeState(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         num_guilds = len(self.client.guilds)
-        await self.client.change_presence(status=discord.Status.dnd, activity=discord.Activity(name=f"!help in {num_guilds} {['server' if num_guilds == 1 else 'servers'][0]}",
+        await self.client.change_presence(status=discord.Status.dnd, activity=discord.Activity(name=f"!help in {num_guilds} {'server' if num_guilds == 1 else 'servers'}",
         type=discord.ActivityType.listening))
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
         num_guilds = len(self.client.guilds)
-        await self.client.change_presence(status=discord.Status.dnd, activity=discord.Activity(name=f"!help in {num_guilds} {['server' if num_guilds == 1 else 'servers'][0]}",
+        await self.client.change_presence(status=discord.Status.dnd, activity=discord.Activity(name=f"!help in {num_guilds} {'server' if num_guilds == 1 else 'servers'}",
         type=discord.ActivityType.listening))
 
 def setup(client):

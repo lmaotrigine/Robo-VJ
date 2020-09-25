@@ -129,23 +129,28 @@ for filename in os.listdir('./cogs'):
 # update prefixes on joining a server
 @client.event
 async def on_guild_join(guild):
-    client.prefixes[guild.id] = '!'
+    if guild.id not in client.prefixes.keys():
+        client.prefixes[guild.id] = '!'
+        connection = await client.db.acquire()
+        async with connection.transaction():
+            await client.db.execute(f"""INSERT INTO servers (guild_id, prefix) VALUES ({guild.id}, '!')""")
+        await client.db.release(connection)
+    pfx = client.prefixes[guild.id]
     if guild.system_channel:
-        await guild.system_channel.send("Thank you for adding me to your server!\nMy prefix is `!`.\nUse `!help` for a full list of commands and `!support` to join the support server.")
+        send_here = guild.system_channel
     else:
         for channel in guild.text_channels:
-            if channel.overwrites_for(guild.default_role) == True:
+            if channel.overwrites_for(guild.default_role).read_messages:
                 send_here = channel
                 break
-        await send_here.send("Thank you for adding me to your server!\My prefix is `!`.\nUse `!help` for a full list of commands and `!support` to join the support server.")
-    test = await client.db.fetchrow(f"SELECT prefix FROM servers WHERE guild_id = {guild.id}")
-    connection = await client.db.acquire()
-    async with connection.transaction():
-        if test:
-            await client.db.execute(f"UPDATE servers SET prefix = '!' WHERE guild_id = {ctx.guild.id}")
-        else:
-            await client.db.execute(f"""INSERT INTO servers (guild_id, prefix) VALUES ({guild.id}, '!')""")
-    await client.db.release(connection)
+    embed = discord.Embed(title="Thanks for adding me to your server! :blush:", colour=discord.Colour.blurple())
+    embed.description = f"""Robo-VJ was originally made to keep scores during online quizzes, but has since evolved to support moderation commands and some fun here and there.
+    For a full list of commands, use {pfx}help.
+
+    If you have any questions, or need help with the bot, or want to report bugs or request features, [click here](https://discord.gg/rqgRyF8) to join the support server."""
+    embed.set_footer(text=f"Made by {client.get_user(client.owner_id)}", icon_url=client.get_user(client.owner_id).avatar_url)
+    await send_here.send(embed=embed)
+
 
 # General commands
 @client.command(aliases=["hi"])
