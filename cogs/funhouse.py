@@ -26,7 +26,7 @@ class Funhouse(commands.Cog):
             if message.channel == message.guild.get_channel(INTRO_ID):
                 if not message.author.guild_permissions.manage_guild:
                     await asyncio.sleep(5)
-                    await message.guild.get_channel(INTRO_ID).set_permissions(ctx.author, send_messages=False)
+                    await message.channel.set_permissions(ctx.author, send_messages=False)
 
     @commands.command(hidden=True)
     @commands.guild_only()
