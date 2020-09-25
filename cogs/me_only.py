@@ -13,12 +13,27 @@ import importlib
 from contextlib import redirect_stdout
 import os
 import re
+import subprocess
 import sys
 import copy
 import time
 from typing import Union, Optional
 
-
+class GlobalChannel(commands.Converter):
+    async def convert(self, ctx, argument):
+        try:
+            return await commands.TextChannelConverter().convert(ctx, argument)
+        except commands.BadArgument:
+            # Not found... so fall back to ID + global lookup
+            try:
+                channel_id = int(argument, base=10)
+            except ValueError:
+                raise commands.BadArgument(f'Could not find a channel by ID {argument!r}.')
+            else:
+                channel = ctx.bot.get_channel(channel_id)
+                if channel is None:
+                    raise commands.BadArgument(f'Could not find a channel by ID {argument!r}.')
+                return channel
 
 class MeOnly(commands.Cog, name="Bot owner specific commands"):
     def __init__(self, client):
@@ -49,6 +64,16 @@ class MeOnly(commands.Cog, name="Bot owner specific commands"):
         if e.text is None:
             return f'```py\n{e.__class__.__name__}: {e}\n```'
         return f'```py\n{e.text}{"^":>{e.offset}}\n{e.__class__.__name__}: {e}```'
+
+    async def run_process(self, command):
+        try:
+            process = await asyncio.create_subprocess_shell(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = await process.communicate()
+        except NotImplementedError:
+            process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = await self.client.loop.run_in_executor(None, process.communicate)
+
+        return [output.decode() for output in result]
 
     @commands.command(hidden=True)
     @commands.guild_only()
@@ -198,6 +223,90 @@ class MeOnly(commands.Cog, name="Bot owner specific commands"):
             else:
                 self._last_result = ret
                 await ctx.send(f'```py\n{value}{ret}\n```')
+
+    @commands.command(hidden=True)
+    async def sql(self, ctx, *, query: str):
+        """Run some SQL."""
+        # the imports are here because I imagine some people would want to use
+        # this cog as a base for their other cog, and since this one is kinda
+        # odd and unnecessary for most people, I will make it easy to remove
+        # for those people.
+        from .utils.formats import TabularData, plural
+        import time
+
+        query = self.cleanup_code(query)
+
+        is_multistatement = query.count(';') > 1
+        if is_multistatement:
+            # fetch does not support multiple statements
+            strategy = self.client.db.execute
+        else:
+            strategy = self.client.db.fetch
+
+        try:
+            start = time.perf_counter()
+            results = await strategy(query)
+            dt = (time.perf_counter() - start) * 1000.0
+        except Exception:
+            return await ctx.send(f'```py\n{traceback.format_exc()}\n```')
+
+        rows = len(results)
+        if is_multistatement or rows == 0:
+            return await ctx.send(f'`{dt:.2f}ms: {results}`')
+
+        headers = list(results[0].keys())
+        table = TabularData()
+        table.set_columns(headers)
+        table.add_rows(list(r.values()) for r in results)
+        render = table.render()
+
+        fmt = f'```\n{render}\n```\n*Returned {plural(rows):row} in {dt:.2f}ms*'
+        if len(fmt) > 2000:
+            fp = io.BytesIO(fmt.encode('utf-8'))
+            await ctx.send('Too many results...', file=discord.File(fp, 'results.txt'))
+        else:
+            await ctx.send(fmt)
+
+    @commands.command(hidden=True)
+    async def sudo(self, ctx, channel: Optional[GlobalChannel], who: discord.User, *, command: str):
+        """Run a command as another user optionally in another channel."""
+        msg = copy.copy(ctx.message)
+        channel = channel or ctx.channel
+        msg.channel = channel
+        msg.author = channel.guild.get_member(who.id) or who
+        msg.content = ctx.prefix + command
+        new_ctx = await self.client.get_context(msg, cls=type(ctx))
+        await self.client.invoke(new_ctx)
+
+    @commands.command(hidden=True)
+    async def do(self, ctx, times: int, *, command):
+        """Repeats a command a specified number of times."""
+        msg = copy.copy(ctx.message)
+        msg.content = ctx.prefix + command
+
+        new_ctx = await self.client.get_context(msg, cls=type(ctx))
+
+        for i in range(times):
+            await new_ctx.reinvoke()
+
+    @commands.command(hidden=True)
+    async def sh(self, ctx, *, command):
+        """Runs a shell command."""
+
+        async with ctx.typing():
+            stdout, stderr = await self.run_process(command)
+
+        if stderr:
+            text = f'stdout:\n{stdout}\nstderr:\n{stderr}'
+        else:
+            text = stdout
+
+        pages = commands.Paginator(prefix='```', suffix='```', max_size=2000)
+        for line in text.split('\n'):
+            pages.add_line(line)
+
+        for page in pages.pages:
+            await ctx.send(page)
 
 
 

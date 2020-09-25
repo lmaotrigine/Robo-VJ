@@ -7,9 +7,9 @@ class EmbedHelpCommand(commands.DefaultHelpCommand):
     2. It doesn't DM users. To do this, you have to override `get_destination`. It's simple.
     Other than those two things this is a basic skeleton to get you started. It should
     be simple to modify if you desire some other behaviour.
-    
+
     To use this, pass it to the bot constructor e.g.:
-       
+
     bot = commands.Bot(help_command=EmbedHelpCommand())
     """
     # Set the embed colour here
@@ -29,7 +29,7 @@ Use {self.clean_prefix}{self.invoked_with} [category] for more info on a categor
             alias = command.name if not parent else parent + ' ' + command.name
 
         return '%s %s' % (alias, command.signature)
-    
+
     def get_destination(self, embed):
         ctx = self.context
         if self.dm_help is True:
@@ -38,7 +38,7 @@ Use {self.clean_prefix}{self.invoked_with} [category] for more info on a categor
             return ctx.author
         else:
             return ctx.channel
-    
+
     async def send_bot_help(self, mapping):
         embed = discord.Embed(title='Bot Commands', colour=self.COLOUR)
         description = self.context.bot.description
@@ -120,4 +120,3 @@ class Help(commands.Cog, name="Help"):
 
 def setup(client):
     client.add_cog(Help(client))
-
