@@ -36,7 +36,7 @@ def pfx_helper(message):
     #    return "!"
     if not message.guild:
         return '!'
-    return client.prefixes[message.guild.id]
+    return client.prefixes.get(message.guild.id, '!')
 
 
 
