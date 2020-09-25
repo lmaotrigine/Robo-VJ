@@ -29,6 +29,7 @@ class MeOnly(commands.Cog, name="Bot owner specific commands"):
                 self.messages = json.load(file)
         except:
             open('assets/autoapprove_messages.json', 'w').close()
+            self.messages = {}
 
         self._last_result = None
 
@@ -57,10 +58,10 @@ class MeOnly(commands.Cog, name="Bot owner specific commands"):
         if not discord.utils.get(ctx.guild.roles, name="Approved"):
             await ctx.send("Create role named 'Approved' and try again.")
             return
-        Text= "Since this server was originally created for a fundraiser, there is a system in place that only allows you full access to the server on being approved by a moderator.\n"
+        Text= "Since this server was originally created for a fundraiser, there is a system in place that only allows you full access to the server on being approved by a moderator.\n\n"
         Text += "For now, you may approve yourself by clicking on ✅."
         await ctx.message.delete()
-        message = await ctx.send(Text)
+        message = await ctx.send(embed=discord.Embed(title='Verification', description=Text, colour = 0xFF0000))
         await message.add_reaction('✅')
         self.messages[str(ctx.guild.id)] = message.id
         with open('assets/autoapprove_messages.json', 'w') as file:
