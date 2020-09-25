@@ -2,10 +2,12 @@ import discord
 from discord.ext import commands
 import googletrans
 import io
+import asyncio
 
 GUILD_ID = 718378271800033318
 NO_MIC_BOUNCE_ID = 758217695748554802
 BOUNCE_VOICE_ID = 718378272337166396
+INTRO_ID = 744131093568946229
 
 class Funhouse(commands.Cog):
     def __init__(self, client):
@@ -17,6 +19,21 @@ class Funhouse(commands.Cog):
 
     def is_out_of_bounce(self, state):
         return state.channel is None or state.channel.id != BOUNCE_VOICE_ID
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.guild and message.guild.id == GUILD_ID:
+            if message.channel == message.guild.get_channel(INTRO_ID):
+                if not message.author.guild_permissions.manage_guild:
+                    await asyncio.sleep(5)
+                    await message.guild.get_channel(INTRO_ID).set_permissions(ctx.author, read_messages=False)
+
+    @commands.command(hidden=True)
+    @commands.guild_only()
+    async def resetintro(self, ctx, member: discord.Member):
+        if not ctx.author == ctx.guild.owner:
+            return
+        await ctx.guild.get_channel(INTRO_ID).set_permissions(ctx.author, read_messages=True)
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
