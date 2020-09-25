@@ -1,5 +1,5 @@
-Welcome to our quizzing server!
-These are some rules for the server as a whole, and some general guidelines about the format of the quizzes that may be conducted here.
+$Welcome to our quizzing server!
+$These are some rules for the server as a whole, and some general guidelines about the format of the quizzes that may be conducted here.
 Do note that these rules are flexible and subject to change for each quiz. In such cases, the specific rules will be explained by the QM.
 
 1. Mute yourself on the bounce voice channel as a rule. Unmute yourself only when you wish to speak to the QM. Alternatively, use push to talk.
@@ -10,4 +10,19 @@ Do note that these rules are flexible and subject to change for each quiz. In su
 6. Voice channels for team discussions are provided to discuss written rounds. All questions and hints will be given in the bounce channel by the QM.
 
 
-If you cannot see the rest of the channels, you haven't been approved yet. This process might take a while, please be patient.
+$THE HONOUR CODE:
+$Googling, reverse image searches, shazam, and other means of looking up answers via the internet or print media is looked down upon. A lot of work goes into preparing these sets and such forms of malpractice can ruin the experience for everyone.
+These quizzes are not set with professional quizzing in mind. They are meant to entertain and engage quizzers during lockdown. No prizes, no resgistration fee, and a casual atmosphere is intentional and this is only meant to have some fun quizzing 
+By choosing to remain in this server you agree to not indulge in any unfair means, to take part in the quiz in good faith, and not ruin the experience for the others.
+
+$Free speech is mutual. $You are free to behave as you please and others are free to point it out and avoid you. Anyone causing disturbances to the group via using nefarious means during the quiz, hate speech, personal attacks (if brought to the attention of the moderators), trolling or any other actions that affect the group atmosphere will be removed at admin discretion.
+Addendum to that, constructive criticism is always welcome, but anyone acting high and mighty, being overly critical of any question, hurling abuse, bad mouthing the QM, members of the moderation team or other participants within the group or on public fora will be summarily removed. Fact checks are accepted, but that doesn't give you the right to be rude.
+
+
+$PRIVACY POLICY:
+$If you have provided contact information to a moderator  is collected only to establish uniqueness of identity. We do not publish your contact information anywhere and we back up your data in a secure server and purge your responses from Google every 2 hours.
+We will never spam you with promotions and the like. In fact, you will not hear from the organisers outisde of WhatsApp and Discord.
+
+
+$If you cannot see the rest of the channels, you haven't been approved yet. $This process might take a while, please be patient.
+If There is a message below this, you need not worry about this bit.
