@@ -35,7 +35,7 @@ class GlobalChannel(commands.Converter):
                     raise commands.BadArgument(f'Could not find a channel by ID {argument!r}.')
                 return channel
 
-class MeOnly(commands.Cog, name="Bot owner specific commands"):
+class MeOnly(commands.Cog, name="Bot owner specific"):
     def __init__(self, client):
         self.client = client
         self.AUTOAPPROVE = {}
