@@ -196,7 +196,10 @@ class Utilities(commands.Cog):
                         except discord.Forbidden:
                             await ctx.send(content=f"Cannot remove role {role.mention}. Attempting to remove other roles...", delete_after=30.0)
                             continue
-
+        if approved := discord.utils.get(ctx.guild.roles, name="Approved"): # For use in my server, and others if need be
+            for member in members:
+                await member.add_roles(approved)
+                await asyncio.sleep(1)
         await ctx.send('Roles removed successfully')
 
     @purgeroles.error
