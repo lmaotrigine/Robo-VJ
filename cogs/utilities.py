@@ -2,6 +2,7 @@
 Utitlities cog for Discord bot
 """
 import json
+import datetime
 import asyncpg
 import asyncio
 import re
@@ -226,13 +227,42 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
             if not discord.utils.get(ctx.guild.roles, name="Approved"):
                 await ctx.send("Create role named 'Approved' and try again.")
                 return
+            if discord.utils.get(member.roles, name="Approved"):
+                await ctx.send(f"{member.mention} is already approved.", delete_after=15.0)
+                await ctx.message.delete()
+                return
             try:
                 await member.add_roles(discord.utils.get(ctx.guild.roles, name="Approved"))
             except discord.Forbidden:
-                await ctx.send(f"I do not have permissions to approve members in `{reaction.message.guild.name}`. Make sure I have a role higher up than `Approved`")
+                await ctx.send(f"I do not have permissions to approve members in `{ctx.message.guild.name}`. Make sure I have a role higher up than `Approved`")
                 return
             await ctx.message.delete()
-            await ctx.guild.system_channel.send(f"{member.mention} has been approved.")
+            embed = discord.Embed(title=f"Approved {member}", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
+            embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
+            embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+            await ctx.guild.system_channel.send(embed=embed)
+
+    @commands.command(hidden=True)
+    @commands.guild_only()
+    async def unapprove(self, ctx, member: discord.Member):
+        """Revokes approval for a member"""
+        if not ctx.author == ctx.guild.owner:
+            return
+        if not discord.utils.get(member.roles, name="Approved"):
+            await ctx.send(f"{member.mention} has not been approved.", delete_after=15.0)
+            await ctx.message.delete()
+            return
+        try:
+            await member.remove_roles(discord.utils.get(member.roles, name="Approved"))
+        except discord.Forbidden:
+            await ctx.send("I do not have permissions to remove the `Approved` role. Does this member have higher roles than me?")
+            return
+        await ctx.message.delete()
+        embed=discord.Embed(title=f"Revoked approval for {member}.", colour=0xFF0000, timestamp=datetime.datetime.utcnow())
+        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/user/{ctx.author.id}")
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        await ctx.guild.system_channel.send(embed=embed)
+
 
     @commands.command(hidden=True)
     @commands.guild_only()
