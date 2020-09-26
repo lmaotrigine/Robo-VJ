@@ -15,6 +15,7 @@ import sys
 from collections import Counter, deque, defaultdict
 from cogs.utils.config import Config
 import logging
+import traceback
 
 __version__ = "1.3.0"
 __author__ = "Varun J"
