@@ -36,10 +36,14 @@ class Music(commands.Cog):
             # left channel
             text_channel = member.guild.get_channel(mapping[before.channel.id])
             await text_channel.set_permissions(member, read_messages=None)
+            if DJ := discord.utils.get(member.roles, name='DJ'):
+                await member.remove_roles(DJ)
         elif self.is_in_voice(after, records) and self.is_outside_voice(before, records):
             # joined voice
             text_channel = member.guild.get_channel(mapping[after.channel.id])
             await text_channel.set_permissions(member, read_messages=True)
+            if DJ := discord.utils.get(member.guild.roles, name='DJ'):
+                await member.add_roles(DJ)
 
     @commands.command()
     @commands.guild_only()
