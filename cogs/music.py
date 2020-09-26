@@ -12,7 +12,7 @@ class Music(commands.Cog):
     def is_in_voice(self, state, records):
         return state.channel is not None and state.channel.id in [record['voice_id'] for record in records]
 
-    def in_outside_voice(self, state, records):
+    def is_outside_voice(self, state, records):
         return state.channel is None or state.channel.id not in [record['voice_id'] for record in records]
 
     @tasks.loop(count=1)
@@ -29,16 +29,16 @@ class Music(commands.Cog):
     async def on_voice_state_update(self, member, before, after):
         if member.guild.id not in self.guilds:
             return
-        records = await self.client.db.fetch("SELECT voice_id, text_id FROM music WHERE guild_id = $!", member.guild.id)
+        records = await self.client.db.fetch("SELECT voice_id, text_id FROM music WHERE guild_id = $1", member.guild.id)
         mapping = dict((record['voice_id'], record['text_id']) for record in records)
 
         if self.is_in_voice(before, records) and self.is_outside_voice(after, records):
             # left channel
-            text_channel = await member.guild.get_channel(mapping[before.channel.id])
+            text_channel = member.guild.get_channel(mapping[before.channel.id])
             await text_channel.set_permissions(member, read_messages=None)
         elif self.is_in_voice(after, records) and self.is_outside_voice(before, records):
             # joined voice
-            test_channel = await member.guild.get_channel(mapping[after.channel.id])
+            text_channel = member.guild.get_channel(mapping[after.channel.id])
             await text_channel.set_permissions(member, read_messages=True)
 
     @commands.command()
