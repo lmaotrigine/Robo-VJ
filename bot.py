@@ -11,13 +11,17 @@ from dotenv import load_dotenv
 import asyncpg
 import discord
 from discord.ext import commands, tasks
-
+import sys
+from collections import Counter, deque, defaultdict
+from cogs.utils.config import Config
+import logging
 
 __version__ = "1.3.0"
 __author__ = "Varun J"
 
 RUDE_PPL = {}
 
+log = logging.getLogger(__name__)
 
 load_dotenv()
 TOKEN = os.getenv('SCOREKEEPER_TOKEN')
@@ -76,7 +80,89 @@ async def close_db():
     await client.session.close()
 
 # initialise client
-client = commands.Bot(command_prefix=get_prefix, status=discord.Status.dnd, activity=discord.Activity(
+class RoboVJ(commands.Bot):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.blacklist = Config('blacklist.json')
+        self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
+        self._auto_spam_count = Counter()
+        self.session = aiohttp.ClientSession(loop=self.loop)
+
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.NoPrivateMessage):
+            await ctx.author.send('This command cannot be used in private messages.')
+        elif isinstance(error, commands.DisabledCommand):
+            await ctx.author.send('Sorry. This command is disabled and cannot be used.')
+        elif isinstance(error, commands.CommandInvokeError):
+            original = error.original
+            if not isinstance(original, discord.HTTPException):
+                print(f'In {ctx.command.qualified_name}:', file=sys.stderr)
+                traceback.print_tb(original.__traceback__)
+                print(f'{original.__class__.__name__}: {original}', file=sys.stderr)
+        elif isinstance(error, commands.ArgumentParsingError):
+            await ctx.send(error)
+
+    async def add_to_blacklist(self, object_id):
+        await self.blacklist.put(object_id, True)
+
+    async def remove_from_blacklist(self, object_id):
+        try:
+            await self.blacklist.remove(object_id)
+        except KeyError:
+            pass
+    @discord.utils.cached_property
+    def stats_webhook(self):
+        wh_url = "https://discordapp.com/api/webhooks/759357220022124604/qs9KdS8X0xaENc1SjraEgXgx0B6fusuGg2WFiXDtBkWX-OGfGEyeeM4wwiVQglV6W8LB"
+        hook = discord.Webhook.from_url(wh_url, adapter=discord.AsyncWebhookAdapter(self.session))
+        return hook
+
+    def log_spammer(self, ctx, message, retry_after, *, autoblock=False):
+        guild_name = getattr(ctx.guild, 'name', 'No Guild (DMs)')
+        guild_id = getattr(ctx.guild, 'id', None)
+        fmt = 'User %s (ID %s) in guild %r (ID %s) spamming, retry_after: %.2fs'
+        log.warning(fmt, message.author, message.author.id, guild_name, guild_id, retry_after)
+        if not autoblock:
+            return
+
+        wh = self.stats_webhook
+        embed = discord.Embed(title='Auto-blocked Member', colour=0xDDA453)
+        embed.add_field(name='Member', value=f'{message.author} (ID: {message.author.id})', inline=False)
+        embed.add_field(name='Guild Info', value=f'{guild_name} (ID: {guild_id})', inline=False)
+        embed.add_field(name='Channel Info', value=f'{message.channel} (ID: {message.channel.id}', inline=False)
+        embed.timestamp = datetime.datetime.utcnow()
+        return wh.send(embed=embed)
+
+    async def process_commands(self, message):
+        ctx = await self.get_context(message)
+        
+        if ctx.command is None:
+            return
+
+        if ctx.author.id in self.blacklist:
+            return
+
+        if ctx.guild is not None and ctx.guild.id in self.blacklist:
+            return
+
+        bucket = self.spam_control.get_bucket(message)
+        current = message.created_at.replace(tzinfo=datetime.timezone.utc).timestamp()
+        retry_after = bucket.update_rate_limit(current)
+        author_id = message.author.id
+        if retry_after and author_id != self.owner_id:
+            self._auto_spam_count[author_id] += 1
+            if self._auto_spam_count[author_id] >= 5:
+                await self.add_to_blacklist(author_id)
+                del self._auto_spam_count[author_id]
+                await self.log_spammer(ctx, message, retry_after, autoblock=True)
+            else:
+                self.log_spammer(ctx, message, retry_after)
+            return
+        else:
+            self._auto_spam_count.pop(author_id, None)
+
+        await self.invoke(ctx)
+
+client = RoboVJ(command_prefix=get_prefix, status=discord.Status.dnd, activity=discord.Activity(
     name=f"!help", type=discord.ActivityType.listening), owner_id=411166117084528640,
     #help_command=EmbedHelpCommand(dm_help=None),
     help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
@@ -95,7 +181,6 @@ async def startup():
     print(f"Logged in as: {client.user}\nID: {client.user.id}")
     print("----------------")
 
-    client.session = aiohttp.ClientSession(loop=client.loop)
     client.owner = client.get_user(client.owner_id)
     data = await client.db.fetch("SELECT * FROM servers")
     for record in data:
@@ -185,6 +270,8 @@ async def hello(ctx):
         await ctx.send("Moshi Moshi from Rasputin chan", file=discord.File('assets/Rasputin.jpeg'))
     elif ctx.author.id == 758721255477477376: # Gijo
         await ctx.send("All hail The Homie, Claimer of Ass!")
+    elif ctx.author.id == 758715042609889322: # Vishaan
+        await ctx.send("Hellu ya fookin drug-addled delinquent", file=discord.File('assets/Vishaan.gif'))
     else:
         greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!"])
         owner = client.get_user(client.owner_id)
