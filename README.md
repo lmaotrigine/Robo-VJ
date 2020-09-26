@@ -10,6 +10,8 @@ $ sudo apt update
 $ sudo apt install python3.8
 ```
 2. Install dependencies using `$ python3.8 -m pip install -r requirements.txt`
+3. `user@host:~$virtualenv venv`
+4. `user@host:~$source venv/bin/activate`
 3. `user@host:~$git clone https://github.com/bowtiesarecool26/Robo-VJ.git`
 4. `user@host:~$vi Robo-VJ/.env` and write the following, then Save-Exit
   ```
