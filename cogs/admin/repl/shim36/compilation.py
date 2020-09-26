@@ -18,9 +18,9 @@ import textwrap
 
 import import_expression
 
-from jishaku.functools import AsyncSender
-from jishaku.repl.scope import Scope
-from jishaku.repl.walkers import KeywordTransformer
+from admin.functools import AsyncSender
+from admin.repl.scope import Scope
+from admin.repl.walkers import KeywordTransformer
 
 CORO_CODE = """
 async def _repl_coroutine({{0}}):
@@ -32,9 +32,9 @@ async def _repl_coroutine({{0}}):
     from discord.ext import commands
 
     try:
-        import jishaku
+        import admin
     except ImportError:
-        jishaku = None  # keep working even if in panic recovery mode
+        admin = None  # keep working even if in panic recovery mode
 
     try:
         pass

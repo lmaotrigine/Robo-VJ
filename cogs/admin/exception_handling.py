@@ -19,7 +19,7 @@ import typing
 import discord
 from discord.ext import commands
 
-from jishaku.flags import JISHAKU_NO_DM_TRACEBACK
+from admin.flags import JISHAKU_NO_DM_TRACEBACK
 
 
 async def send_traceback(destination: discord.abc.Messageable, verbosity: int, *exc_info):

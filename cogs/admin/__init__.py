@@ -12,8 +12,8 @@ A discord.py extension including useful tools for bot development and debugging.
 """
 
 # pylint: disable=wildcard-import
-from jishaku.cog import *  # noqa: F401
-from jishaku.meta import *  # noqa: F401
+from admin.cog import *  # noqa: F401
+from admin.meta import *  # noqa: F401
 
 __all__ = (
     'Jishaku',

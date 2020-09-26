@@ -27,16 +27,16 @@ import aiohttp
 import discord
 from discord.ext import commands
 
-from jishaku.codeblocks import Codeblock, codeblock_converter
-from jishaku.exception_handling import ReplResponseReactor
-from jishaku.flags import JISHAKU_RETAIN, SCOPE_PREFIX
-from jishaku.functools import AsyncSender
-from jishaku.models import copy_context_with
-from jishaku.modules import ExtensionConverter
-from jishaku.paginators import PaginatorInterface, WrappedFilePaginator, WrappedPaginator
-from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, get_var_dict_from_ctx
-from jishaku.shell import ShellReader
-from jishaku.voice import BasicYouTubeDLSource, connected_check, playing_check, vc_check, youtube_dl
+from admin.codeblocks import Codeblock, codeblock_converter
+from admin.exception_handling import ReplResponseReactor
+from admin.flags import JISHAKU_RETAIN, SCOPE_PREFIX
+from admin.functools import AsyncSender
+from admin.models import copy_context_with
+from admin.modules import ExtensionConverter
+from admin.paginators import PaginatorInterface, WrappedFilePaginator, WrappedPaginator
+from admin.repl import AsyncCodeExecutor, Scope, all_inspections, get_var_dict_from_ctx
+from admin.shell import ShellReader
+from admin.voice import BasicYouTubeDLSource, connected_check, playing_check, vc_check, youtube_dl
 
 __all__ = (
     "JishakuBase",

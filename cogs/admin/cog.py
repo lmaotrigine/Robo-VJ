@@ -17,11 +17,11 @@ import discord
 import humanize
 from discord.ext import commands
 
-from jishaku.cog_base import JishakuBase
-from jishaku.flags import JISHAKU_HIDE
-from jishaku.meta import __version__
-from jishaku.metacog import GroupCogMeta
-from jishaku.modules import package_version
+from admin.cog_base import JishakuBase
+from admin.flags import JISHAKU_HIDE
+from admin.meta import __version__
+from admin.metacog import GroupCogMeta
+from admin.modules import package_version
 
 try:
     import psutil
