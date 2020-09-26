@@ -29,7 +29,7 @@ class Music(commands.Cog):
     async def on_voice_state_update(self, member, before, after):
         if member.guild.id not in self.guilds:
             return
-        records = self.client.db.fetch("SELECT voice_id, text_id FROM music WHERE guild_id = $!", member.guild.id)
+        records = await self.client.db.fetch("SELECT voice_id, text_id FROM music WHERE guild_id = $!", member.guild.id)
         mapping = dict((record['voice_id'], record['text_id']) for record in records)
 
         if self.is_in_voice(before, records) and self.is_outside_voice(after, records):
@@ -56,6 +56,7 @@ class Music(commands.Cog):
                 await self.client.db.execute("UPDATE music SET voice_id = $1 WHERE text_id = $2 AND guild_id = $3", voice.id, text.id, ctx.guild.id)
             else:
                 await self.client.db.execute("INSERT INTO music (guild_id, voice_id, text_id) VALUES ($1, $2, $3)", ctx.guild.id, voice.id, text.id)
+                self.guilds.add(ctx.guild.id)
         await self.client.db.release(connection)
         await ctx.send(f"Mapped {voice.mention} with {text.mention}. Make sure to set permissions for {text.mention} accordingly.")
 
