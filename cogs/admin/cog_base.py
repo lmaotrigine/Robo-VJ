@@ -51,7 +51,7 @@ CommandTask = collections.namedtuple("CommandTask", "index ctx task")
 
 class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
     """
-    The cog that includes Jishaku's Discord-facing default functionality.
+    The cog that includes Discord-facing default functionality.
     """
 
     load_time = datetime.datetime.now()
@@ -124,7 +124,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         """
 
         if not await ctx.bot.is_owner(ctx.author):
-            raise commands.NotOwner("You must own this bot to use Jishaku.")
+            raise commands.NotOwner("You must own this bot to use these commands.")
         return True
 
     # pylint: disable=no-member
@@ -132,32 +132,32 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
     @commands.command(name="hide")
     async def jsk_hide(self, ctx: commands.Context):
         """
-        Hides Jishaku from the help command.
+        Hides this cog from the help command.
         """
 
         if self.jsk.hidden:
-            return await ctx.send("Jishaku is already hidden.")
+            return await ctx.send("The cog is already hidden.")
 
         self.jsk.hidden = True
-        await ctx.send("Jishaku is now hidden.")
+        await ctx.send("The cog is now hidden.")
 
     @commands.command(name="show")
     async def jsk_show(self, ctx: commands.Context):
         """
-        Shows Jishaku in the help command.
+        Shows the cog in the help command.
         """
 
         if not self.jsk.hidden:
-            return await ctx.send("Jishaku is already visible.")
+            return await ctx.send("The is already visible.")
 
         self.jsk.hidden = False
-        await ctx.send("Jishaku is now visible.")
+        await ctx.send("The cog is now visible.")
     # pylint: enable=no-member
 
     @commands.command(name="tasks")
     async def jsk_tasks(self, ctx: commands.Context):
         """
-        Shows the currently running jishaku tasks.
+        Shows the currently running utils tasks.
         """
 
         if not self.tasks:
@@ -407,7 +407,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         """
         Download and display a text file from the internet.
 
-        This command is similar to jsk cat, but accepts a URL.
+        This command is similar to utils cat, but accepts a URL.
         """
 
         # remove embed maskers if present
