@@ -9,11 +9,12 @@ $ sudo add-apt-repository ppa:deadsnakes/ppa
 $ sudo apt update
 $ sudo apt install python3.8
 ```
-2. Install dependencies using `$ python3.8 -m pip install -r requirements.txt`
-3. `user@host:~$virtualenv venv`
-4. `user@host:~$source venv/bin/activate`
-3. `user@host:~$git clone https://github.com/bowtiesarecool26/Robo-VJ.git`
-4. `user@host:~$vi Robo-VJ/.env` and write the following, then Save-Exit
+2. `$ python3.8 -m pip install --user -U virtualenv`
+3. `user@host:~$virtualenv modmail_env`
+4. `user@host:~$source modmail_env/bin/activate`
+5. `user@host:~$git clone https://github.com/bowtiesarecool26/Modmail.git`
+6. `user@host:~$pip install -r requirements.txt`
+4. `user@host:~$vi Modmail/.env` and write the following, then Save-Exit
   ```
   # .env
   SCOREKEEPER_TOKEN=<bot token>
