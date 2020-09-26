@@ -18,9 +18,9 @@ import textwrap
 
 import import_expression
 
-from admin.functools import AsyncSender
-from admin.repl.scope import Scope
-from admin.repl.walkers import KeywordTransformer
+from jishaku.functools import AsyncSender
+from jishaku.repl.scope import Scope
+from jishaku.repl.walkers import KeywordTransformer
 
 CORO_CODE = """
 async def _repl_coroutine({{0}}):

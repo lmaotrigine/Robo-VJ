@@ -18,7 +18,7 @@ import re
 import discord
 from discord.ext import commands
 
-from admin.hljs import get_language
+from jishaku.hljs import get_language
 
 __all__ = ('EmojiSettings', 'PaginatorInterface', 'PaginatorEmbedInterface',
            'WrappedPaginator', 'FilePaginator')

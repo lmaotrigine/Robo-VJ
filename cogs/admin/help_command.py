@@ -13,7 +13,7 @@ HelpCommand subclasses with jishaku features
 
 from discord.ext import commands
 
-from admin.paginators import PaginatorEmbedInterface, PaginatorInterface
+from jishaku.paginators import PaginatorEmbedInterface, PaginatorInterface
 
 
 class DefaultPaginatorHelp(commands.DefaultHelpCommand):
