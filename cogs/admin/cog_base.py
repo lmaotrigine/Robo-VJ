@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 
 """
-jishaku.cog_base
+admin.cog_base
 ~~~~~~~~~~~~~~~~~
 
-The Jishaku cog base, which contains most of the actual functionality of Jishaku.
-
-:copyright: (c) 2020 Devon (Gorialis) R
-:license: MIT, see LICENSE for more details.
+The admin cog base, which contains most of the actual functionality.
 
 """
 
@@ -148,7 +145,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         """
 
         if not self.jsk.hidden:
-            return await ctx.send("The is already visible.")
+            return await ctx.send("The cog is already visible.")
 
         self.jsk.hidden = False
         await ctx.send("The cog is now visible.")

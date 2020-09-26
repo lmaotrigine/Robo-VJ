@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-jishaku.cog
+admin.cog
 ~~~~~~~~~~~
 
 The Jishaku debugging and diagnostics cog implementation.
