@@ -45,6 +45,13 @@ class Music(commands.Cog):
             if DJ := discord.utils.get(member.guild.roles, name='DJ'):
                 await member.add_roles(DJ)
 
+        elif after.channel != before.channel and self.is_in_voice(after, records) and self.is_in_voice(before, records):
+            # exceptional case where member moves between music channels directly
+            before_channel = member.guild.get_channel(mapping[before.channel.id])
+            after_channel = member.guild.get_channel(mapping[after.channel.id])
+            await before_channel.set_permissions(member, read_messages=None)
+            await after_channel.set_permissions(member, read_messages=True)
+
     @commands.command()
     @commands.guild_only()
     @commands.check(lambda x: x.author == x.guild.owner)
