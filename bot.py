@@ -20,8 +20,6 @@ import traceback
 __version__ = "1.3.0"
 __author__ = "Varun J"
 
-RUDE_PPL = {}
-
 log = logging.getLogger(__name__)
 
 load_dotenv()
@@ -335,18 +333,6 @@ async def info(ctx):
     embed.add_field(name="Library", value="[discord.py](https://github.com/Rapptz/discord.py)")
     await ctx.send(embed=embed)
 
-
-# For the invariably rude youth of today
-@client.command(hidden=True, aliases=["fuckoff"])
-@commands.guild_only()
-async def fuckyou(ctx):
-    await ctx.message.delete()
-    msg = await ctx.send(f"That's rude {ctx.author.mention}")
-    RUDE_PPL[ctx.author.id] = RUDE_PPL.get(ctx.author.id, 0) + 1
-    if RUDE_PPL[ctx.author.id] >= 3:
-        await msg.delete()
-        await ctx.send(f"{ctx.author.mention} has been banned for rudeness to moderator")
-        await ctx.author.ban(reason="Abusing bot")
 
 
 # Get things rolling
