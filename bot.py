@@ -102,6 +102,9 @@ class RoboVJ(commands.Bot):
                 print(f'{original.__class__.__name__}: {original}', file=sys.stderr)
         elif isinstance(error, commands.ArgumentParsingError):
             await ctx.send(error)
+        else:
+            traceback.print_tb(error.__traceback__)
+            print(f'{error.__class__.__name__}: {error}', file=sys.stderr)
 
     async def add_to_blacklist(self, object_id):
         await self.blacklist.put(object_id, True)
@@ -167,7 +170,7 @@ client = RoboVJ(command_prefix=get_prefix, status=discord.Status.dnd, activity=d
     name=f"!help", type=discord.ActivityType.listening), owner_id=411166117084528640,
     #help_command=EmbedHelpCommand(dm_help=None),
     help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
-    case_insensitive=True)
+    case_insensitive=True, intents=discord.Intents().all())
 client.version = __version__
 client.prefixes = {}
 client.qchannels = {}
