@@ -168,7 +168,7 @@ client = RoboVJ(command_prefix=get_prefix, status=discord.Status.dnd, activity=d
     name=f"!help", type=discord.ActivityType.listening), owner_id=411166117084528640,
     #help_command=EmbedHelpCommand(dm_help=None),
     help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
-    case_insensitive=True, intents=discord.Intents().all())
+    case_insensitive=True, intents=discord.Intents.all())
 client.version = __version__
 client.prefixes = {}
 client.qchannels = {}
