@@ -101,7 +101,8 @@ class RoboVJ(commands.Bot):
         elif isinstance(error, commands.ArgumentParsingError):
             await ctx.send(error)
         else:
-            raise error
+            print("Ignoring exception in command {}:".format(ctx.command), file=sys.stderr)
+            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
     async def add_to_blacklist(self, object_id):
         await self.blacklist.put(object_id, True)
