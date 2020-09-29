@@ -272,7 +272,7 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
             msg = await ctx.send(f"Type `{ctx.prefix}confirm` to confirm purging the server.\nEnter `{ctx.prefix}cancel` to cancel.")
             self.guild_state[ctx.guild.id] = ("purge", msg)
 
-    @commands.command(hidden=True)
+    @commands.command()
     @commands.guild_only()
     async def qchannel(self, ctx):
         if not ctx.author == ctx.guild.owner:
@@ -291,7 +291,7 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
         await self.client.db.release(connection)
 
 
-    @commands.command(hidden=True)
+    @commands.command()
     @commands.guild_only()
     async def pchannel(self, ctx):
         if not ctx.author == ctx.guild.owner:
