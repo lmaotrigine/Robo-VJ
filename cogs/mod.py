@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands, tasks
 import datetime
 import asyncpg
+from datetime import timezone
 
 # This prevents staff members from being punished
 class Sinner(commands.Converter):
@@ -58,13 +59,13 @@ async def mute(ctx, user, reason):
 
 def get_time(amount, unit):
     if unit =='d':
-        return datetime.datetime.utcnow() + datetime.timedelta(days=amount)
+        return datetime.datetime.now(timezone.utc) + datetime.timedelta(days=amount)
     if unit == 's':
-        return datetime.datetime.utcnow() + datetime.timedelta(seconds=amount)
+        return datetime.datetime.now(timezone.utc) + datetime.timedelta(seconds=amount)
     if unit == 'm':
-        return datetime.datetime.utcnow() + datetime.timedelta(minutes=amount)
+        return datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes=amount)
     if unit == 'h':
-        return datetime.datetime.utcnow() + datetime.timedelta(hours=amount)
+        return datetime.datetime.now(timezone.utc) + datetime.timedelta(hours=amount)
 
 def check_mod_perms(ctx):
     """
@@ -143,24 +144,28 @@ class Moderation(commands.Cog):
             else:
                 await self.client.db.execute("UPDATE mutes SET mute_until = $1 WHERE user_id = $2 AND guild_id = $3", until, user.id, ctx.guild.id)
         await mute(ctx, user, reason=reason)
-        await ctx.send(f"Muted {user.mention} until {until}.")
+        await ctx.send(f"Muted {user.mention} for {time} (until {str(until).split('.')[0][:-3]} UTC).")
 
     @tasks.loop(seconds=60)
     async def check_mute_and_block(self):
         data = await self.client.db.fetch("SELECT * FROM mutes")
         for record in data:
-            if datetime.datetime.utcnow() >= record['mute_until']:
+            if datetime.datetime.now(timezone.utc) >= record['mute_until']:
                 guild = self.client.get_guild(record['guild_id'])
                 member = guild.get_member(record['user_id'])
                 await member.remove_roles(discord.utils.get(guild.roles, name='Muted'))
+                async with self.client.db.acquire() as conn:
+                    await self.client.db.execute("DELETE FROM mutes WHERE guild_id = $1 AND user_id = $2", guild.id, member.id)
 
         block_data = await self.client.db.fetch("SELECT * FROM blocks")
         for record in block_data:
-            if datetime.datetime.utcnow() >= record['block_until']:
+            if datetime.datetime.now(timezone.utc) >= record['block_until']:
                 guild = self.client.get_guild(record['guild_id'])
                 channel = guild.get_channel(record['channel_id'])
                 member = guild.get_member(record['user_id'])
                 await channel.set_permissions(member, send_messages=None)
+                async with self.client.db.acquire() as conn:
+                    await self.client.db.execute("DELETE FROM blocks WHERE guild_id = $1 AND user_id = $2 AND channel_id = $3", guild.id, member.id, channel.id)
 
     @check_mute_and_block.before_loop
     async def before_checking_stuff(self):
@@ -208,8 +213,9 @@ class Moderation(commands.Cog):
     @commands.check(check_mod_perms)
     @commands.guild_only()
     async def tempblock(self, ctx, user: Sinner=None):
+        """Temporarily blocks a user from sending messages to a channel"""
         if not time or not user: # Missing arguments (lazy error handling)
-            return await ctx.send(f"Incorrect usage of command. Use `{ctx.prefix}help tempmute` for more information", delete_after=30.0)
+            return await ctx.send(f"Incorrect usage of command. Use `{ctx.prefix}help tempblock` for more information", delete_after=30.0)
         if time[-1].lower() not in ['h', 'm', 's', 'd']:
             return await ctx.send("Invalid time format", delete_after=30.0)
         try:
@@ -220,11 +226,11 @@ class Moderation(commands.Cog):
         async with self.client.db.acquire() as conn:
             test = await self.client.db.fetchrow("SELECT block_until FROM blocks WHERE user_id = $1 AND guild_id = $2 AND channel_id = $3", user.id, ctx.guild.id, ctx.channel.id)
             if not test:
-                await self.client.db.execute("INSERT INTO mutes (user_id, mute_until, guild_id, channel_id) VALUES ($1, $2, $3, $4)", user.id, until, ctx.guild.id, ctx.channel.id)
+                await self.client.db.execute("INSERT INTO blocks (user_id, mute_until, guild_id, channel_id) VALUES ($1, $2, $3, $4)", user.id, until, ctx.guild.id, ctx.channel.id)
             else:
-                await self.client.db.execute("UPDATE mutes SET mute_until = $1 WHERE user_id = $2 AND guild_id = $3 AND channel_id = $4", until, user.id, ctx.guild.id, ctx.channel.id)
+                await self.client.db.execute("UPDATE blocks SET block_until = $1 WHERE user_id = $2 AND guild_id = $3 AND channel_id = $4", until, user.id, ctx.guild.id, ctx.channel.id)
         await ctx.channel.set_permissions(user, send_messages=False)
-        await ctx.send(f"Blocked {user.mention} from this channel until {until}.")
+        await ctx.send(f"Blocked {user.mention} from this channel for {time} (until {str(until).split('.')[0][:-3]}).")
 
     @commands.command()
     @commands.check(check_mod_perms)
@@ -242,9 +248,10 @@ class Moderation(commands.Cog):
     @commands.check(check_mod_perms)
     @commands.guild_only()
     async def warn(self, ctx, user: Sinner=None,*, reason=None):
+        """Issues a warning to a user. Current status can be accessed by warnstats"""
         if not user:
             return await ctx.send("You must specify a user")
-        current = await self.client.db.fetchrow("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
+        current = await self.client.db.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
         async with self.client.db.acquire() as conn:
             if not current:
                 current = 1
@@ -259,13 +266,24 @@ class Moderation(commands.Cog):
         await ctx.send(f"{user.mention} has been warned. Total warns: {current}")
 
     @commands.command()
+    @commands.guild_only()
+    async def warnstats(self, ctx, user: discord.Member=None):
+        """To check how many warns you have. If you are an admin, you can specify a user."""
+        if not ctx.author.guild_permissions.administrator or not user:
+            user = ctx.author
+        current = await self.client.db.fetchval("SELECT num FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
+        if current is None:
+            current = 0
+        await ctx.send(f"Currently, {user.mention} has {current} {'warn' if current == 1 else 'warns'}.")
+        
+    @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
     async def unwarn(self, ctx, user: Sinner=None):
         """Removes one warn from a user"""
         if not user:
             return await ctx.send("You must specify a user")
-        current = await self.client.db.fetchrow("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
+        current = await self.client.db.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
         async with self.client.db.acquire() as conn:
             if not current:
                 return await ctx.send(f"{member.mention} has no outstanding warnings")
@@ -285,7 +303,7 @@ class Moderation(commands.Cog):
             return await ctx.send("You must specify a member")
         current = await self.client.db.fetchrow("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
         if not current:
-            return await ctx.send(f"{member.mention} has no outstanding warnings")
+            return await ctx.send(f"{user.mention} has no outstanding warnings")
         async with self.client.db.acquire() as conn:
             await self.client.db.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
         await ctx.send(f"Cleared all warns for {user.mention}")
