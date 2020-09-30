@@ -79,10 +79,10 @@ class Moderation(commands.Cog):
     def __init__(self, client):
         self.client = client
         self.check_mute_and_block.start()
-        
+
     def cog_unload(self):
         self.check_mute_and_block.cancel()
-        
+
     @commands.command(aliases=["banish"])
     @commands.check(check_mod_perms)
     @commands.guild_only()
@@ -161,11 +161,11 @@ class Moderation(commands.Cog):
                 channel = guild.get_channel(record['channel_id'])
                 member = guild.get_member(record['user_id'])
                 await channel.set_permissions(member, send_messages=None)
-    
+
     @check_mute_and_block.before_loop
     async def before_checking_stuff(self):
         await self.client.wait_until_ready()
-        
+
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
@@ -202,7 +202,7 @@ class Moderation(commands.Cog):
             return await ctx.send("You must specify a user")
 
         await ctx.channel.set_permissions(user, send_messages=False) # sets permissions for current channel
-
+        await ctx.send(f"Blocked {user.mention} from this channel indefinitely")
 
     @commands.command()
     @commands.check(check_mod_perms)
@@ -225,7 +225,7 @@ class Moderation(commands.Cog):
                 await self.client.db.execute("UPDATE mutes SET mute_until = $1 WHERE user_id = $2 AND guild_id = $3 AND channel_id = $4", until, user.id, ctx.guild.id, ctx.channel.id)
         await ctx.channel.set_permissions(user, send_messages=False)
         await ctx.send(f"Blocked {user.mention} from this channel until {until}.")
-                
+
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
@@ -236,6 +236,7 @@ class Moderation(commands.Cog):
             return await ctx.send("You must specify a user")
 
         await ctx.set_permissions(user, send_messages=None) # gives back send messages permissions
+        await ctx.send(f"{user.mention} has been unblocked.")
 
     @commands.command()
     @commands.check(check_mod_perms)
@@ -288,7 +289,7 @@ class Moderation(commands.Cog):
         async with self.client.db.acquire() as conn:
             await self.client.db.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
         await ctx.send(f"Cleared all warns for {user.mention}")
-            
+
 
 def setup(client):
     client.add_cog(Moderation(client))
