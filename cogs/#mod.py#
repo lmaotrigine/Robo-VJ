@@ -60,8 +60,6 @@ async def mute(ctx, user, reason):
 def get_time(amount, unit):
     if unit =='d':
         return datetime.datetime.now(timezone.utc) + datetime.timedelta(days=amount)
-    if unit == 's':
-        return datetime.datetime.now(timezone.utc) + datetime.timedelta(seconds=amount)
     if unit == 'm':
         return datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes=amount)
     if unit == 'h':
@@ -130,7 +128,7 @@ class Moderation(commands.Cog):
         """Mutes a user temporarily"""
         if not time or not user: # Missing arguments (lazy error handling)
             return await ctx.send(f"Incorrect usage of command. Use `{ctx.prefix}help tempmute` for more information", delete_after=30.0)
-        if time[-1].lower() not in ['h', 'm', 's', 'd']:
+        if time[-1].lower() not in ['h', 'm', 'd']:
             return await ctx.send("Invalid time format", delete_after=30.0)
         try:
             amount = float(time[:-1])
@@ -146,7 +144,7 @@ class Moderation(commands.Cog):
         await mute(ctx, user, reason=reason)
         await ctx.send(f"Muted {user.mention} for {time} (until {str(until).split('.')[0][:-3]} UTC).")
 
-    @tasks.loop(seconds=1)
+    @tasks.loop(seconds=60)
     async def check_mute_and_block(self):
         data = await self.client.db.fetch("SELECT * FROM mutes")
         for record in data:
