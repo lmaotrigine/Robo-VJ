@@ -8,11 +8,13 @@ Do note that these rules are flexible and subject to change for each quiz. In su
 
 3. Be polite. No NSFW (unless questions so demand), no spamming, no advertising, no bigotry, don't be a fascist.
 
-4. Don't Google please. We operate on trust here, and if you're caught, you will be banned immediately. (We tried implementing a browser lock after creating a clone of the app but not only was it high maintenance, we got a C&D from Discord)
+4. Follow the [Discord Community Guidelines](https://discord.com/guidelines) and [Terms of Service](https://discord.com/terms). Anyone found breaking ToS will be banned immediately.
 
-5. Most quizzes here follow the pounce and bounce format. Pounces are tracked through a bot.
+5. Don't Google please. We operate on trust here, and if you're caught, you will be banned immediately. (We tried implementing a browser lock after creating a clone of the app but not only was it high maintenance, we got a C&D from Discord)
 
-6. Voice channels for team discussions are provided to discuss written rounds. All questions and hints will be given in the bounce channel by the QM.
+6. Most quizzes here follow the pounce and bounce format. Pounces are tracked through a bot.
+
+7. Voice channels for team discussions are provided to discuss written rounds. All questions and hints will be given in the bounce channel by the QM.
 
 
 $THE HONOUR CODE:
@@ -25,10 +27,14 @@ Addendum to that, constructive criticism is always welcome, but anyone acting hi
 
 
 $PRIVACY POLICY:
-$Any information you submit to a moderator in their capacity as such, or through a form created by us is collected only to establish uniqueness of identity, and verify your track record for any history of misconduct. We do not members of the community to get in trouble. We do not publish your contact information anywhere and we back up your data in a secure server and purge your responses from Google every 2 hours. On request, we will provide you a copy of all data we have on you, and you can withdraw consent to collect specific data at any point, provided you understand the conseqeunces of doing so.
+$Any information you submit to a moderator in their capacity as such through any means is collected only to establish uniqueness of identity, and verify your track record for any history of misconduct. We do not want members of the community to get in trouble. We do not publish your contact information anywhere and we back up your data in a secure server and purge your responses from Google every 2 hours. On request, we will provide you a copy of all data we have on you, and you can withdraw consent to collect specific data at any point, provided you understand the conseqeunces of doing so.
 When you leave this server, all of your data will be purged and you might have to wait to be verified again if you wish to rejoin.
 We will never spam you with promotions and the like. In fact, you will not hear from the organisers outisde of WhatsApp and Discord.
-
+$Any presonal information you reveal on the server is at your own risk.
+$The moderation team is not liable for any mishaps resulting from this. We generally advise you to not divulge any personal information to anyone, apart from the Mod team in their official capacity, especially if you are a minor. This includes phone numbers, emails, addresses, etc.
+We are limited in our ability to intervene in these situations as our power does not extend beyond this server. However we do value your safety and we will try to help you as best we can.
+$Punishment system:
+$Depending on the severity of the offence, you will be either warned, kicked, softbanned, or banned. 5 warns will result in an autoban. Offences like spamming, etc. may result in a temporary or permanent mute - either in a channel, or server-wide.
 
 $If you cannot see the rest of the channels, you haven't been approved yet. $This process might take a while, please be patient.
 If There is a message below this, you need not worry about this bit.

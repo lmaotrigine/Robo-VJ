@@ -17,7 +17,7 @@ from cogs.utils.config import Config
 import logging
 import traceback
 
-__version__ = "1.3.0"
+__version__ = "2.0.0-beta"
 __author__ = "Varun J"
 
 log = logging.getLogger(__name__)
