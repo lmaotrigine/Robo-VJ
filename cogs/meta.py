@@ -7,7 +7,7 @@ from .utils import formats, time
 import os, datetime
 from collections import Counter
 import asyncio
-:greenTick::text_channel: :online::idle::dnd::offline::redTick::greyTick:
+
 class FetchedUser(commands.Converter):
     async def convert(self, ctx, argument):
         if not argument.isdigit():
