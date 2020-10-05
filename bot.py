@@ -136,7 +136,7 @@ class RoboVJ(commands.Bot):
 
     async def process_commands(self, message):
         ctx = await self.get_context(message)
-        
+
         if ctx.command is None:
             return
 
@@ -312,8 +312,8 @@ async def support(ctx):
     await ctx.send(embed=embed)
 
 
-@client.command(aliases=["about"])
-async def info(ctx):
+@client.command(name="about")
+async def _info(ctx):
     """Some info about the bot"""
     embed = discord.Embed(colour=discord.Colour(0xFF0000))
     name = client.user.display_name
