@@ -3,6 +3,10 @@ from discord.ext import commands
 import inspect
 import unicodedata
 from typing import Union
+from .utils import formats, time
+import os, datetime
+from collections import Counter
+import asyncio
 
 class FetchedUser(commands.Converter):
     async def convert(self, ctx, argument):
@@ -207,9 +211,20 @@ class Meta(commands.Cog):
             'BANNER': 'Banner'
         }
 
+        def tick(opt, label=None):
+            lookup = {
+                True: '<:greenTick:330090705336664065>',
+                False: '<:redTick:330090723011592193>',
+                None: '<:greyTick:563231201280917524>',
+            }
+            emoji = lookup.get(opt, '<:redTick:330090723011592193>')
+            if label is not None:
+                return f'{emoji}: {label}'
+            return emoji
+
         for feature, label in all_features.items():
             if feature in features:
-                info.append(f'{ctx.tick(True)}: {label}')
+                info.append(f'{tick(True)}: {label}')
 
         if info:
             e.add_field(name='Features', value='\n'.join(info))
