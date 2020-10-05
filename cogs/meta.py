@@ -239,10 +239,10 @@ class Meta(commands.Cog):
             e.add_field(name='Boosts', value=boosts, inline=False)
 
         bots = sum(m.bot for m in guild.members)
-        fmt = f'<:online:316856575413321728> {member_by_status["online"]} ' \
-              f'<:idle:316856575098880002> {member_by_status["idle"]} ' \
-              f'<:dnd:316856574868193281> {member_by_status["dnd"]} ' \
-              f'<:offline:316856575501402112> {member_by_status["offline"]}\n' \
+        fmt = f'<:online:762631155656425473> {member_by_status["online"]} ' \
+              f'<:idle:762631109283807242> {member_by_status["idle"]} ' \
+              f'<:dnd:762631136304168961> {member_by_status["dnd"]} ' \
+              f'<:offline:762631176383889449> {member_by_status["offline"]}\n' \
               f'Total: {guild.member_count} ({formats.plural(bots):bot})'
 
         e.add_field(name='Members', value=fmt, inline=False)
