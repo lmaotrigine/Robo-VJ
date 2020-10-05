@@ -7,7 +7,7 @@ from .utils import formats, time
 import os, datetime
 from collections import Counter
 import asyncio
-
+:greenTick::text_channel: :online::idle::dnd::offline::redTick::greyTick:
 class FetchedUser(commands.Converter):
     async def convert(self, ctx, argument):
         if not argument.isdigit():
@@ -177,8 +177,8 @@ class Meta(commands.Cog):
 
         channel_info = []
         key_to_emoji = {
-            discord.TextChannel: '<:text_channel:586339098172850187>',
-            discord.VoiceChannel: '<:voice_channel:586339098524909604>',
+            discord.TextChannel: '<:text_channel:762631233040941056>',
+            discord.VoiceChannel: '<:voice_channel:762631252595310602>',
         }
         for key, total in totals.items():
             secrets = secret[key]
@@ -213,9 +213,9 @@ class Meta(commands.Cog):
 
         def tick(opt, label=None):
             lookup = {
-                True: '<:greenTick:330090705336664065>',
-                False: '<:redTick:330090723011592193>',
-                None: '<:greyTick:563231201280917524>',
+                True: '<:green_tick:762631000076845066>',
+                False: '<:red_tick:762631054544207893>',
+                None: '<:grey_tick:762631202036776968>',
             }
             emoji = lookup.get(opt, '<:redTick:330090723011592193>')
             if label is not None:
