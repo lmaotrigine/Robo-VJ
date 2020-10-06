@@ -7,6 +7,8 @@ from .utils import formats, time
 import os, datetime
 from collections import Counter
 import asyncio
+import codecs
+import pathlib
 
 class FetchedUser(commands.Converter):
     async def convert(self, ctx, argument):
@@ -83,6 +85,25 @@ class Meta(commands.Cog):
         final_url = f'<{source_url}/blob/{branch}/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'
         await ctx.send(final_url)
 
+    @commands.command(aliases=['size', 'numlines', 'codestats'])
+    async def lines(self, ctx):
+        total = 0
+        file_amount = 0
+        import codecs
+        import os
+        import pathlib
+        for path, subdirs, files in os.walk('.'):
+            for name in files:
+                if name.endswith('.py'):
+                    file_amount += 1
+                    with codecs.open('./' + str(pathlib.PurePath(path, name)), 'r', 'utf-8') as f:
+                        for i, l in enumerate(f):
+                            if l.strip().startswith('#') or len(l.strip()) is 0:  # skip commented lines.
+                                pass
+                            else:
+                                total += 1
+        msg = await ctx.send(f'I am made of {total:,} lines of Python, spread across {file_amount:,} files!')
+        
     @commands.command()
     async def avatar(self, ctx, *, user: Union[discord.Member, FetchedUser] = None):
         """Shows a user's enlarged avatar (if possible)."""
