@@ -280,7 +280,7 @@ async def hello(ctx):
         await ctx.send(f"{greeting} I'm a robot! {owner.name}#{owner.discriminator} made me.")
 
 
-@client.command()
+@client.command(aliases=['join'])
 async def invite(ctx):
     """Get the invite link to add the bot to your server"""
     embed = discord.Embed(title="Click here to add me to your server", colour=discord.Colour(0xFF0000),
@@ -288,6 +288,24 @@ async def invite(ctx):
     embed.set_author(name=client.user.display_name if ctx.guild is None else ctx.guild.me.display_name, icon_url=client.user.avatar_url)
     await ctx.send(embed=embed)
 
+# leave a guild
+@client.command(hidden=True)
+@commands.is_owner()
+async def leave(ctx, guild_id = None):
+    if not await client.is_owner(ctx.author):
+        return
+    if not guild_id:
+        guild = ctx.guild
+    elif not guild_id.isnumeric():
+        return await ctx.send("Enter a valid guild ID", delete_after=30.0)
+
+    if guild_id:
+        guild = client.get_guild(guild_id)
+    if not guild:
+        guild = await client.fetch_guild(guild_id)
+    name = guild.name
+    await guild.leave()
+    await client.owner.send(f"Left '{name}'")
 
 @client.command(hidden=True)
 async def goodbot(ctx):
