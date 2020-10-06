@@ -52,6 +52,8 @@ class Meta(commands.Cog):
         To display the source code of a subcommand you can separate it by
         periods, e.g. utils.py for the py subcommand of the utils command
         or by spaces.
+        This will 404 for anything not directly implemented in discord.py since
+        this is a private repo for now. It is there for the benefit of collaborators is all.
         """
         source_url = 'https://github.com/darthshittious/Robo-VJ'
         branch = 'master'
