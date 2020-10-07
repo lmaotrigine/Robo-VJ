@@ -114,7 +114,7 @@ class Help(commands.Cog, name="Help"):
         self._original_help_command = self.client.help_command
         client.help_command = EmbedHelpCommand(dm_help=None, dm_help_threshold=10)
         client.help_command.cog = self
-
+        
     def cog_unload(self):
         self.client.help_command = self._original_help_command
 
