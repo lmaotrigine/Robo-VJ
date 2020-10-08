@@ -6,6 +6,6 @@ readonly/*
 .idea/
 .env
 assets/*.json
-
+[#]*[#]
 
 restart_from_channel.txt
