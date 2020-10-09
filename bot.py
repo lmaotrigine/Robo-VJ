@@ -182,7 +182,7 @@ async def startup():
     print()
     print(f"Logged in as: {client.user}\nID: {client.user.id}")
     print("----------------")
-
+    
     client.owner = client.get_user(client.owner_id)
     data = await client.db.fetch("SELECT * FROM servers")
     for record in data:
