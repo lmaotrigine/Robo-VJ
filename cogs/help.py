@@ -16,7 +16,7 @@ class EmbedHelpCommand(commands.DefaultHelpCommand):
     COLOUR = discord.Colour.blurple()
 
     def __init__(self, **kwargs):
-        super().__init__(command_attrs={'aliases':['h', '?']}, **kwargs)
+        super().__init__(command_attrs={'aliases' : ['h', '?']}, **kwargs)
 
     def get_ending_note(self):
         return f'''Use {self.clean_prefix}{self.invoked_with} [command] for more info on a command.
