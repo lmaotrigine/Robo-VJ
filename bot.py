@@ -235,11 +235,11 @@ async def on_guild_join(guild):
                 break
     embed = discord.Embed(title="Thanks for adding me to your server! :blush:", colour=discord.Colour.blurple())
     embed.description = f"""Robo VJ was originally made to keep scores during online quizzes, but has since evolved to support moderation commands and some fun here and there.
-    For a full list of commands, use `{pfx}help`.
+For a full list of commands, use `{pfx}help`.
 
-    Some easter egg commands are not included in the help page. Others like the `utils` group have been deliberately hidden because they are reserved for the bot owner.
+Some easter egg commands are not included in the help page. Others like the `utils` group have been deliberately hidden because they are reserved for the bot owner.
 
-    If you have any questions, or need help with the bot, or want to report bugs or request features, [click here](https://discord.gg/rqgRyF8) to join the support server."""
+If you have any questions, or need help with the bot, or want to report bugs or request features, [click here](https://discord.gg/rqgRyF8) to join the support server."""
     embed.set_footer(text=f"Made by {client.owner}", icon_url=client.owner.avatar_url)
     await send_here.send(embed=embed)
 
