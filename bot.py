@@ -182,7 +182,7 @@ async def startup():
     print()
     print(f"Logged in as: {client.user}\nID: {client.user.id}")
     print("----------------")
-    
+
     client.owner = client.get_user(client.owner_id)
     data = await client.db.fetch("SELECT * FROM servers")
     for record in data:
@@ -351,6 +351,9 @@ async def _info(ctx):
     embed.add_field(name="Library", value="[discord.py](https://github.com/Rapptz/discord.py)")
     await ctx.send(embed=embed)
 
+@client.command(name="uptime", hidden=True)
+async def _uptime(ctx):
+    await ctx.send(f"{get_uptime()}")
 
 
 # Get things rolling

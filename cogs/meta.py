@@ -83,7 +83,12 @@ class Meta(commands.Cog):
             filename = src.co_filename
 
         lines, firstlineno = inspect.getsourcelines(src)
-        if not module.startswith('discord'):
+        if module.startswith('jishaku'):
+            # in the utils cog
+            location = module.replace('.', '/') + '.py'
+            source_url = 'https://github.com/darthshittious/jishaku'
+            branch = 'master'
+        elif not module.startswith('discord'):
             # not a built-in command
             location = os.path.relpath(filename).replace('\\', '/')
         else:
