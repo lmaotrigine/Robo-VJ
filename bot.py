@@ -164,7 +164,7 @@ class RoboVJ(commands.Bot):
 
         await self.invoke(ctx)
 
-client = RoboVJ(command_prefix=get_prefix, status=discord.Status.dnd, activity=discord.Activity(
+client = RoboVJ(command_prefix=get_prefix, status=discord.Status.online, activity=discord.Activity(
     name=f"!help", type=discord.ActivityType.listening), owner_id=411166117084528640,
     #help_command=EmbedHelpCommand(dm_help=None),
     help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
