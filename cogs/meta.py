@@ -29,7 +29,7 @@ class Meta(commands.Cog):
         self.bot = bot
         self._original_help_command = self.bot.help_command
         bot.help_command = EmbedHelpCommand(dm_help=None, dm_help_threshold=10)
-        client.help_command.cog = self
+        bot.help_command.cog = self
 
     def cog_unload(self):
         self.bot.help_command = self._original_help_command
