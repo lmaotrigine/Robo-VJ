@@ -111,16 +111,3 @@ Use {self.clean_prefix}{self.invoked_with} [category] for more info on a categor
         await self.get_destination(embed).send(embed=embed)
         if self.get_destination(embed) != self.context.channel:
             await self.context.message.add_reaction('\U0001f4dc')
-
-class Help(commands.Cog, name="Help"):
-    def __init__(self, client):
-        self.client = client
-        self._original_help_command = self.client.help_command
-        client.help_command = EmbedHelpCommand(dm_help=None, dm_help_threshold=10)
-        client.help_command.cog = self
-        
-    def cog_unload(self):
-        self.client.help_command = self._original_help_command
-
-def setup(client):
-    client.add_cog(Help(client))

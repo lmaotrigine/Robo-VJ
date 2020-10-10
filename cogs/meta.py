@@ -9,6 +9,7 @@ from collections import Counter
 import asyncio
 import codecs
 import pathlib
+from .utils.help import EmbedHelpCommand
 
 class FetchedUser(commands.Converter):
     async def convert(self, ctx, argument):
@@ -26,6 +27,12 @@ class Meta(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self._original_help_command = self.bot.help_command
+        bot.help_command = EmbedHelpCommand(dm_help=None, dm_help_threshold=10)
+        client.help_command.cog = self
+
+    def cog_unload(self):
+        self.bot.help_command = self._original_help_command
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
@@ -105,7 +112,7 @@ class Meta(commands.Cog):
                             else:
                                 total += 1
         msg = await ctx.send(f'I am made of {total:,} lines of Python, spread across {file_amount:,} files!')
-        
+
     @commands.command()
     async def avatar(self, ctx, *, user: Union[discord.Member, FetchedUser] = None):
         """Shows a user's enlarged avatar (if possible)."""
