@@ -274,6 +274,10 @@ async def hello(ctx):
         await ctx.send("All hail The Homie, Claimer of Ass!")
     elif ctx.author.id == 758715042609889322: # Vishaan
         await ctx.send("Hellu ya fookin drug-addled delinquent", file=discord.File('assets/Vishaan.gif'))
+    elif ctx.author.id == 585085025305755687: # Rida ew
+        await ctx.send(f"{ctx.author.mention} sup clownass bitch")
+    elif ctx.author.id == 750258404823662613: # Sanyaaaa
+        await ctx.send(f"{ctx.author.mention}", file=discord.File('assets/Saanya.png'))
     else:
         greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!"])
         owner = client.get_user(client.owner_id)
