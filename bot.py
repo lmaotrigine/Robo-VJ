@@ -173,6 +173,7 @@ client.version = __version__
 client.prefixes = {}
 client.qchannels = {}
 client.pchannels = {}
+client.modlogs = {}
 
 @tasks.loop(count=1)
 async def startup():
@@ -189,6 +190,8 @@ async def startup():
         client.prefixes[record['guild_id']] = record['prefix']
         client.qchannels[record['guild_id']] = record['qchannel']
         client.pchannels[record['guild_id']] = record['pchannel']
+        client.modlogs[record['guild_id']] = record['modlog']
+
     print('Data loaded')
 
 
