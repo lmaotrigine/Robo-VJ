@@ -212,7 +212,7 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
-    async def tempblock(self, ctx, user: Sinner=None):
+    async def tempblock(self, ctx, time=None, user: Sinner=None, *, reason=None):
         """Temporarily blocks a user from sending messages to a channel"""
         if not time or not user: # Missing arguments (lazy error handling)
             return await ctx.send(f"Incorrect usage of command. Use `{ctx.prefix}help tempblock` for more information", delete_after=30.0)
