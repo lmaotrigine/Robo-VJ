@@ -161,7 +161,7 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
         guilds.field_names = ["Name", "ID", "Owner", "Owner ID"]
         for guild in self.client.guilds:
             guilds.add_row([guild.name, str(guild.id), f"{guild.owner.name}#{guild.owner.discriminator}", str(guild.owner.id)])
-        results = f"```{guilds```"
+        results = f"```{guilds}```"
         if len(results) > 2000:
             fp = io.BytesIO(results.encode('utf-8'))
             await ctx.send('Too many results...', file=discord.File(fp, 'results.txt'))
