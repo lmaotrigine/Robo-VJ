@@ -56,11 +56,11 @@ class Meta(commands.Cog):
     @commands.command(hidden=True)
     @commands.is_owner()
     async def source(self, ctx, *, command: str = None):
-        """Displays my full source code or for a specific command.
+        """Displays my full source code or for a specific command on GitHub.
         To display the source code of a subcommand you can separate it by
         periods, e.g. utils.py for the py subcommand of the utils command
-        or by spaces. Tge project is nognopen source yet hence this is restricted to 
-        the bot owners."""
+        or by spaces. The project is not open source yet hence this command is
+        restricted to the bot owners."""
         source_url = 'https://github.com/darthshittious/Robo-VJ'
         branch = 'master'
         if command is None:
