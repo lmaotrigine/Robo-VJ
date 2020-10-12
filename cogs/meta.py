@@ -53,15 +53,14 @@ class Meta(commands.Cog):
             return await ctx.send('Output too long to display.')
         await ctx.send(msg)
 
-    @commands.command()
+    @commands.command(hidden=True)
+    @commands.is_owner()
     async def source(self, ctx, *, command: str = None):
         """Displays my full source code or for a specific command.
         To display the source code of a subcommand you can separate it by
         periods, e.g. utils.py for the py subcommand of the utils command
-        or by spaces.
-        This will 404 for anything not directly implemented in discord.py since
-        this is a private repo for now. It is there for the benefit of collaborators is all.
-        """
+        or by spaces. Tge project is nognopen source yet hence this is restricted to 
+        the bot owners."""
         source_url = 'https://github.com/darthshittious/Robo-VJ'
         branch = 'master'
         if command is None:

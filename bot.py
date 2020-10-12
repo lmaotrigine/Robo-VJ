@@ -17,7 +17,7 @@ from cogs.utils.config import Config
 import logging
 import traceback
 
-__version__ = "2.0.0-beta"
+__version__ = "2.2.0"
 __author__ = "Varun J"
 
 log = logging.getLogger(__name__)
@@ -291,7 +291,7 @@ async def hello(ctx):
 async def invite(ctx):
     """Get the invite link to add the bot to your server"""
     embed = discord.Embed(title="Click here to add me to your server", colour=discord.Colour(0xFF0000),
-                          url=f"https://discord.com/api/oauth2/authorize?client_id={client.user.id}&permissions=8&scope=bot")
+                          url=discord.utils.oauth_url(client.user.id, discord.Permissions(administrator=True)))
     embed.set_author(name=client.user.display_name if ctx.guild is None else ctx.guild.me.display_name, icon_url=client.user.avatar_url)
     await ctx.send(embed=embed)
 
@@ -314,7 +314,7 @@ async def leave(ctx, guild_id = None):
     await guild.leave()
     await client.owner.send(f"Left '{name}'")
 
-@client.command(hidden=True)
+@client.command(hidden=True, aliases=["good bot"])
 async def goodbot(ctx):
     """Appreci8 that wun"""
     await ctx.send(f"Thanks {ctx.author.mention}, I try :slight_smile:")
@@ -353,7 +353,7 @@ async def _info(ctx):
     embed.add_field(name="Support", value=f"[Join the support server for announcements and to report issues](https://discord.gg/rqgRyF8)",
                     inline=False)
     embed.add_field(name="Invite",
-                    value="[Click here to add me to your server.](https://discord.com/api/oauth2/authorize?client_id=743900453649252464&permissions=8&scope=bot)",
+                    value=f"[Click here to add me to your server.]({discord.utils.oauth_url(client.user.id, discord.Permissions(administrator=True))})",
                     inline=False)
     embed.add_field(name="Library", value="[discord.py](https://github.com/Rapptz/discord.py)")
     await ctx.send(embed=embed)
