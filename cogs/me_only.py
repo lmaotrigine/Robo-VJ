@@ -157,32 +157,24 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
     async def guildlist(self, ctx):
         if ctx.author.id != 411166117084528640:
             return
-        def from_list(guild_list):
-            guilds = PrettyTable()
-            guilds.field_names = ["Name", "ID", "Owner", "Owner ID"]
-            for guild in guild_list:
-                guilds.add_row([guild.name, str(guild.id), f"{guild.owner.name}#{guild.owner.discriminator}", str(guild.owner.id)])
-            return f"```{guilds}```"
-        def chunks(lst, n):
-            """Yield successive n-sized chunks from lst."""
-            for i in range(0, len(lst), n):
-                yield lst[i:i + n]
-        idx = len(self.client.guilds)
-        msgs = [from_list(self.client.guilds)]
-        while not all([len(msg) < 2000 for msg in msgs]):
-            idx //= 2
-            splits = list(chunks(self.client.guilds, idx))
-            msgs = [from_list(guildlist) for guildlist in splits]
-        for msg in msgs:
-            await ctx.send(msg)
-            await asyncio.sleep(1)
-
+        guilds = PrettyTable()
+        guilds.field_names = ["Name", "ID", "Owner", "Owner ID"]
+        for guild in self.client.guilds:
+            guilds.add_row([guild.name, str(guild.id), f"{guild.owner.name}#{guild.owner.discriminator}", str(guild.owner.id)])
+        results = f"```{guilds```"
+        if len(results) > 2000:
+            fp = io.BytesIO(results.encode('utf-8'))
+            await ctx.send('Too many results...', file=discord.File(fp, 'results.txt'))
+        else:
+            await ctx.send(results)
+            
     @commands.command(hidden=True, name='eval', aliases=['e', 'code', 'py', 'python', 'py3', 'python3', 'evaluate'])
     async def _eval(self, ctx, *, body: str):
         """Evaluates a code"""
 
         env = {
             'client': self.client,
+            'bot': self.client,
             'ctx': ctx,
             'channel': ctx.channel,
             'author': ctx.author,
