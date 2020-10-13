@@ -4,6 +4,8 @@
 readonly/*
 # pycharm
 .idea/
+# vscode
+.vscode/
 .env
 assets/*.json
 [#]*[#]
