@@ -60,7 +60,7 @@ class Utilities(commands.Cog):
             await msg.add_reaction('\U00002705')
             await msg.add_reaction('\U0000274c')
             def check(reaction, user):
-                return user == ctx.author and str(reaction.emoji) in ['\U00002705', '\U0000274c']
+                return user == ctx.author and str(reaction.emoji) in ['\U00002705', '\U0000274c'] and reaction.message == msg
             try:
                 reaction, user = await self.client.wait_for('reaction_add', timeout=30.0, check=check)
             except asyncio.TimeoutError:
@@ -255,7 +255,7 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
         await msg.add_reaction('\U00002705')
         await msg.add_reaction('\U0000274c')
         def check(reaction, user):
-            return user == ctx.author and str(reaction.emoji) in ['\U00002705', '\U0000274c']
+            return user == ctx.author and str(reaction.emoji) in ['\U00002705', '\U0000274c'] and reaction.message == msg
         try:
             reaction, user = await self.client.wait_for('reaction_add', timeout=30.0, check=check)
         except asyncio.TimeoutError:
