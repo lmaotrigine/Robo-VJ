@@ -263,7 +263,7 @@ class Moderation(commands.Cog):
         """
         time = time or 0
         await ctx.channel.set_permissions(user, send_messages=False) # sets permissions for current channel
-        if time != 0
+        if time != 0:
             until = datetime.datetime.now(timezone.utc) + time
             async with self.client.db.acquire() as conn:
                 test = await self.client.db.fetchrow("SELECT block_until FROM blocks WHERE user_id = $1 AND guild_id = $2 AND channel_id = $3", user.id, ctx.guild.id, ctx.channel.id)
