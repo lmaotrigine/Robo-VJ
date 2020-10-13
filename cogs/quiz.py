@@ -217,7 +217,8 @@ class QMOnly(GameState, name="QM Commands"):
         if not "QM" in [role.name for role in ctx.author.roles]:
             return await ctx.send("Only QM is Gwad")
         if not self.in_play.get(ctx.guild.id, False):
-            return await ctx.send("QM please start a new quiz with {}newquiz.".format(ctx.prefix))
+            return await ctx.send(random.choice([f"QM please start a `{ctx.prefix}newquiz <solo|teams>` to begin.",
+                f"Please run a `{ctx.prefix}newquiz <solo|teams>` first."]))
         if self.mode_dict[ctx.guild.id] == "TEAMS":
             if re.search(self.member_regex, args):
                 return await ctx.send("Mention roles, not users.")
@@ -226,9 +227,9 @@ class QMOnly(GameState, name="QM Commands"):
                 return await ctx.send("Mention members, not roles.")
         for points, id in re.findall(self.points_regex, args):
             if self.mode_dict[ctx.guild.id] == 'SOLO':
-                self.score_dict[ctx.guild.id][ctx.guild.get_member(id)] = self.score_dict[ctx.guild.id].get(ctx.guild.get_member(id), 0) + float(points)
+                self.score_dict[ctx.guild.id][ctx.guild.get_member(int(id))] = self.score_dict[ctx.guild.id].get(ctx.guild.get_member(id), 0) + float(points)
             elif self.mode_dict[ctx.guild.id] == 'TEAMS':
-                self.score_dict[ctx.guild.id][ctx.guild.get_role(id)] = self.score_dict[ctx.guild.id].get(ctx.guild.get_role(id), 0) + float(points)
+                self.score_dict[ctx.guild.id][ctx.guild.get_role(int(id))] = self.score_dict[ctx.guild.id].get(ctx.guild.get_role(id), 0) + float(points)
             await ctx.send(random.choice(["Gotcha :+1:", "Roger That!", "Aye Aye, Cap'n!", "Done and done."]))
 
     @points.error
@@ -382,14 +383,17 @@ class QMOnly(GameState, name="QM Commands"):
             await ctx.send(f"Ask {ctx.guild.owner.mention} to make you QM")
             return
         if not mode or mode.upper() not in ['SOLO', 'TEAMS']:
-            return await ctx.send(f"Please enter whether the quiz is solo or teams\ne.g.{ctx.prefix}newquiz solo")
+            return await ctx.send(f"Please enter whether the quiz is solo or teams\ne.g. `{ctx.prefix}newquiz solo`")
         self.mode_dict[ctx.guild.id] = mode.upper()
         self.score_dict[ctx.guild.id] = dict()
         self.pounce_dict[ctx.guild.id] = dict()
         self.pounce_open[ctx.guild.id] = False
         self.in_play[ctx.guild.id] = True
         self.buzz_dict[ctx.guild.id] = False
-        await ctx.send("Teams gathered. Scores reset.")
+        if mode.upper() == "TEAMS":
+            await ctx.send("Teams gathered. Scores reset.")
+        elif mode.upper() =="SOLO":
+            await ctx.send("Users gathered. Scores reset.")
 
     @commands.command(hidden=True, aliases=['in_play', 'safety', 'safe', 'state'])
     async def game_state(self, ctx):

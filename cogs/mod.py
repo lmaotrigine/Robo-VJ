@@ -65,6 +65,8 @@ class TimeConverter(commands.Converter):
     async def convert(self, ctx, argument):
         args = argument.lower()
         matches = re.findall(self.time_regex, args)
+        if not matches:
+            raise commands.BadArgument("Time could not be parsed")
         seconds = 0
         for v, k in matches:
             try:
@@ -172,6 +174,7 @@ class Moderation(commands.Cog):
     async def mute(self, ctx, time:Optional[TimeConverter], user: Sinner,*, reason:str=None):
         """Mutes a user until unmuted."""
         time = time or 0
+        print(time)
         await mute(ctx, user, reason=reason) # uses the mute function
         if time != 0:
             until = datetime.datetime.now(timezone.utc) + time
