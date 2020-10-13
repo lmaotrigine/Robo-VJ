@@ -8,6 +8,7 @@ import asyncio
 import re
 import discord
 from discord.ext import commands, tasks
+from typing import Tuple
 
 def check_util_perms(ctx):
     """
@@ -46,67 +47,38 @@ class Utilities(commands.Cog):
         Wipes a number of messages from current channel.
         (Upto 200 messages in the past 14 days.)
         """
-        if limit == "all":
+        if limit.lower() == "all":
             limit = None
         else:
             try:
-                limit = int(limit) + 1
+                limit = int(limit)
             except ValueError:
                 await ctx.send("Please enter a valid number of messages to wipe (Add 2 to your originally intended number). Enter `all` to wipe the entire channel. (Upto 100 messages in the past 14 days.)")
                 return
-        if ctx.guild:
-            if ctx.channel == self.client.get_channel(self.client.qchannels.get(ctx.guild.id)):
-                msg = await ctx.send(f"Enter `{ctx.prefix}confirm` to confirm wiping question channel.\nEnter `{ctx.prefix}cancel` to cancel.")
-                self.guild_state[ctx.guild.id] = ("confirm", limit, msg)
-                return
-        await ctx.channel.purge(limit=limit)
-
-    @commands.command(hidden=True)
-    @commands.guild_only()
-    @commands.check(check_util_perms)
-    @commands.check(q_channel_protection)
-    async def confirm(self, ctx):
-        if ctx.guild.id not in self.guild_state.keys():
-            return
-        if self.guild_state[ctx.guild.id][0] == "confirm":
-            if ctx.author != ctx.guild.owner:
-                return
+        if ctx.channel == self.client.get_channel(self.client.qchannels.get(ctx.guild.id)):
+            msg = await ctx.send(f"React with \U00002705 to confirm wiping question channel.\nReact with \U0000274c to cancel.")
+            await msg.add_reaction('\U00002705')
+            await msg.add_reaction('\U0000274c')
+            def check(reaction, user):
+                return user == ctx.author and str(reaction.emoji) in ['\U00002705', '\U0000274c']
+            try:
+                reaction, user = await self.client.wait_for('reaction_add', timeout=30.0, check=check)
+            except asyncio.TimeoutError:
+                await ctx.send("Timeout! Cancelling operation...", delete_after=20.0)
+                await msg.delete()
+                await ctx.message.delete()
+            else:
+                if str(reaction.emoji) == '\U0000274c':
+                    await ctx.send("Cancelling...", delete_after=20.0)
+                    await msg.delete()
+                    await ctx.message.delete()
+                elif str(reaction.emoji) == '\U00002705':
+                    await msg.delete()
+                    await ctx.message.delete()
+                    await ctx.channel.purge(limit=limit)
+        else:
             await ctx.message.delete()
-            await self.guild_state[ctx.guild.id][2].delete()
-            await ctx.channel.purge(limit=self.guild_state[ctx.guild.id][1])
-        elif self.guild_state[ctx.guild.id][0] == "purge":
-            if ctx.author != ctx.guild.owner:
-                return
-            for member in ctx.guild.members:
-                if member.id == ctx.guild.owner_id or member.bot:
-                    continue
-                try:
-                    await member.kick(reason=f"by {ctx.author} during server purge")
-                except discord.Forbidden:
-                    await ctx.send(embed=discord.Embed(description=f"Could not kick {member.mention}. This is probably because of hierarchy", colour=0xFF0000))
-                else:
-                    await member.send(f"You have been kicked from `{ctx.guild.name}` because the server was purged entirely.")
-            await ctx.guild.system_channel.send(f"Server purged by {ctx.author.mention}.")
-        self.guild_state.pop(ctx.guild.id)
-
-    @commands.command(hidden=True)
-    @commands.guild_only()
-    @commands.check(check_util_perms)
-    @commands.check(q_channel_protection)
-    async def cancel(self, ctx):
-        if ctx.guild.id not in self.guild_state.keys():
-            return
-        if self.guild_state[ctx.guild.id][0] == "confirm":
-            if ctx.author != ctx.guild.owner:
-                return
-            await ctx.message.delete()
-            await self.guild_state[ctx.guild.id][2].delete()
-        elif self.guild_state[ctx.guild.id][0] == "purge":
-            if ctx.author != ctx.guild.owner:
-                return
-            await ctx.message.delete()
-            await self.guild_state[ctx.guild.id][1].delete()
-        self.guild_state.pop(ctx.guild.id)
+            await ctx.channel.purge(limit=limit)
 
 
     @wipe.error
@@ -208,12 +180,6 @@ class Utilities(commands.Cog):
         await ctx.send(error, delete_after=30.0)
         await ctx.send("Use `!help purgeroles` to get proper invocation syntax.", delete_after=30.0)
 
-
-
-
-
-
-
 class OwnerOnly(commands.Cog, name="Server Owner Commands"):
     """Commands only guild owner can call"""
     def __init__(self, client):
@@ -223,7 +189,7 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
     @commands.guild_only()
     async def approve(self, ctx, member:discord.Member):
         """Grants role Approved to the user"""
-        if ctx.author == ctx.guild.owner:
+        if ctx.author == ctx.guild.owner or await self.client.is_owner(ctx.author):
             if not discord.utils.get(ctx.guild.roles, name="Approved"):
                 await ctx.send("Create role named 'Approved' and try again.")
                 return
@@ -246,7 +212,7 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
     @commands.guild_only()
     async def unapprove(self, ctx, member: discord.Member):
         """Revokes approval for a member"""
-        if not ctx.author == ctx.guild.owner:
+        if not ctx.author == ctx.guild.owner and not await self.client.is_owner(ctx.author):
             return
         if not discord.utils.get(member.roles, name="Approved"):
             await ctx.send(f"{member.mention} has not been approved.", delete_after=15.0)
@@ -266,16 +232,41 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
 
     @commands.command(hidden=True)
     @commands.guild_only()
-    async def purge(self, ctx):
-        """Kicks everyone except bots and owner. Only owner can call this"""
-        if ctx.author == ctx.guild.owner:
-            msg = await ctx.send(f"Type `{ctx.prefix}confirm` to confirm purging the server.\nEnter `{ctx.prefix}cancel` to cancel.")
-            self.guild_state[ctx.guild.id] = ("purge", msg)
+    async def prune(self, ctx, days:int, *roles:Tuple[discord.Role]=None):
+        """
+        Kick all members who haven't logged on in a certain nember of days, with optional roles.
+        If a member has any roles that are not provided, they won't be kicked.
+        The estimate provided does not take these roles into consideration.
+        """
+        if not ctx.author == ctx.guild.owner and not ctx.bot.is_owner(ctx.author):
+            return
+        estimate = await ctx.guild.estimate_pruned_members(days=days)
+        msg = await ctx.send(f"After this operation, approximately {estimate} members will be pruned.\nReact with \U00002705 to confirm wiping question channel.\nReact with \U0000274c to cancel.")
+        await msg.add_reaction('\U00002705')
+        await msg.add_reaction('\U0000274c')
+        def check(reaction, user):
+            return user == ctx.author and str(reaction.emoji) in ['\U00002705', '\U0000274c']
+        try:
+            reaction, user = await self.client.wait_for('reaction_add', timeout=30.0, check=check)
+        except asyncio.TimeoutError:
+            await ctx.send("Timeout! Cancelling operation...", delete_after=20.0)
+            await msg.delete()
+            await ctx.message.delete()
+        else:
+            if str(reaction.emoji) == '\U0000274c':
+                await ctx.send("Cancelling...", delete_after=20.0)
+                await msg.delete()
+                await ctx.message.delete()
+            elif str(reaction.emoji) == '\U00002705':
+                await msg.delete()
+                await ctx.message.delete()
+                count = await ctx.guild.prune_members(days=days, roles=roles)
+                await ctx.send(f"Operation complete. {count} members were pruned.")
 
     @commands.command()
     @commands.guild_only()
     async def qchannel(self, ctx):
-        if not ctx.author == ctx.guild.owner:
+        if not ctx.author == ctx.guild.owner and not await ctx.bot.is_owner(ctx.author):
             return
         channel = ctx.channel
         self.client.qchannels[ctx.guild.id] = channel.id
@@ -290,11 +281,10 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
                 await self.client.db.execute(f"""INSERT INTO servers (guild_id, qchannel) VALUES ({ctx.guild.id}, {channel.id})""")
         await self.client.db.release(connection)
 
-
     @commands.command()
     @commands.guild_only()
     async def pchannel(self, ctx):
-        if not ctx.author == ctx.guild.owner:
+        if not ctx.author == ctx.guild.owner and not await ctx.bot.is_owner(ctx.author):
             return
         channel = ctx.channel
         self.client.pchannels[ctx.guild.id] = channel.id
@@ -308,10 +298,6 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
             else:
                 await self.client.db.execute(f"""INSERT INTO servers (guild_id, pchannel) VALUES ({ctx.guild.id}, {channel.id})""")
         await self.client.db.release(connection)
-
-
-
-
 
 def setup(client):
     client.add_cog(OwnerOnly(client))
