@@ -171,8 +171,9 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     async def mute(self, ctx, time:Optional[TimeConverter], user: Sinner,*, reason:str=None):
         """Mutes a user until unmuted."""
+        time = time or 0
         await mute(ctx, user, reason=reason) # uses the mute function
-        if time:
+        if time != 0:
             until = datetime.datetime.now(timezone.utc) + time
             async with self.client.db.acquire() as conn:
                 test = await self.client.db.fetchrow("SELECT mute_until FROM mutes WHERE user_id = $1 AND guild_id = $2", user.id, ctx.guild.id)
@@ -260,9 +261,9 @@ class Moderation(commands.Cog):
         Similar to mute but instead of restricting access
         to all channels it restricts in current channel.
         """
-
+        time = time or 0
         await ctx.channel.set_permissions(user, send_messages=False) # sets permissions for current channel
-        if time:
+        if time != 0
             until = datetime.datetime.now(timezone.utc) + time
             async with self.client.db.acquire() as conn:
                 test = await self.client.db.fetchrow("SELECT block_until FROM blocks WHERE user_id = $1 AND guild_id = $2 AND channel_id = $3", user.id, ctx.guild.id, ctx.channel.id)
