@@ -8,7 +8,7 @@ import asyncio
 import re
 import discord
 from discord.ext import commands, tasks
-from typing import Tuple
+from typing import Optional, Tuple
 
 def check_util_perms(ctx):
     """
@@ -232,7 +232,7 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
 
     @commands.command(hidden=True)
     @commands.guild_only()
-    async def prune(self, ctx, days:int, *roles:Tuple[discord.Role]=None):
+    async def prune(self, ctx, days:int, *roles):
         """
         Kick all members who haven't logged on in a certain nember of days, with optional roles.
         If a member has any roles that are not provided, they won't be kicked.
@@ -240,6 +240,16 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
         """
         if not ctx.author == ctx.guild.owner and not ctx.bot.is_owner(ctx.author):
             return
+        if roles:
+            rolelist = []
+            for arg in roles:
+                try:
+                    role = await commands.RoleConverter().convert(ctx, arg)
+                except commands.BadArgument:
+                    return await ctx.send(f"Invalid role: {arg}")
+                else:
+                    rolelist.append(role)
+            roles = rolelist
         estimate = await ctx.guild.estimate_pruned_members(days=days)
         msg = await ctx.send(f"After this operation, approximately {estimate} members will be pruned.\nReact with \U00002705 to confirm wiping question channel.\nReact with \U0000274c to cancel.")
         await msg.add_reaction('\U00002705')
