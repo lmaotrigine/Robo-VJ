@@ -169,7 +169,7 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
-    async def mute(self, ctx, user: Sinner, time:Optional[TimeConverter],*, reason:str=None):
+    async def mute(self, ctx, time:Optional[TimeConverter], user: Sinner,*, reason:str=None):
         """Mutes a user until unmuted."""
         await mute(ctx, user, reason=reason) # uses the mute function
         if time:
@@ -253,7 +253,7 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
-    async def block(self, ctx, user: Sinner, time: Optional[TimeConverter], *, reason=None):
+    async def block(self, ctx, time: Optional[TimeConverter], user: Sinner, *, reason=None):
         """
         Blocks a user from chatting in current channel.
 
