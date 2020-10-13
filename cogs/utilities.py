@@ -23,7 +23,7 @@ def q_channel_protection(ctx):
     """
     if ctx.guild is None:
         return True
-    if str(ctx.guild.id) not in ctx.bot.qchannels.keys():
+    if ctx.guild.id not in ctx.bot.qchannels.keys():
         return True
     if ctx.channel.id == ctx.bot.qchannels[ctx.guild.id] and ctx.author == ctx.guild.owner:
         return True

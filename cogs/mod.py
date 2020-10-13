@@ -124,10 +124,7 @@ class Moderation(commands.Cog):
             channel = ctx.channel
         self.client.modlogs[ctx.guild.id] = channel.id
         async with self.client.db.acquire() as conn:
-            if await self.client.db.fetchval("SELECT modlog FROM servers WHERE guild_id = $1", ctx.guild.id):
-                await self.client.db.execute("UPDATE servers SET modlog = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
-            else:
-                await self.client.db.execute("INSERT INTO servers (modlog) VALUES ($1) WHERE guild_id = $2", channel.id, ctx.guild.id)
+            await self.client.db.execute("UPDATE servers SET modlog = $1 WHERE guild_id = $2", channel.id, ctx.guild.id) 
 
         await ctx.send(f"{channel.mention} has been configured for mod logs on this server")
 
@@ -271,7 +268,7 @@ class Moderation(commands.Cog):
             async with self.client.db.acquire() as conn:
                 test = await self.client.db.fetchrow("SELECT block_until FROM blocks WHERE user_id = $1 AND guild_id = $2 AND channel_id = $3", user.id, ctx.guild.id, ctx.channel.id)
                 if not test:
-                    await self.client.db.execute("INSERT INTO blocks (user_id, mute_until, guild_id, channel_id) VALUES ($1, $2, $3, $4)", user.id, until, ctx.guild.id, ctx.channel.id)
+                    await self.client.db.execute("INSERT INTO blocks (user_id, block_until, guild_id, channel_id) VALUES ($1, $2, $3, $4)", user.id, until, ctx.guild.id, ctx.channel.id)
                 else:
                     await self.client.db.execute("UPDATE blocks SET block_until = $1 WHERE user_id = $2 AND guild_id = $3 AND channel_id = $4", until, user.id, ctx.guild.id, ctx.channel.id)
             await ctx.send(f"Blocked {user.mention} from this channel for {time} (until {str(until).split('.')[0][:-3]}).")
@@ -296,7 +293,7 @@ class Moderation(commands.Cog):
         if not user: # checks if there is user
             return await ctx.send("You must specify a user")
 
-        await ctx.set_permissions(user, send_messages=None) # gives back send messages permissions
+        await ctx.channel.set_permissions(user, send_messages=None) # gives back send messages permissions
         await ctx.send(f"{user.mention} has been unblocked.")
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
         if channel:
