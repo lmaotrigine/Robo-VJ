@@ -151,7 +151,7 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
-    async def softban(self, ctx, user: Sinner,*, reason=None):
+    async def softban(self, ctx, user: Sinner,*, reason:str=None):
         """Temporarily restricts access to server."""
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
         try: # Tries to soft-ban user
@@ -169,7 +169,7 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
-    async def mute(self, ctx, user: Sinner, time:Optional[TimeConverter],*, reason=None):
+    async def mute(self, ctx, user: Sinner, time:Optional[TimeConverter],*, reason:str=None):
         """Mutes a user until unmuted."""
         await mute(ctx, user, reason=reason) # uses the mute function
         if time:
