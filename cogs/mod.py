@@ -1,7 +1,7 @@
 """
 Moderation cog for Discord bot
 """
-
+from typing import Optional
 import re
 import sys
 import traceback
@@ -133,12 +133,9 @@ class Moderation(commands.Cog):
     @commands.check(check_mod_perms)
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
-    async def ban(self, ctx, user: Sinner=None,*, reason=None):
+    async def ban(self, ctx, user: Sinner,*, reason=None):
         """Casts users out of server."""
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
-
-        if not user: # checks if there is a user
-            return await ctx.send("You must specify a user")
 
         try: # Tries to ban user
             await user.ban(reason=reason)
@@ -154,12 +151,9 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
-    async def softban(self, ctx, user: Sinner=None,*, reason=None):
+    async def softban(self, ctx, user: Sinner,*, reason=None):
         """Temporarily restricts access to server."""
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
-        if not user: # checks if there is a user
-            return await ctx.send("You must specify a user")
-
         try: # Tries to soft-ban user
             await user.ban(reason=reason)
             await user.unban(reason="Temporarily banned")
@@ -175,7 +169,7 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
-    async def mute(self, ctx, user: Sinner, time:TimeConverter=None,*, reason=None):
+    async def mute(self, ctx, user: Sinner, time:Optional[TimeConverter],*, reason=None):
         """Mutes a user until unmuted."""
         await mute(ctx, user, reason=reason) # uses the mute function
         if time:
@@ -227,10 +221,8 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
-    async def kick(self, ctx, user: Sinner=None,*, reason=None):
+    async def kick(self, ctx, user: Sinner,*, reason=None):
         """Kicks a user from the server."""
-        if not user: # checks if there is a user
-            return await ctx.send("You must specify a user")
 
         try: # tries to kick user
             await user.kick(reason=reason)
@@ -262,7 +254,7 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
-    async def block(self, ctx, user: Sinner, time: TimeConverter=None, *, reason=None):
+    async def block(self, ctx, user: Sinner, time: Optional[TimeConverter], *, reason=None):
         """
         Blocks a user from chatting in current channel.
 
