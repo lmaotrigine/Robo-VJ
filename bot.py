@@ -17,7 +17,7 @@ from cogs.utils.config import Config
 import logging
 import traceback
 
-__version__ = "2.2.0"
+__version__ = "3.0.0"
 __author__ = "Varun J"
 
 log = logging.getLogger(__name__)
@@ -67,6 +67,7 @@ def get_uptime():
         text += f"{components[idx]}{suffixes[idx]} "
 
     return text
+
 async def create_db_pool():
     credentials = {"user": USER, "password": PASSWORD, "database": DATABASE, "host": HOST}
     try:
@@ -239,6 +240,8 @@ async def on_guild_join(guild):
     embed = discord.Embed(title="Thanks for adding me to your server! :blush:", colour=discord.Colour.blurple())
     embed.description = f"""Robo VJ was originally made to keep scores during online quizzes, but has since evolved to support moderation commands and some fun here and there.
 For a full list of commands, use `{pfx}help`.
+
+Be mindful of hierarchy while using commands that involve assigning or removing roles, or editing nicknames. It is advisable to give the bot the highest role in the server if you are unfamiliar with Discord hierarchy and permission flow.
 
 Some easter egg commands are not included in the help page. Others like the `utils` group have been deliberately hidden because they are reserved for the bot owner.
 

@@ -2,6 +2,9 @@
 Moderation cog for Discord bot
 """
 
+import re
+import sys
+import traceback
 import discord
 from discord.ext import commands, tasks
 import datetime
@@ -55,15 +58,23 @@ async def mute(ctx, user, reason):
     #    except discord.Forbidden:
     #        return await ctx.send("I have no permissions to make #hell")
 
-def get_time(amount, unit):
-    if unit =='d':
-        return datetime.datetime.now(timezone.utc) + datetime.timedelta(days=amount)
-    if unit == 's':
-        return datetime.datetime.now(timezone.utc) + datetime.timedelta(seconds=amount)
-    if unit == 'm':
-        return datetime.datetime.now(timezone.utc) + datetime.timedelta(minutes=amount)
-    if unit == 'h':
-        return datetime.datetime.now(timezone.utc) + datetime.timedelta(hours=amount)
+class TimeConverter(commands.Converter):
+    time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
+    time_dict = {"h":3600, "s":1, "m":60, "d":86400}
+
+    async def convert(self, ctx, argument):
+        args = argument.lower()
+        matches = re.findall(self.time_regex, args)
+        seconds = 0
+        for v, k in matches:
+            try:
+                seconds += self.time_dict[k] * float(v)
+            except KeyError:
+                raise commands.BadArgument(f"{k} is an invalid time-key! h/s/m/d are valid.")
+            except ValueError:
+                raise commands.BadArgument(f"{v} is not a number!")
+
+        return datetime.timedelta(seconds=seconds)
 
 def check_mod_perms(ctx):
     """
@@ -81,7 +92,17 @@ class Moderation(commands.Cog):
 
     def cog_unload(self):
         self.check_mute_and_block.cancel()
-    
+
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, commands.CheckFailure):
+            pass
+        if isinstance(error, commands.BadArgument) or isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(error)
+        else:
+            error = getattr(error, 'original', error)
+            print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+
     @commands.group(invoke_without_command=True)
     @commands.guild_only()
     @commands.check(check_mod_perms)
@@ -129,7 +150,7 @@ class Moderation(commands.Cog):
             embed.add_field(name='Reason', value=f"{reason if reason else 'None specified'}", inline=False)
             embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
             await channel.send(embed=embed)
-            
+
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
@@ -150,56 +171,34 @@ class Moderation(commands.Cog):
             embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
             embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
             await channel.send(embed=embed)
-            
-    @commands.command()
-    @commands.check(check_mod_perms)
-    @commands.guild_only()
-    async def mute(self, ctx, user: Sinner,*, reason=None):
-        """Mutes a user until unmuted."""
-        await mute(ctx, user, reason=reason) # uses the mute function
-        await ctx.send(f"{user.mention} has been muted indefinitely.")
-        channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
-        if channel:
-            embed = discord.Embed(title="MUTE", colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
-            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
-            embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
-            embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
-            await channel.send(embed=embed)
-     
-            
-     
 
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
-    async def tempmute(self, ctx, time=None, user: Sinner=None,*, reason=None):
-        """Mutes a user temporarily"""
-        if not time or not user: # Missing arguments (lazy error handling)
-            return await ctx.send(f"Incorrect usage of command. Use `{ctx.prefix}help tempmute` for more information", delete_after=30.0)
-        if time[-1].lower() not in ['h', 'm', 's', 'd']:
-            return await ctx.send("Invalid time format", delete_after=30.0)
-        try:
-            amount = float(time[:-1])
-        except ValueError:
-            return await ctx.send("Invalid time.", delete_after=30.0)
-        until = get_time(float(time[:-1]), time[-1])
-        async with self.client.db.acquire() as conn:
-            test = await self.client.db.fetchrow("SELECT mute_until FROM mutes WHERE user_id = $1 AND guild_id = $2", user.id, ctx.guild.id)
-            if not test:
-                await self.client.db.execute("INSERT INTO mutes (user_id, mute_until, guild_id) VALUES ($1, $2, $3)", user.id, until, ctx.guild.id)
-            else:
-                await self.client.db.execute("UPDATE mutes SET mute_until = $1 WHERE user_id = $2 AND guild_id = $3", until, user.id, ctx.guild.id)
-        await mute(ctx, user, reason=reason)
-        await ctx.send(f"Muted {user.mention} for {time} (until {str(until).split('.')[0][:-3]} UTC).")
+    async def mute(self, ctx, user: Sinner, time:TimeConverter=None,*, reason=None):
+        """Mutes a user until unmuted."""
+        await mute(ctx, user, reason=reason) # uses the mute function
+        if time:
+            until = datetime.datetime.now(timezone.utc) + time
+            async with self.client.db.acquire() as conn:
+                test = await self.client.db.fetchrow("SELECT mute_until FROM mutes WHERE user_id = $1 AND guild_id = $2", user.id, ctx.guild.id)
+                if not test:
+                    await self.client.db.execute("INSERT INTO mutes (user_id, mute_until, guild_id) VALUES ($1, $2, $3)", user.id, until, ctx.guild.id)
+                else:
+                    await self.client.db.execute("UPDATE mutes SET mute_until = $1 WHERE user_id = $2 AND guild_id = $3", until, user.id, ctx.guild.id)
+            await ctx.send(f"Muted {user.mention} for {str(time)} (until {str(until).split('.')[0][:-3]} UTC).")
+        else:
+            await ctx.send(f"Muted {user.mention} indefinitely.")
+
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
         if channel:
-            embed = discord.Embed(title="TEMPMUTE", colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
+            embed = discord.Embed(title="MUTE", colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
-            embed.add_field(name='For', value=time, inline=False)
+            embed.add_field(name='Duration', value=str(time) if time else '∞', inline=False)
             embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
             embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
             await channel.send(embed=embed)
-            
+
     @tasks.loop(seconds=1)
     async def check_mute_and_block(self):
         data = await self.client.db.fetch("SELECT * FROM mutes")
@@ -244,6 +243,7 @@ class Moderation(commands.Cog):
             embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
             embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
             await channel.send(embed=embed)
+
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
@@ -262,7 +262,7 @@ class Moderation(commands.Cog):
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
-    async def block(self, ctx, user: Sinner=None):
+    async def block(self, ctx, user: Sinner, time: TimeConverter=None, *, reason=None):
         """
         Blocks a user from chatting in current channel.
 
@@ -270,52 +270,28 @@ class Moderation(commands.Cog):
         to all channels it restricts in current channel.
         """
 
-        if not user: # checks if there is user
-            return await ctx.send("You must specify a user")
-
         await ctx.channel.set_permissions(user, send_messages=False) # sets permissions for current channel
-        await ctx.send(f"Blocked {user.mention} from this channel indefinitely")
+        if time:
+            until = datetime.datetime.now(timezone.utc) + time
+            async with self.client.db.acquire() as conn:
+                test = await self.client.db.fetchrow("SELECT block_until FROM blocks WHERE user_id = $1 AND guild_id = $2 AND channel_id = $3", user.id, ctx.guild.id, ctx.channel.id)
+                if not test:
+                    await self.client.db.execute("INSERT INTO blocks (user_id, mute_until, guild_id, channel_id) VALUES ($1, $2, $3, $4)", user.id, until, ctx.guild.id, ctx.channel.id)
+                else:
+                    await self.client.db.execute("UPDATE blocks SET block_until = $1 WHERE user_id = $2 AND guild_id = $3 AND channel_id = $4", until, user.id, ctx.guild.id, ctx.channel.id)
+            await ctx.send(f"Blocked {user.mention} from this channel for {time} (until {str(until).split('.')[0][:-3]}).")
+        else:
+            await ctx.send(f"Blocked {user.mention} from this channel indefinitely")
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="BLOCK", colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
             embed.add_field(name='Channel', value=ctx.channel.mention, inline=False)
+            embed.add_field(name='Duration', value=str(time) if time else '∞', inline=False)
             embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
             embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
             await channel.send(embed=embed)
 
-    @commands.command()
-    @commands.check(check_mod_perms)
-    @commands.guild_only()
-    async def tempblock(self, ctx, time=None, user: Sinner=None, *, reason=None):
-        """Temporarily blocks a user from sending messages to a channel"""
-        if not time or not user: # Missing arguments (lazy error handling)
-            return await ctx.send(f"Incorrect usage of command. Use `{ctx.prefix}help tempblock` for more information", delete_after=30.0)
-        if time[-1].lower() not in ['h', 'm', 's', 'd']:
-            return await ctx.send("Invalid time format", delete_after=30.0)
-        try:
-            amount = float(time[:-1])
-        except ValueError:
-            return await ctx.send("Invalid time.", delete_after=30.0)
-        until = get_time(float(time[:-1]), time[-1])
-        async with self.client.db.acquire() as conn:
-            test = await self.client.db.fetchrow("SELECT block_until FROM blocks WHERE user_id = $1 AND guild_id = $2 AND channel_id = $3", user.id, ctx.guild.id, ctx.channel.id)
-            if not test:
-                await self.client.db.execute("INSERT INTO blocks (user_id, mute_until, guild_id, channel_id) VALUES ($1, $2, $3, $4)", user.id, until, ctx.guild.id, ctx.channel.id)
-            else:
-                await self.client.db.execute("UPDATE blocks SET block_until = $1 WHERE user_id = $2 AND guild_id = $3 AND channel_id = $4", until, user.id, ctx.guild.id, ctx.channel.id)
-        await ctx.channel.set_permissions(user, send_messages=False)
-        await ctx.send(f"Blocked {user.mention} from this channel for {time} (until {str(until).split('.')[0][:-3]}).")
-        channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
-        if channel:
-            embed = discord.Embed(title="TEMPBLOCK", colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
-            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
-            embed.add_field(name='Channel', value=ctx.channel.mention, inline=False)
-            embed.add_field(name='For', value=time, inline=False)
-            embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
-            embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
-            await channel.send(embed=embed)
-            
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
@@ -335,7 +311,7 @@ class Moderation(commands.Cog):
             embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
             embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
             await channel.send(embed=embed)
-            
+
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
@@ -354,7 +330,7 @@ class Moderation(commands.Cog):
                 if current >=5:
                     await user.ban(reason="Autoban: 5 warns.")
                     channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
-                    if channel:                   
+                    if channel:
                         warn_embed = discord.Embed(title="WARN", colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
                         warn_embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
                         warn_embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
@@ -376,7 +352,7 @@ class Moderation(commands.Cog):
             embed.add_field(name='Current warns', value=current, inline=False)
             embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
             await channel.send(embed=embed)
-            
+
     @commands.command()
     @commands.guild_only()
     async def warnstats(self, ctx, user: discord.Member=None):
@@ -387,7 +363,7 @@ class Moderation(commands.Cog):
         if current is None:
             current = 0
         await ctx.send(f"Currently, {user.mention} has {current} {'warn' if current == 1 else 'warns'}.")
-        
+
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
@@ -412,7 +388,7 @@ class Moderation(commands.Cog):
             embed.add_field(name='Current warns', value=current, inline=False)
             embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
             await channel.send(embed=embed)
-            
+
     @commands.command(aliases=['cleanslate'])
     @commands.check(check_mod_perms)
     @commands.guild_only()
