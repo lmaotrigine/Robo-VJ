@@ -247,7 +247,6 @@ class Moderation(commands.Cog):
         if channel:
             embed = discord.Embed(title="UNMUTE", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
-            embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
             embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
             await channel.send(embed=embed)
 
