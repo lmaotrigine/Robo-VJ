@@ -37,7 +37,8 @@ the bot is with the following template:
 
 ```py
 token = '' # your bot's token
-postgresql = 'postgresql://user:password@host/database' # your postgresql info from above
+postgresql = 'postgresql://user:password@host/database' # your postgresql info from above.
+# If your password contains non-ASCII characters, you will need to percent encode it.
 ```
 
 6. **Directly running from terminal**
