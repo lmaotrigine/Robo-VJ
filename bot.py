@@ -14,6 +14,7 @@ from discord.ext import commands, tasks
 import sys
 from collections import Counter, deque, defaultdict
 from cogs.utils.config import Config
+from cogs.utils import time
 import logging
 import traceback
 
@@ -48,25 +49,6 @@ def get_prefix(bot, message):
     loads the prefix for a guild from file
     """
     return commands.when_mentioned_or(pfx_helper(message))(bot, message)
-
-
-def get_uptime():
-    current_time = time.time()
-    difference = int(round(current_time - client.start_time))
-    ut = str(datetime.timedelta(seconds=difference))
-    if ',' in ut:
-        days = f"{ut.split('d')[0].strip()}d "
-        new_ut = ut.split(',')[1].strip()
-    else:
-        days = ''
-        new_ut = ut
-    components = new_ut.split(':')
-    suffixes = ['h', 'm', 's']
-    text = days
-    for idx in range(len(components)):
-        text += f"{components[idx]}{suffixes[idx]} "
-
-    return text
 
 async def create_db_pool():
     credentials = {"user": USER, "password": PASSWORD, "database": DATABASE, "host": HOST}
@@ -135,6 +117,12 @@ class RoboVJ(commands.Bot):
         embed.timestamp = datetime.datetime.utcnow()
         return wh.send(embed=embed)
 
+    async def on_ready(self):
+        if not hasattr(self, 'uptime'):
+            self.uptime = datetime.datetime.utcnow()
+
+        print(f'Ready: {self.user} (ID: {self.user.id})')
+
     async def process_commands(self, message):
         ctx = await self.get_context(message)
 
@@ -175,15 +163,9 @@ client.prefixes = {}
 client.qchannels = {}
 client.pchannels = {}
 client.modlogs = {}
-client.start_time = 0
 
 @tasks.loop(count=1)
 async def startup():
-    client.start_time = time.time()
-    print("Bot is ready")
-    print()
-    print(f"Logged in as: {client.user}\nID: {client.user.id}")
-    print("----------------")
 
     client.owner = client.get_user(client.owner_id)
     data = await client.db.fetch("SELECT * FROM servers")
@@ -352,7 +334,7 @@ async def _info(ctx):
     embed.add_field(name="Creator", value=f"{client.get_user(411166117084528640).mention}", inline=False)
     embed.add_field(name="Servers", value=f"{len(client.guilds)}", inline=True)
     embed.add_field(name="Commands", value=f"{len(list(filter(lambda x: not x.hidden, client.commands)))}", inline=True)
-    embed.add_field(name="Uptime", value=f"{get_uptime()}", inline=True)
+    embed.add_field(name="Uptime", value=time.human_timedelta(client.uptime, accuracy=None, brief=brief, suffix=False), inline=True)
     embed.add_field(name="Support", value=f"[Join the support server for announcements and to report issues](https://discord.gg/rqgRyF8)",
                     inline=False)
     embed.add_field(name="Invite",
@@ -360,11 +342,6 @@ async def _info(ctx):
                     inline=False)
     embed.add_field(name="Library", value="[discord.py](https://github.com/Rapptz/discord.py)")
     await ctx.send(embed=embed)
-
-@client.command(name="uptime", hidden=True)
-async def _uptime(ctx):
-    await ctx.send(f"{get_uptime()}")
-
 
 # Get things rolling
 

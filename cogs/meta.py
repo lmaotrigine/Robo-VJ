@@ -53,6 +53,14 @@ class Meta(commands.Cog):
             return await ctx.send('Output too long to display.')
         await ctx.send(msg)
 
+    def get_bot_uptime(self, *, brief=False):
+        return time.human_timedelta(self.bot.uptime, accuracy=None, brief=brief, suffix=False)
+
+    @commands.command()
+    async def uptime(self, ctx):
+        """Tells you how long the bot has been up for."""
+        await ctx.send(f'Uptime: **{self.get_bot_uptime()}**')
+
     @commands.command(hidden=True)
     @commands.is_owner()
     async def source(self, ctx, *, command: str = None):
