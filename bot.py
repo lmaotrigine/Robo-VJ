@@ -18,6 +18,7 @@ from cogs.utils import time
 import logging
 import traceback
 
+# Some custom greetings I had made for my friends.
 try:
     from assets.hello import process_greetings
 except ImportError:
@@ -262,14 +263,14 @@ async def on_guild_update(before, after):
 # General commands
 @client.command(aliases=["hi"])
 async def hello(ctx):
-    """I was programmed to be nice :)"""
+    """Go ahead, say hi!"""
     if process_greetings:
         coro = process_greetings(ctx.author.id, ctx)
         if coro:
             return await coro
     greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!"])
     owner = client.get_user(client.owner_id)
-    await ctx.send(f"{greeting} I'm a robot! {owner.name}#{owner.discriminator} made me.")
+    await ctx.send(f"{greeting} I'm a robot! {str(owner)} made me.")
 
 
 @client.command(aliases=['invite'])
