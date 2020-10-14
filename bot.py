@@ -4,7 +4,6 @@ Basic Discord bot skeleton with some external cogs
 import aiohttp
 import datetime
 import os
-import json
 import random
 import time
 from dotenv import load_dotenv
@@ -32,12 +31,6 @@ USER = os.getenv('DBUSERNAME') or 'postgres'
 
 def pfx_helper(message):
     """helper to get prefix"""
-    #with open('readonly/prefixes.json', 'r') as file:
-    #    prefixes = json.load(file)
-    #if message.guild:
-    #    return prefixes.get(str(message.guild.id), '!')
-    #else:
-    #    return "!"
     if not message.guild:
         return '!'
     return client.prefixes.get(message.guild.id, '!')
@@ -319,28 +312,6 @@ async def support(ctx):
     embed = discord.Embed(title="Click here to join the support server", colour=discord.Colour(0xFF0000),
                           url="https://discord.gg/rqgRyF8")
     embed.set_author(name=client.user.display_name if ctx.guild is None else ctx.guild.me.display_name, icon_url=client.user.avatar_url)
-    await ctx.send(embed=embed)
-
-
-@client.command(name="about")
-async def _info(ctx):
-    """Some info about the bot"""
-    embed = discord.Embed(colour=discord.Colour(0xFF0000))
-    name = client.user.display_name
-    if ctx.guild and ctx.guild.me.nick:
-        name += f" ({ctx.guild.me.nick})"
-    embed.set_author(name=f"{name} - v{client.version}", icon_url=client.user.avatar_url)
-    #embed.set_thumbnail(url=client.user.avatar_url)
-    embed.add_field(name="Creator", value=f"{client.get_user(411166117084528640).mention}", inline=False)
-    embed.add_field(name="Servers", value=f"{len(client.guilds)}", inline=True)
-    embed.add_field(name="Commands", value=f"{len(list(filter(lambda x: not x.hidden, client.commands)))}", inline=True)
-    embed.add_field(name="Uptime", value=time.human_timedelta(client.uptime, accuracy=None, brief=True, suffix=False), inline=True)
-    embed.add_field(name="Support", value=f"[Join the support server for announcements and to report issues](https://discord.gg/rqgRyF8)",
-                    inline=False)
-    embed.add_field(name="Invite",
-                    value=f"[Click here to add me to your server.]({discord.utils.oauth_url(client.user.id, discord.Permissions(administrator=True))})",
-                    inline=False)
-    embed.add_field(name="Library", value="[discord.py](https://github.com/Rapptz/discord.py)")
     await ctx.send(embed=embed)
 
 # Get things rolling
