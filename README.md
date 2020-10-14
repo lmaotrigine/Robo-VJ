@@ -1,6 +1,6 @@
 # Robo-VJ
 
-A personal bot that runs on Discord.
+A personal bot that runs on Discord, originally designed for online quizzes.
 
 ## Running
 
