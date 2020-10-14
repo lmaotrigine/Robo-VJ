@@ -6,8 +6,16 @@ readonly/*
 .idea/
 # vscode
 .vscode/
+# visualstudio
+.vs/
+# venv
+venv/
+
+#config
 .env
 assets/*.json
+
+#emacs
 [#]*[#]
 
 restart_from_channel.txt

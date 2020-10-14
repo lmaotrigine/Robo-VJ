@@ -52,7 +52,7 @@ def get_prefix(bot, message):
 
 def get_uptime():
     current_time = time.time()
-    difference = int(round(current_time - start_time))
+    difference = int(round(current_time - client.start_time))
     ut = str(datetime.timedelta(seconds=difference))
     if ',' in ut:
         days = f"{ut.split('d')[0].strip()}d "
@@ -175,11 +175,11 @@ client.prefixes = {}
 client.qchannels = {}
 client.pchannels = {}
 client.modlogs = {}
+client.start_time = 0
 
 @tasks.loop(count=1)
 async def startup():
-    global start_time
-    start_time = time.time()
+    client.start_time = time.time()
     print("Bot is ready")
     print()
     print(f"Logged in as: {client.user}\nID: {client.user.id}")
