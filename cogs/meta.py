@@ -85,7 +85,9 @@ class Meta(commands.Cog):
     @commands.command(name="about")
     async def _about(self, ctx):
         """Tells you information about the bot itself."""
-        embed = discord.Embed(colour=discord.Colour.blurple())
+        revision = self.get_last_commits()
+        embed = discord.Embed(description='Latest Changes:\n' + revision)
+        embed.colour=discord.Colour.blurple()
         name = self.bot.user.display_name
         embed.title = f"{name} {chr(0x2014)} v{self.bot.version}"
         embed.set_thumbnail(url=self.bot.user.avatar_url)
