@@ -265,9 +265,9 @@ async def on_guild_update(before, after):
 async def hello(ctx):
     """Go ahead, say hi!"""
     if Greeter:
-        coro = await Greeter.greet(ctx.author.id, ctx)
+        coro = Greeter.greet(ctx)
         if coro:
-            return
+            return await eval(coro)
     greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!"])
     owner = client.get_user(client.owner_id)
     await ctx.send(f"{greeting} I'm a robot! {str(owner)} made me.")
