@@ -18,6 +18,11 @@ from cogs.utils import time
 import logging
 import traceback
 
+try:
+    from assets.hello import process_greetings
+except ImportError:
+    process_greetings = None
+
 log = logging.getLogger(__name__)
 load_dotenv()
 
@@ -258,36 +263,13 @@ async def on_guild_update(before, after):
 @client.command(aliases=["hi"])
 async def hello(ctx):
     """I was programmed to be nice :)"""
-    if ctx.author.id == 711301834018521102:  # Ananya
-        await ctx.send(f"Akka namskara! {ctx.author.mention}")
-    elif ctx.author.id == 411166117084528640:  # Me
-        return await ctx.send(f"{ctx.author.mention} who the hell are you?")
-    elif ctx.author.id == 173357402639433729:  # Jay
-        await ctx.send(f"Hello {ctx.author.mention}. Got any gummy bears on you?")
-    elif ctx.author.id == 439065755242332160:  # PJ
-        await ctx.send(f"{ctx.author.mention}", file=discord.File('assets/PJ.jpeg'))
-    elif ctx.author.id == 557595185903566879:  # Kannan
-        await ctx.send(content=f"{ctx.author.mention} Oink oink, ya Capitalist Pig!", file=discord.File('assets/kannan.jpg'))
-    elif ctx.author.id == 312265075933315074:  # Jakus
-        await ctx.send(content="Jaaaaaaaaaaaaaake 😍😍🥰🥰", file=discord.File('assets/Jake.gif'))
-    elif ctx.author.id == 727521754313916487:  # kwee
-        await ctx.send(content="Kweeeeeeeeeeeeeeeeeeeeeeee")
-    elif ctx.author.id == 712327512826314835:  # Sanjeev
-        await ctx.send(content=f"{ctx.author.mention} Sex bro?")
-    elif ctx.author.id == 380988746197237760:  # Aryaman
-        await ctx.send("Moshi Moshi from Rasputin chan", file=discord.File('assets/Rasputin.jpeg'))
-    elif ctx.author.id == 758721255477477376: # Gijo
-        await ctx.send("All hail The Homie, Claimer of Ass!")
-    elif ctx.author.id == 758715042609889322: # Vishaan
-        await ctx.send("Hellu ya fookin drug-addled delinquent", file=discord.File('assets/Vishaan.gif'))
-    elif ctx.author.id == 585085025305755687: # Rida ew
-        await ctx.send(f"{ctx.author.mention} sup clownass bitch")
-    elif ctx.author.id == 750258404823662613: # Sanyaaaa
-        await ctx.send(f"{ctx.author.mention}", file=discord.File('assets/Saanya.png'))
-    else:
-        greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!"])
-        owner = client.get_user(client.owner_id)
-        await ctx.send(f"{greeting} I'm a robot! {owner.name}#{owner.discriminator} made me.")
+    if process_greetings:
+        coro = process_greetings(ctx.author.id, ctx)
+        if coro:
+            return await coro
+    greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!"])
+    owner = client.get_user(client.owner_id)
+    await ctx.send(f"{greeting} I'm a robot! {owner.name}#{owner.discriminator} made me.")
 
 
 @client.command(aliases=['invite'])
