@@ -4,7 +4,6 @@ Basic Discord bot skeleton with some external cogs
 import aiohttp
 import datetime
 import os
-import json
 import random
 import time
 from dotenv import load_dotenv
@@ -32,12 +31,6 @@ USER = os.getenv('DBUSERNAME') or 'postgres'
 
 def pfx_helper(message):
     """helper to get prefix"""
-    #with open('readonly/prefixes.json', 'r') as file:
-    #    prefixes = json.load(file)
-    #if message.guild:
-    #    return prefixes.get(str(message.guild.id), '!')
-    #else:
-    #    return "!"
     if not message.guild:
         return '!'
     return client.prefixes.get(message.guild.id, '!')
