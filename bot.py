@@ -6,8 +6,8 @@ import datetime
 import os
 import random
 import time
-from dotenv import load_dotenv
 import asyncpg
+import config
 import discord
 from discord.ext import commands, tasks
 import sys
@@ -21,13 +21,6 @@ __version__ = "3.0.0"
 __author__ = "Varun J"
 
 log = logging.getLogger(__name__)
-
-load_dotenv()
-TOKEN = os.getenv('SCOREKEEPER_TOKEN')
-HOST = os.getenv('HOST')
-PASSWORD = os.getenv('PASSWORD')
-DATABASE = os.getenv('DATABASE') or 'scorekeeper_data'
-USER = os.getenv('DBUSERNAME') or 'postgres'
 
 def pfx_helper(message):
     """helper to get prefix"""
@@ -44,9 +37,8 @@ def get_prefix(bot, message):
     return commands.when_mentioned_or(pfx_helper(message))(bot, message)
 
 async def create_db_pool():
-    credentials = {"user": USER, "password": PASSWORD, "database": DATABASE, "host": HOST}
     try:
-        client.db = await asyncpg.create_pool(**credentials)
+        client.db = await asyncpg.create_pool(config.postgresql)
     except KeyboardInterrupt:
         await client.db.close()
 
@@ -319,7 +311,7 @@ async def support(ctx):
 startup.start()
 try:
     client.loop.run_until_complete(create_db_pool())
-    client.loop.run_until_complete(client.start(TOKEN))
+    client.loop.run_until_complete(client.start(config.token))
 except KeyboardInterrupt:
     client.loop.run_until_complete(client.logout())
     client.loop.run_until_complete(close_db())

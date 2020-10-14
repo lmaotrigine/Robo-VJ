@@ -14,6 +14,7 @@ venv/
 #config
 .env
 assets/*.json
+config.py
 
 #emacs
 [#]*[#]
