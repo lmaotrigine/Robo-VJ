@@ -44,7 +44,7 @@ postgresql = 'postgresql://user:password@host/database' # your postgresql info f
 
 Simply run `bot.py` from your venv. To configure `bot.service` and use systemd, see below.
 
-7. **configuring systemd to run the bot on reboot**
+7. **Configuring systemd to run the bot on reboot**
 
 Open `bot.service` and edit the path to your python environment, working directory, and path to the `bot.py` as needed and then run the following: 
 ```sh
