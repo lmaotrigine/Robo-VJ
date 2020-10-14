@@ -268,7 +268,7 @@ class Moderation(commands.Cog):
                     await self.client.db.execute("INSERT INTO blocks (user_id, block_until, guild_id, channel_id) VALUES ($1, $2, $3, $4)", user.id, until, ctx.guild.id, ctx.channel.id)
                 else:
                     await self.client.db.execute("UPDATE blocks SET block_until = $1 WHERE user_id = $2 AND guild_id = $3 AND channel_id = $4", until, user.id, ctx.guild.id, ctx.channel.id)
-            await ctx.send(f"Blocked {user.mention} from this channel for {time} (until {str(until).split('.')[0][:-3]}).")
+            await ctx.send(f"Blocked {user.mention} from this channel for {time} (until {str(until).split('.')[0][:-3]} UTC)")
         else:
             await ctx.send(f"Blocked {user.mention} from this channel indefinitely")
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
