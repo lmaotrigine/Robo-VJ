@@ -28,7 +28,7 @@ $ sudo apt install python3.8
   - If PostgreSQL not installed, follow instructions [here](https://www.postgresql.org/download/linux/ubuntu/)
   - Quick setup: `$ pg_dump -C -h source_host -U postgres source_db | psql -h target_host -U postgres target_db`
   - Recommeded setup for large databases:
-    - on source: `$ pg_dump -U postgres -O source_db -f source_db.sql`
+    - on source: `$ pg_dump -U postgres -O -d source_db -f source_db.sql`
     - copy `source_db.sql` to target server
     - on target: `$ psql -U postgres -d target_db -f source_db.sql` (You should have target_db created already)
     
