@@ -13,7 +13,8 @@ venv/
 
 #config
 .env
-assets/
+#assets/
+temp_assets/
 config.py
 
 #emacs
