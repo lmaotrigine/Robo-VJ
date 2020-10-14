@@ -1,11 +1,11 @@
-"""
-Basic Discord bot skeleton with some external cogs
-"""
+
+__version__ = "3.0.0"
+__author__ = "Varun J"
+
 import aiohttp
 import datetime
 import os
 import random
-import time
 import asyncpg
 import config
 import discord
@@ -16,9 +16,6 @@ from cogs.utils.config import Config
 from cogs.utils import time
 import logging
 import traceback
-
-__version__ = "3.0.0"
-__author__ = "Varun J"
 
 log = logging.getLogger(__name__)
 
@@ -46,6 +43,7 @@ async def close_db():
     await client.db.close()
     await client.session.close()
 
+
 # initialise client
 class RoboVJ(commands.Bot):
     def __init__(self, **kwargs):
@@ -54,6 +52,38 @@ class RoboVJ(commands.Bot):
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
         self._auto_spam_count = Counter()
         self.session = aiohttp.ClientSession(loop=self.loop)
+
+    async def init_db(self):    
+        await self.db.execute("""CREATE TABLE IF NOT EXISTS servers (
+            id SERIAL PRIMARY KEY,
+            guild_id BIGINT,
+            prefix TEXT,
+            qchannel BIGINT,
+            pchannel BIGINT,
+            modlog BIGINT
+        );
+        CREATE TABLE IF NOT EXISTS blocks (
+            user_id BIGINT,
+            guild_id BIGINT,
+            channel_id BIGINT,
+            block_until TIMESTAMP WITH TIME ZONE
+        );
+        CREATE TABLE IF NOT EXISTS mutes (
+            user_id BIGINT,
+            guild_id BIGINT,
+            mute_until TIMESTAMP WITH TIME ZONE
+        );
+        CREATE TABLE IF NOT EXISTS named_servers (
+            id SERIAL PRIMARY KEY,
+            guild_id BIGINT,
+            name TEXT
+        );
+        CREATE TABLE IF NOT EXISTS warns (
+            user_id BIGINT,
+            guild_id BIGINT,
+            num INTEGER
+        );
+        """)
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.NoPrivateMessage):
@@ -143,6 +173,7 @@ client = RoboVJ(command_prefix=get_prefix, status=discord.Status.online, activit
     #help_command=EmbedHelpCommand(dm_help=None),
     help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
     case_insensitive=True, intents=discord.Intents.all())
+
 client.version = __version__
 client.prefixes = {}
 client.qchannels = {}
@@ -151,7 +182,7 @@ client.modlogs = {}
 
 @tasks.loop(count=1)
 async def startup():
-
+    await client.init_db()
     client.owner = client.get_user(client.owner_id)
     data = await client.db.fetch("SELECT * FROM servers")
     for record in data:
@@ -257,8 +288,8 @@ async def hello(ctx):
         await ctx.send(f"{greeting} I'm a robot! {owner.name}#{owner.discriminator} made me.")
 
 
-@client.command(aliases=['join'])
-async def invite(ctx):
+@client.command(aliases=['invite'])
+async def join(ctx):
     """Get the invite link to add the bot to your server"""
     embed = discord.Embed(title="Click here to add me to your server", colour=discord.Colour(0xFF0000),
                           url=discord.utils.oauth_url(client.user.id, discord.Permissions(administrator=True)))
