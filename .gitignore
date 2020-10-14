@@ -13,7 +13,7 @@ venv/
 
 #config
 .env
-assets/*.json
+assets/
 config.py
 
 #emacs
