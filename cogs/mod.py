@@ -34,7 +34,6 @@ class Redeemed(commands.Converter):
 # Checks if there is a muted role on the server and creates one if there isn't
 async def mute(ctx, user, reason):
     role = discord.utils.get(ctx.guild.roles, name="Muted") # retrieves muted role returns none if there isn't
-    channel = ctx.bot.get_channel(ctx.bot.modlogs.get(ctx.guild.id))
     if not role: # checks if there is muted role
         try: # creates muted role
             muted = await ctx.guild.create_role(name="Muted", reason="To use for muting")
@@ -47,16 +46,6 @@ async def mute(ctx, user, reason):
         await user.add_roles(muted) # adds newly created muted role
     else:
         await user.add_roles(role) # adds already existing muted role
-
-    #if not hell: # checks if there is a channel named hell
-    #    overwrites = {ctx.guild.default_role: discord.PermissionOverwrite(read_message_history=False),
-    #                  ctx.guild.me: discord.PermissionOverwrite(send_messages=True),
-    #                  muted: discord.PermissionOverwrite(read_message_history=True)} # permissions for the channel
-    #    try: # creates the channel and sends a message
-    #        channel = await ctx.create_channel('hell', overwrites=overwrites)
-    #        await channel.send("Welcome to hell.. You will spend your time here until you get unmuted. Enjoy the silence.")
-    #    except discord.Forbidden:
-    #        return await ctx.send("I have no permissions to make #hell")
 
 class TimeConverter(commands.Converter):
     time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
@@ -186,8 +175,8 @@ class Moderation(commands.Cog):
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="MUTE", colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
-            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
-            embed.add_field(name='Duration', value=str(time) if time else '∞', inline=False)
+            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
+            embed.add_field(name='Duration', value=str(time) if time else '∞')
             embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
             embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
             await channel.send(embed=embed)
@@ -230,7 +219,7 @@ class Moderation(commands.Cog):
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="KICK", colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
-            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
+            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
             embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
             embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
             await channel.send(embed=embed)
@@ -274,9 +263,9 @@ class Moderation(commands.Cog):
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="BLOCK", colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
-            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
-            embed.add_field(name='Channel', value=ctx.channel.mention, inline=False)
-            embed.add_field(name='Duration', value=str(time) if time else '∞', inline=False)
+            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
+            embed.add_field(name='Channel', value=ctx.channel.mention)
+            embed.add_field(name='Duration', value=str(time) if time else '∞')
             embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
             embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
             await channel.send(embed=embed)
@@ -295,9 +284,8 @@ class Moderation(commands.Cog):
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="UNBLOCK", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
-            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
-            embed.add_field(name='Channel', value=ctx.channel.mention, inline=False)
-            embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
+            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
+            embed.add_field(name='Channel', value=ctx.channel.mention)
             embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
             await channel.send(embed=embed)
 
@@ -321,25 +309,26 @@ class Moderation(commands.Cog):
                     channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
                     if channel:
                         warn_embed = discord.Embed(title="WARN", colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
-                        warn_embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
+                        warn_embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
                         warn_embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
-                        warn_embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
+                        warn_embed.add_field(name="Current warnings", value=current, inline=False)
+                        warn_embed.add_field(name='Responsible Moderator', value=str(ctx.author))
                         await channel.send(embed=warn_embed)
                         embed = discord.Embed(title="AUTOBAN", colour=discord.Colour.red(), timestamp=datetime.datetime.utcnow())
-                        embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
+                        embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
                         embed.add_field(name='Reason', value="Accumulated 5 warns", inline=False)
                         embed.add_field(name='Responsible Moderator', value=str(ctx.guild.me), inline=False)
                         await channel.send(embed=embed)
                     await self.client.db.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
                     return await ctx.send(f"{user.mention} has been autobanned because they have 5 or more warns.")
-        await ctx.send(f"{user.mention} has been warned. Total warns: {current}")
+        await ctx.send(f"{user.mention} has been warned. Total warnings: {current}")
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="WARN", colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
-            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
+            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
             embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
-            embed.add_field(name='Current warns', value=current, inline=False)
-            embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
+            embed.add_field(name='Current warnings', value=current, inline=False)
+            embed.add_field(name='Responsible Moderator', value=str(ctx.author))
             await channel.send(embed=embed)
 
     @commands.command()
@@ -351,13 +340,13 @@ class Moderation(commands.Cog):
         current = await self.client.db.fetchval("SELECT num FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
         if current is None:
             current = 0
-        await ctx.send(f"Currently, {user.mention} has {current} {'warn' if current == 1 else 'warns'}.")
+        await ctx.send(f"Currently, {user.mention} has {current} {'warning' if current == 1 else 'warnings'}.")
 
     @commands.command()
     @commands.check(check_mod_perms)
     @commands.guild_only()
     async def unwarn(self, ctx, user: Sinner=None):
-        """Removes one warn from a user"""
+        """Removes one warning from a user"""
         if not user:
             return await ctx.send("You must specify a user")
         current = await self.client.db.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
@@ -373,16 +362,16 @@ class Moderation(commands.Cog):
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="UNWARN", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
-            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
-            embed.add_field(name='Current warns', value=current, inline=False)
-            embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
+            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
+            embed.add_field(name='Current warns', value=current)
+            embed.add_field(name='Responsible Moderator', value=str(ctx.author))
             await channel.send(embed=embed)
 
     @commands.command(aliases=['cleanslate'])
     @commands.check(check_mod_perms)
     @commands.guild_only()
     async def clearwarns(self, ctx, user: discord.Member=None):
-        """Resets warns for the user"""
+        """Removes all warnings for the user"""
         if not user:
             return await ctx.send("You must specify a member")
         current = await self.client.db.fetchrow("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
@@ -390,14 +379,13 @@ class Moderation(commands.Cog):
             return await ctx.send(f"{user.mention} has no outstanding warnings")
         async with self.client.db.acquire() as conn:
             await self.client.db.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
-        await ctx.send(f"Cleared all warns for {user.mention}")
+        await ctx.send(f"Removed all warnings for {user.mention}")
         channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
         if channel:
-            embed = discord.Embed(title="CLEAR WARNS", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
-            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
-            embed.add_field(name='Responsible Moderator', value=str(ctx.author), inline=False)
+            embed = discord.Embed(title="CLEAR ALL WARNINGS", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
+            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
+            embed.add_field(name='Responsible Moderator', value=str(ctx.author))
             await channel.send(embed=embed)
-
 
 def setup(client):
     client.add_cog(Moderation(client))
