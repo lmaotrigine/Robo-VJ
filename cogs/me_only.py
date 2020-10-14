@@ -39,6 +39,8 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
     def __init__(self, client):
         self.client = client
         self.AUTOAPPROVE = {}
+        if not os.path.isdir('assets'):
+            os.mkdir('assets')
         try:
             with open('assets/autoapprove_messages.json', 'r') as file:
                 self.messages = json.load(file)

@@ -24,3 +24,4 @@ config.py
 *.sql
 
 restart_from_channel.txt
+assets/autoapprove_messages.json
