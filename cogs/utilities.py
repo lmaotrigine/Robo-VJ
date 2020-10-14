@@ -225,12 +225,12 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
             return
         await ctx.message.delete()
         embed=discord.Embed(title=f"Revoked approval for {member}.", colour=0xFF0000, timestamp=datetime.datetime.utcnow())
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/user/{ctx.author.id}")
+        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
         embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
         await ctx.guild.system_channel.send(embed=embed)
 
 
-    @commands.command(hidden=True)
+    @commands.command()
     @commands.guild_only()
     async def prune(self, ctx, days:int, *roles):
         """
