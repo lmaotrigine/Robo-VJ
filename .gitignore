@@ -18,4 +18,7 @@ assets/*.json
 #emacs
 [#]*[#]
 
+# sql data dumps
+*.sql
+
 restart_from_channel.txt
