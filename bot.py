@@ -20,9 +20,9 @@ import traceback
 
 # Some custom greetings I had made for my friends.
 try:
-    from assets.hello import process_greetings
+    from assets.hello import Greeter
 except ImportError:
-    process_greetings = None
+    Greeter = None
 
 log = logging.getLogger(__name__)
 load_dotenv()
@@ -264,10 +264,10 @@ async def on_guild_update(before, after):
 @client.command(aliases=["hi"])
 async def hello(ctx):
     """Go ahead, say hi!"""
-    if process_greetings:
-        coro = process_greetings(ctx.author.id, ctx)
+    if Greeter:
+        coro = await Greeter.greet(ctx.author.id, ctx)
         if coro:
-            return await coro
+            return
     greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!"])
     owner = client.get_user(client.owner_id)
     await ctx.send(f"{greeting} I'm a robot! {str(owner)} made me.")
