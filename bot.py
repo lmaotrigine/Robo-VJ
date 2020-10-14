@@ -334,7 +334,7 @@ async def _info(ctx):
     embed.add_field(name="Creator", value=f"{client.get_user(411166117084528640).mention}", inline=False)
     embed.add_field(name="Servers", value=f"{len(client.guilds)}", inline=True)
     embed.add_field(name="Commands", value=f"{len(list(filter(lambda x: not x.hidden, client.commands)))}", inline=True)
-    embed.add_field(name="Uptime", value=time.human_timedelta(client.uptime, accuracy=None, brief=brief, suffix=False), inline=True)
+    embed.add_field(name="Uptime", value=time.human_timedelta(client.uptime, accuracy=None, brief=True, suffix=False), inline=True)
     embed.add_field(name="Support", value=f"[Join the support server for announcements and to report issues](https://discord.gg/rqgRyF8)",
                     inline=False)
     embed.add_field(name="Invite",
