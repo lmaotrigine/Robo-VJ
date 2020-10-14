@@ -10,6 +10,7 @@ import asyncpg
 import config
 import discord
 from discord.ext import commands, tasks
+from dotenv import load_dotenv
 import sys
 from collections import Counter, deque, defaultdict
 from cogs.utils.config import Config
@@ -18,6 +19,7 @@ import logging
 import traceback
 
 log = logging.getLogger(__name__)
+load_dotenv()
 
 def pfx_helper(message):
     """helper to get prefix"""
