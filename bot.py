@@ -6,6 +6,7 @@ import aiohttp
 import datetime
 import os
 import random
+import json
 import asyncpg
 import config
 import discord
@@ -43,7 +44,7 @@ def get_prefix(bot, message):
 
 async def create_db_pool():
     async def init(con):
-        await con.set_type_codec('jsonb', schema='pg_catalog', encoder=_encode_jsonb, decoder=_decode_jsonb, format='text')
+        await con.set_type_codec('jsonb', schema='pg_catalog', encoder=json.dumps, decoder=json.loads, format='text')
     try:
         bot.db = await asyncpg.create_pool(config.postgresql, init=init)
     except KeyboardInterrupt:
