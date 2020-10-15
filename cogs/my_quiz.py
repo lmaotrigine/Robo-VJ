@@ -172,7 +172,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
                 embed.add_field(name='Empty teams', value=empty)
             if available_partial_teams:
                 embed.add_field(name='Partially filled teams', value=partial)
-            embed.set_footer(text="Timeout in 60s", icon_url=ctx.guild.iconr_url)
+            embed.set_footer(text="Timeout in 60s", icon_url=ctx.guild.icon_url)
             embed.timestamp = datetime.datetime.utcnow()
             await ctx.send(embed=embed)
             try:
