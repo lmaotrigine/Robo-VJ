@@ -14,10 +14,10 @@ from datetime import timezone
 # This prevents staff members from being punished
 class Sinner(commands.Converter):
     async def convert(self, ctx, argument):
-        argument = await commands.MemberConverter().convert(ctx, argument) # gets a member object
-        permission = argument.guild_permissions.administrator # can change into any permission
-        if not permission: # checks if user has the permission
-            return argument # returns user object
+        member = await commands.MemberConverter().convert(ctx, argument) # gets a member object
+        predicate = member.top_role < ctx.author.top_role 
+        if predicate: 
+            return member
         else:
             raise commands.BadArgument("You cannot punish other staff members") # tells user that target is a staff member
 
@@ -117,6 +117,19 @@ class Moderation(commands.Cog):
 
         await ctx.send(f"{channel.mention} has been configured for mod logs on this server")
 
+    @modlog.command()
+    @commands.guild_only()
+    @commands.check(check_mod_perms)
+    async def remove(self, ctx):
+        """Stops logging moderation events to the assigned channel."""
+        if self.client.modlogs.get(ctx.guild.id) is not None:
+            self.client.modlogs.pop(ctx.guild.id)
+            async with self.client.db.acquire() as conn:
+                await self.client.db.execute("UPDATE servers SET modlog = $1 WHERE guild_id = $2", None, ctx.guild.id)
+            await ctx.send("No longer logging moderation events for this server.")
+        else:
+            await ctx.send("No channel has been configured got mod logs on this server. No action taken.")
+
     @commands.command(aliases=["banish"])
     @commands.check(check_mod_perms)
     @commands.guild_only()
@@ -158,7 +171,7 @@ class Moderation(commands.Cog):
     @commands.check(check_mod_perms)
     @commands.guild_only()
     async def mute(self, ctx, time:Optional[TimeConverter], user: Sinner,*, reason:str=None):
-        """Mutes a user until unmuted."""
+        """Mutes a user"""
         await mute(ctx, user, reason=reason) # uses the mute function
         if time:
             until = datetime.datetime.now(timezone.utc) + time
@@ -352,7 +365,7 @@ class Moderation(commands.Cog):
         current = await self.client.db.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
         async with self.client.db.acquire() as conn:
             if not current:
-                return await ctx.send(f"{member.mention} has no outstanding warnings")
+                return await ctx.send(f"{user.mention} has no outstanding warnings")
             else:
                 current -= 1
                 await self.client.db.execute("UPDATE warns SET num = $1 WHERE guild_id = $2 and user_id = $3", current, ctx.guild.id, user.id)
