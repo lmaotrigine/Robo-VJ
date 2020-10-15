@@ -203,14 +203,15 @@ class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
                     except commands.BadArgument:
                         await ctx.send("Invalid Role {}".format(message.content.split()[0]), delete_after=10.0)
                     else:
-                        if role in available_partial_teams or role in empty_teams:
+                        available_teams = {team for team in all_teams if len(team.members) + len(participants) <= self.max_per_team}
+                        if role in available_teams:
                             for participant in participants:
                                 await participant.add_roles(role)
                                 done = True
                                 break
                             await ctx.send(f"Assigned {', '.join(participant.mention for participant in participants)} to {role.mention}")
                         else:
-                            await ctx.send(f"**{role.name}** is not available.", delte_after=10.0)
+                            await ctx.send(f"**{role.name}** is not available.", delete_after=10.0)
 
         else:
             if len(partial_teams) > 0:
