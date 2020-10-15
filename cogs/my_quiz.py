@@ -211,7 +211,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
         else:
             if len(partial_teams) > 0:
                 embed = discord.Embed(title='No teams available to accommodate {} members', colour=discord.Colour.orange())
-                embed.add_field(name="Current partially filled teams", value='\n'.join([f"{team.mention} : {len(team.members)} / {self.max_per_team}" for team in sorted(partial_teams)]))
+                embed.add_field(name="Current partially filled teams", value='\n'.join([f"{team.mention} : {len(team.members)} / {self.max_per_team}" for team in sorted(partial_teams, key=lambda t: t.name)]))
                 embed.timestamp = datetime.datetime.utcnow()
                 await ctx.send(embed=embed)
             else:
