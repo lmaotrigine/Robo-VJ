@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands, tasks
 import datetime
 import asyncio
+import sys
+import traceback
 
 GUILD_ID = 718378271800033318
 NO_MIC_BOUNCE_ID = 758217695748554802
@@ -22,6 +24,7 @@ TEAMS = {
     718380354339340358
 }
 REGISTRATION_CHANNEL_ID = 766223209938419712
+ANNOUNCEMENT_CHANNEL_ID = 743834763965759499
 
 def is_qm():
     def predicate(ctx):
@@ -105,12 +108,24 @@ class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
     @commands.command()
     @commands.guild_only()
     @is_qm()
-    async def openregs(self, ctx, max_members_per_team: int=None):
+    async def openregs(self, ctx, max_members_per_team: int):
         """Open registrations for a quiz with optional maximum members per team"""
         self.reg_open = True
-        self.max_per_team = max_members_per_team or ctx.guild.member_count
+        self.max_per_team = max_members_per_team
         text = f'\nMax. members per team = **{max_members_per_team}**' if max_members_per_team else ''
         await ctx.send(f"Registrations now open.{text}")
+        announcement = ctx.guild.get_channel(ANNOUNCEMENT_CHANNEL_ID)
+        await announcement.send(f"@here\nRegistrations are now open for teams of {max_members_per_team}. Register in {self.bot.get_channel(REGISTRATION_CHANNEL_ID).mention}")
+
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, commands.CheckFailure):
+            pass
+        if isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.BadArgument):
+            await ctx.send(error)
+        else:
+            error = getattr(error, 'original', error)
+            print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
     @commands.command()
     @commands.guild_only()
@@ -120,6 +135,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
         self.reg_open = False
         self.max_per_team = None
         await ctx.send("Registrations now closed.")
+        await self.bot.get_channel(ANNOUNCEMENT_CHANNEL_ID).send("@here\nRegistrations are now closed.")
 
     @commands.command()
     @commands.guild_only()
@@ -178,7 +194,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
             try:
                 message = await self.bot.wait_for('message', timeout=60.0, check=confirm_check)
             except asyncio.TimeoutError:
-                return await ctx.send("Timeout!\nCancelling operation...", delete_after=30.0)
+                return await ctx.send(f"{ctx.author.mention} Timeout!\nCancelling operation...", delete_after=30.0)
             else:
                 try:
                     role = await commands.RoleConverter().convert(ctx, message.content.split()[0])
