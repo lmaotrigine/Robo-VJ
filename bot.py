@@ -42,8 +42,10 @@ def get_prefix(bot, message):
     return commands.when_mentioned_or(pfx_helper(message))(bot, message)
 
 async def create_db_pool():
+    async def init(con):
+        await con.set_type_codec('jsonb', schema='pg_catalog', encoder=_encode_jsonb, decoder=_decode_jsonb, format='text')
     try:
-        bot.db = await asyncpg.create_pool(config.postgresql)
+        bot.db = await asyncpg.create_pool(config.postgresql, init=init)
     except KeyboardInterrupt:
         await bot.db.close()
 
