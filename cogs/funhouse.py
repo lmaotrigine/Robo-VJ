@@ -4,15 +4,15 @@ import googletrans
 import io
 
 class Funhouse(commands.Cog):
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
         self.trans = googletrans.Translator()
         
     @commands.command(hidden=True)
     async def translate(self, ctx, *, message: commands.clean_content):
         """Translates a message to English using Google translate."""
 
-        loop = self.client.loop
+        loop = self.bot.loop
         try:
             ret = await loop.run_in_executor(None, self.trans.translate, message)
         except Exception as e:
@@ -28,7 +28,7 @@ class Funhouse(commands.Cog):
     @commands.command(hidden=True)
     async def cat(self, ctx):
         """Gives you a random cat."""
-        async with self.client.session.get('https://api.thecatapi.com/v1/images/search') as resp:
+        async with self.bot.session.get('https://api.thecatapi.com/v1/images/search') as resp:
             if resp.status != 200:
                 return await ctx.send('No cat found :(')
             js = await resp.json()
@@ -37,7 +37,7 @@ class Funhouse(commands.Cog):
     @commands.command(hidden=True)
     async def dog(self, ctx):
         """Gives you a random dog"""
-        async with self.client.session.get('https://random.dog/woof') as resp:
+        async with self.bot.session.get('https://random.dog/woof') as resp:
             if resp.status != 200:
                 return await ctx.send('No dog found :(')
 
@@ -46,7 +46,7 @@ class Funhouse(commands.Cog):
             filesize = ctx.guild.filesize_limit if ctx.guild else 8388608
             if filename.endswith(('.mp4', '.webm')):
                 async with ctx.typing():
-                    async with self.client.session.get(url) as other:
+                    async with self.bot.session.get(url) as other:
                         if other.status != 200:
                             return await ctx.send('Could not download dog video :(')
 
@@ -58,5 +58,5 @@ class Funhouse(commands.Cog):
             else:
                 await ctx.send(embed=discord.Embed(title='Random Dog').set_image(url=url))
 
-def setup(client):
-    client.add_cog(Funhouse(client))
+def setup(bot):
+    bot.add_cog(Funhouse(bot))

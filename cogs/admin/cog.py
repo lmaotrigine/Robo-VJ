@@ -104,7 +104,7 @@ async def jsk(self, ctx: commands.Context):
     cache_summary = f"{len(self.bot.guilds)} guild(s) and {len(self.bot.users)} user(s)"
 
     # Show shard settings to summary
-    if isinstance(self.bot, discord.AutoShardedClient):
+    if isinstance(self.bot, discord.AutoShardedbot):
         summary.append(f"This bot is automatically sharded and can see {cache_summary}.")
     elif self.bot.shard_count:
         summary.append(f"This bot is manually sharded and can see {cache_summary}.")

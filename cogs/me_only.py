@@ -36,8 +36,8 @@ class GlobalChannel(commands.Converter):
                 return channel
 
 class MeOnly(commands.Cog, name="Bot owner specific"):
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
         self.AUTOAPPROVE = {}
         if not os.path.isdir('assets'):
             os.mkdir('assets')
@@ -60,7 +60,7 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
         return content.strip('` \n')
 
     async def cog_check(self, ctx):
-        return await self.client.is_owner(ctx.author)
+        return await self.bot.is_owner(ctx.author)
 
     def get_syntax_error(self, e):
         if e.text is None:
@@ -73,7 +73,7 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
             result = await process.communicate()
         except NotImplementedError:
             process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            result = await self.client.loop.run_in_executor(None, process.communicate)
+            result = await self.bot.loop.run_in_executor(None, process.communicate)
 
         return [output.decode() for output in result]
 
@@ -133,7 +133,7 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
             for arg in args:
                 changelog += f"  -  {arg}\n"
             changelog += "```"
-        embed = discord.Embed(title=f"v{self.client.version} has been released.", colour = (0xFF0000), description="\n", timestamp=datetime.datetime.utcnow())
+        embed = discord.Embed(title=f"v{self.bot.version} has been released.", colour = (0xFF0000), description="\n", timestamp=datetime.datetime.utcnow())
         embed.add_field(name="Changelog", value=changelog, inline=False)
         await ctx.message.delete()
         await ctx.send(embed=embed)
@@ -141,8 +141,8 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        if str(payload.emoji) == "✅" and payload.guild_id and payload.user_id != self.client.user.id:
-            guild = self.client.get_guild(payload.guild_id)
+        if str(payload.emoji) == "✅" and payload.guild_id and payload.user_id != self.bot.user.id:
+            guild = self.bot.get_guild(payload.guild_id)
             member = guild.get_member(payload.user_id)
             if self.messages.get(str(payload.guild_id)) == payload.message_id:
                 if not "approved" in [role.name.lower() for role in member.roles]:
@@ -151,7 +151,7 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
                     except discord.Forbidden:
                         await reaction.message.guild.owner.send(f"I do not have permissions to approve members here. Make sure I have a role higher up than `Approved`")
                         return
-                channel = self.client.get_channel(payload.channel_id)
+                channel = self.bot.get_channel(payload.channel_id)
                 message = await channel.fetch_message(payload.message_id)
                 await message.remove_reaction('✅', member)
 
@@ -161,7 +161,7 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
             return
         guilds = PrettyTable()
         guilds.field_names = ["Name", "ID", "Owner", "Owner ID"]
-        for guild in self.client.guilds:
+        for guild in self.bot.guilds:
             guilds.add_row([guild.name, str(guild.id), f"{guild.owner.name}#{guild.owner.discriminator}", str(guild.owner.id)])
         results = f"```{guilds}```"
         if len(results) > 2000:
@@ -175,8 +175,8 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
         """Evaluates a code"""
 
         env = {
-            'client': self.client,
-            'bot': self.client,
+            'bot': self.bot,
+            'bot': self.bot,
             'ctx': ctx,
             'channel': ctx.channel,
             'author': ctx.author,
@@ -233,9 +233,9 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
         is_multistatement = query.count(';') > 1
         if is_multistatement:
             # fetch does not support multiple statements
-            strategy = self.client.db.execute
+            strategy = self.bot.db.execute
         else:
-            strategy = self.client.db.fetch
+            strategy = self.bot.db.fetch
 
         try:
             start = time.perf_counter()
@@ -269,8 +269,8 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
         msg.channel = channel
         msg.author = channel.guild.get_member(who.id) or who
         msg.content = ctx.prefix + command
-        new_ctx = await self.client.get_context(msg, cls=type(ctx))
-        await self.client.invoke(new_ctx)
+        new_ctx = await self.bot.get_context(msg, cls=type(ctx))
+        await self.bot.invoke(new_ctx)
 
     @commands.command(hidden=True)
     async def do(self, ctx, times: int, *, command):
@@ -278,7 +278,7 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
         msg = copy.copy(ctx.message)
         msg.content = ctx.prefix + command
 
-        new_ctx = await self.client.get_context(msg, cls=type(ctx))
+        new_ctx = await self.bot.get_context(msg, cls=type(ctx))
 
         for i in range(times):
             await new_ctx.reinvoke()
@@ -304,5 +304,5 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
 
 
 
-def setup(client):
-    client.add_cog(MeOnly(client))
+def setup(bot):
+    bot.add_cog(MeOnly(bot))

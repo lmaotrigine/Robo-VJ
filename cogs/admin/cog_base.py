@@ -411,7 +411,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         url = url.lstrip("<").rstrip(">")
 
         async with ReplResponseReactor(ctx.message):
-            async with aiohttp.ClientSession() as session:
+            async with aiohttp.botSession() as session:
                 async with session.get(url) as response:
                     data = await response.read()
                     hints = (
@@ -615,8 +615,8 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         if await vc_check(ctx):
             return
 
-        # give info about the current voice client if there is one
-        voice = ctx.guild.voice_client
+        # give info about the current voice bot if there is one
+        voice = ctx.guild.voice_bot
 
         if not voice or not voice.is_connected():
             return await ctx.send("Not connected.")
@@ -646,7 +646,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
             else:
                 return await ctx.send("Member has no voice channel.")
 
-        voice = ctx.guild.voice_client
+        voice = ctx.guild.voice_bot
 
         if voice:
             await voice.move_to(destination)
@@ -664,7 +664,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         if await connected_check(ctx):
             return
 
-        voice = ctx.guild.voice_client
+        voice = ctx.guild.voice_bot
 
         await voice.disconnect()
         await ctx.send(f"Disconnected from {voice.channel.name}.")
@@ -678,7 +678,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         if await playing_check(ctx):
             return
 
-        voice = ctx.guild.voice_client
+        voice = ctx.guild.voice_bot
 
         voice.stop()
         await ctx.send(f"Stopped playing audio in {voice.channel.name}.")
@@ -692,7 +692,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         if await playing_check(ctx):
             return
 
-        voice = ctx.guild.voice_client
+        voice = ctx.guild.voice_bot
 
         if voice.is_paused():
             return await ctx.send("Audio is already paused.")
@@ -709,7 +709,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         if await playing_check(ctx):
             return
 
-        voice = ctx.guild.voice_client
+        voice = ctx.guild.voice_bot
 
         if not voice.is_paused():
             return await ctx.send("Audio is not paused.")
@@ -728,7 +728,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
 
         volume = max(0.0, min(1.0, percentage / 100))
 
-        source = ctx.guild.voice_client.source
+        source = ctx.guild.voice_bot.source
 
         if not isinstance(source, discord.PCMVolumeTransformer):
             return await ctx.send("This source doesn't support adjusting volume or "
@@ -749,7 +749,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         if await connected_check(ctx):
             return
 
-        voice = ctx.guild.voice_client
+        voice = ctx.guild.voice_bot
 
         if voice.is_playing():
             voice.stop()
@@ -772,7 +772,7 @@ class JishakuBase(commands.Cog):  # pylint: disable=too-many-public-methods
         if not youtube_dl:
             return await ctx.send("youtube_dl is not installed.")
 
-        voice = ctx.guild.voice_client
+        voice = ctx.guild.voice_bot
 
         if voice.is_playing():
             voice.stop()

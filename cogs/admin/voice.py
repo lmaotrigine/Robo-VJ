@@ -12,7 +12,7 @@ Voice-related functions and classes.
 """
 
 import discord.opus
-import discord.voice_client
+import discord.voice_bot
 from discord.ext import commands
 
 try:
@@ -26,7 +26,7 @@ async def vc_check(ctx: commands.Context):  # pylint: disable=unused-argument
     Check for whether VC is available in this bot.
     """
 
-    if not discord.voice_client.has_nacl:
+    if not discord.voice_bot.has_nacl:
         return await ctx.send("Voice cannot be used because PyNaCl is not loaded.")
 
     if not discord.opus.is_loaded():
@@ -44,7 +44,7 @@ async def connected_check(ctx: commands.Context):
     Check whether we are connected to VC in this guild.
     """
 
-    voice = ctx.guild.voice_client
+    voice = ctx.guild.voice_bot
 
     if not voice or not voice.is_connected():
         return await ctx.send("Not connected to a voice channel in this guild.")
@@ -61,8 +61,8 @@ async def playing_check(ctx: commands.Context):
     if check:
         return check
 
-    if not ctx.guild.voice_client.is_playing():
-        return await ctx.send("The voice client in this guild is not playing anything.")
+    if not ctx.guild.voice_bot.is_playing():
+        return await ctx.send("The voice bot in this guild is not playing anything.")
 
 
 BASIC_OPTS = {

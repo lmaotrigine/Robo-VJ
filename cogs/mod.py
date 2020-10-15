@@ -77,8 +77,8 @@ def check_mod_perms(ctx):
 class Moderation(commands.Cog):
     """Commands used to moderate your guild. Requires administrator permissions"""
 
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
         self.check_mute_and_block.start()
 
     def cog_unload(self):
@@ -99,8 +99,8 @@ class Moderation(commands.Cog):
     @commands.check(check_mod_perms)
     async def modlog(self, ctx):
         """Used to assign a channel where moderation events are logged"""
-        if self.client.modlogs.get(ctx.guild.id):
-            await ctx.send(f"Mod logs for this server are sent to {self.client.get_channel(self.client.modlogs[ctx.guild.id]).mention}")
+        if self.bot.modlogs.get(ctx.guild.id):
+            await ctx.send(f"Mod logs for this server are sent to {self.bot.get_channel(self.bot.modlogs[ctx.guild.id]).mention}")
         else:
             await ctx.send(f"No channel has been configured for mod logs on this server. Use `{ctx.prefix}modlog assign` to assign one.")
 
@@ -111,9 +111,9 @@ class Moderation(commands.Cog):
         """Assigns a specific channel to receive moderation event logs"""
         if not channel:
             channel = ctx.channel
-        self.client.modlogs[ctx.guild.id] = channel.id
-        async with self.client.db.acquire() as conn:
-            await self.client.db.execute("UPDATE servers SET modlog = $1 WHERE guild_id = $2", channel.id, ctx.guild.id) 
+        self.bot.modlogs[ctx.guild.id] = channel.id
+        async with self.bot.db.acquire() as conn:
+            await self.bot.db.execute("UPDATE servers SET modlog = $1 WHERE guild_id = $2", channel.id, ctx.guild.id) 
 
         await ctx.send(f"{channel.mention} has been configured for mod logs on this server")
 
@@ -122,10 +122,10 @@ class Moderation(commands.Cog):
     @commands.check(check_mod_perms)
     async def remove(self, ctx):
         """Stops logging moderation events to the assigned channel."""
-        if self.client.modlogs.get(ctx.guild.id) is not None:
-            self.client.modlogs.pop(ctx.guild.id)
-            async with self.client.db.acquire() as conn:
-                await self.client.db.execute("UPDATE servers SET modlog = $1 WHERE guild_id = $2", None, ctx.guild.id)
+        if self.bot.modlogs.get(ctx.guild.id) is not None:
+            self.bot.modlogs.pop(ctx.guild.id)
+            async with self.bot.db.acquire() as conn:
+                await self.bot.db.execute("UPDATE servers SET modlog = $1 WHERE guild_id = $2", None, ctx.guild.id)
             await ctx.send("No longer logging moderation events for this server.")
         else:
             await ctx.send("No channel has been configured got mod logs on this server. No action taken.")
@@ -136,7 +136,7 @@ class Moderation(commands.Cog):
     @commands.has_permissions(ban_members=True)
     async def ban(self, ctx, user: Sinner,*, reason=None):
         """Casts users out of server."""
-        channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
+        channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
 
         try: # Tries to ban user
             await user.ban(reason=reason)
@@ -154,7 +154,7 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     async def softban(self, ctx, user: Sinner,*, reason:str=None):
         """Temporarily restricts access to server."""
-        channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
+        channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
         try: # Tries to soft-ban user
             await user.ban(reason=reason)
             await user.unban(reason="Temporarily banned")
@@ -175,17 +175,17 @@ class Moderation(commands.Cog):
         await mute(ctx, user, reason=reason) # uses the mute function
         if time:
             until = datetime.datetime.now(timezone.utc) + time
-            async with self.client.db.acquire() as conn:
-                test = await self.client.db.fetchrow("SELECT mute_until FROM mutes WHERE user_id = $1 AND guild_id = $2", user.id, ctx.guild.id)
+            async with self.bot.db.acquire() as conn:
+                test = await self.bot.db.fetchrow("SELECT mute_until FROM mutes WHERE user_id = $1 AND guild_id = $2", user.id, ctx.guild.id)
                 if not test:
-                    await self.client.db.execute("INSERT INTO mutes (user_id, mute_until, guild_id) VALUES ($1, $2, $3)", user.id, until, ctx.guild.id)
+                    await self.bot.db.execute("INSERT INTO mutes (user_id, mute_until, guild_id) VALUES ($1, $2, $3)", user.id, until, ctx.guild.id)
                 else:
-                    await self.client.db.execute("UPDATE mutes SET mute_until = $1 WHERE user_id = $2 AND guild_id = $3", until, user.id, ctx.guild.id)
+                    await self.bot.db.execute("UPDATE mutes SET mute_until = $1 WHERE user_id = $2 AND guild_id = $3", until, user.id, ctx.guild.id)
             await ctx.send(f"Muted {user.mention} for {str(time)} (until {str(until).split('.')[0][:-3]} UTC).")
         else:
             await ctx.send(f"Muted {user.mention} indefinitely.")
 
-        channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
+        channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="MUTE", colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
@@ -196,28 +196,28 @@ class Moderation(commands.Cog):
 
     @tasks.loop(seconds=1)
     async def check_mute_and_block(self):
-        data = await self.client.db.fetch("SELECT * FROM mutes")
+        data = await self.bot.db.fetch("SELECT * FROM mutes")
         for record in data:
             if datetime.datetime.now(timezone.utc) >= record['mute_until']:
-                guild = self.client.get_guild(record['guild_id'])
+                guild = self.bot.get_guild(record['guild_id'])
                 member = guild.get_member(record['user_id'])
                 await member.remove_roles(discord.utils.get(guild.roles, name='Muted'))
-                async with self.client.db.acquire() as conn:
-                    await self.client.db.execute("DELETE FROM mutes WHERE guild_id = $1 AND user_id = $2", guild.id, member.id)
+                async with self.bot.db.acquire() as conn:
+                    await self.bot.db.execute("DELETE FROM mutes WHERE guild_id = $1 AND user_id = $2", guild.id, member.id)
 
-        block_data = await self.client.db.fetch("SELECT * FROM blocks")
+        block_data = await self.bot.db.fetch("SELECT * FROM blocks")
         for record in block_data:
             if datetime.datetime.now(timezone.utc) >= record['block_until']:
-                guild = self.client.get_guild(record['guild_id'])
+                guild = self.bot.get_guild(record['guild_id'])
                 channel = guild.get_channel(record['channel_id'])
                 member = guild.get_member(record['user_id'])
                 await channel.set_permissions(member, send_messages=None)
-                async with self.client.db.acquire() as conn:
-                    await self.client.db.execute("DELETE FROM blocks WHERE guild_id = $1 AND user_id = $2 AND channel_id = $3", guild.id, member.id, channel.id)
+                async with self.bot.db.acquire() as conn:
+                    await self.bot.db.execute("DELETE FROM blocks WHERE guild_id = $1 AND user_id = $2 AND channel_id = $3", guild.id, member.id, channel.id)
 
     @check_mute_and_block.before_loop
     async def before_checking_stuff(self):
-        await self.client.wait_until_ready()
+        await self.bot.wait_until_ready()
 
     @commands.command()
     @commands.check(check_mod_perms)
@@ -229,7 +229,7 @@ class Moderation(commands.Cog):
             await user.kick(reason=reason)
         except discord.Forbidden:
             return await ctx.send("Are you trying to kick someone higher than the bot?")
-        channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
+        channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="KICK", colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
@@ -244,7 +244,7 @@ class Moderation(commands.Cog):
         """Unmutes a muted user."""
         await user.remove_roles(discord.utils.get(ctx.guild.roles, name="Muted")) # removes muted role
         await ctx.send(f"{user.mention} has been unmuted.")
-        channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
+        channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="UNMUTE", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})", inline=False)
@@ -264,16 +264,16 @@ class Moderation(commands.Cog):
         await ctx.channel.set_permissions(user, send_messages=False) # sets permissions for current channel
         if time:
             until = datetime.datetime.now(timezone.utc) + time
-            async with self.client.db.acquire() as conn:
-                test = await self.client.db.fetchrow("SELECT block_until FROM blocks WHERE user_id = $1 AND guild_id = $2 AND channel_id = $3", user.id, ctx.guild.id, ctx.channel.id)
+            async with self.bot.db.acquire() as conn:
+                test = await self.bot.db.fetchrow("SELECT block_until FROM blocks WHERE user_id = $1 AND guild_id = $2 AND channel_id = $3", user.id, ctx.guild.id, ctx.channel.id)
                 if not test:
-                    await self.client.db.execute("INSERT INTO blocks (user_id, block_until, guild_id, channel_id) VALUES ($1, $2, $3, $4)", user.id, until, ctx.guild.id, ctx.channel.id)
+                    await self.bot.db.execute("INSERT INTO blocks (user_id, block_until, guild_id, channel_id) VALUES ($1, $2, $3, $4)", user.id, until, ctx.guild.id, ctx.channel.id)
                 else:
-                    await self.client.db.execute("UPDATE blocks SET block_until = $1 WHERE user_id = $2 AND guild_id = $3 AND channel_id = $4", until, user.id, ctx.guild.id, ctx.channel.id)
+                    await self.bot.db.execute("UPDATE blocks SET block_until = $1 WHERE user_id = $2 AND guild_id = $3 AND channel_id = $4", until, user.id, ctx.guild.id, ctx.channel.id)
             await ctx.send(f"Blocked {user.mention} from this channel for {time} (until {str(until).split('.')[0][:-3]} UTC)")
         else:
             await ctx.send(f"Blocked {user.mention} from this channel indefinitely")
-        channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
+        channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="BLOCK", colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
@@ -294,7 +294,7 @@ class Moderation(commands.Cog):
 
         await ctx.channel.set_permissions(user, send_messages=None) # gives back send messages permissions
         await ctx.send(f"{user.mention} has been unblocked.")
-        channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
+        channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="UNBLOCK", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
@@ -309,17 +309,17 @@ class Moderation(commands.Cog):
         """Issues a warning to a user. Current status can be accessed by warnstats"""
         if not user:
             return await ctx.send("You must specify a user")
-        current = await self.client.db.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
-        async with self.client.db.acquire() as conn:
+        current = await self.bot.db.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
+        async with self.bot.db.acquire() as conn:
             if not current:
                 current = 1
-                await self.client.db.execute("INSERT INTO warns (guild_id, user_id, num) VALUES ($1, $2, $3)", ctx.guild.id, user.id, current)
+                await self.bot.db.execute("INSERT INTO warns (guild_id, user_id, num) VALUES ($1, $2, $3)", ctx.guild.id, user.id, current)
             else:
                 current += 1
-                await self.client.db.execute("UPDATE warns SET num = $1 WHERE guild_id = $2 and user_id = $3", current, ctx.guild.id, user.id)
+                await self.bot.db.execute("UPDATE warns SET num = $1 WHERE guild_id = $2 and user_id = $3", current, ctx.guild.id, user.id)
                 if current >=5:
                     await user.ban(reason="Autoban: 5 warns.")
-                    channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
+                    channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
                     if channel:
                         warn_embed = discord.Embed(title="WARN", colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
                         warn_embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
@@ -332,10 +332,10 @@ class Moderation(commands.Cog):
                         embed.add_field(name='Reason', value="Accumulated 5 warns", inline=False)
                         embed.add_field(name='Responsible Moderator', value=str(ctx.guild.me), inline=False)
                         await channel.send(embed=embed)
-                    await self.client.db.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
+                    await self.bot.db.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
                     return await ctx.send(f"{user.mention} has been autobanned because they have 5 or more warns.")
         await ctx.send(f"{user.mention} has been warned. Total warnings: {current}")
-        channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
+        channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="WARN", colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
@@ -350,7 +350,7 @@ class Moderation(commands.Cog):
         """To check how many warns you have. If you are an admin, you can specify a user."""
         if not ctx.author.guild_permissions.administrator or not user:
             user = ctx.author
-        current = await self.client.db.fetchval("SELECT num FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
+        current = await self.bot.db.fetchval("SELECT num FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
         if current is None:
             current = 0
         await ctx.send(f"Currently, {user.mention} has {current} {'warning' if current == 1 else 'warnings'}.")
@@ -362,17 +362,17 @@ class Moderation(commands.Cog):
         """Removes one warning from a user"""
         if not user:
             return await ctx.send("You must specify a user")
-        current = await self.client.db.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
-        async with self.client.db.acquire() as conn:
+        current = await self.bot.db.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
+        async with self.bot.db.acquire() as conn:
             if not current:
                 return await ctx.send(f"{user.mention} has no outstanding warnings")
             else:
                 current -= 1
-                await self.client.db.execute("UPDATE warns SET num = $1 WHERE guild_id = $2 and user_id = $3", current, ctx.guild.id, user.id)
+                await self.bot.db.execute("UPDATE warns SET num = $1 WHERE guild_id = $2 and user_id = $3", current, ctx.guild.id, user.id)
                 if current == 0:
-                    await self.client.db.execute("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
+                    await self.bot.db.execute("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
         await ctx.send(f"{user.mention} has been pardoned for one warning. Total warns: {current}")
-        channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
+        channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="UNWARN", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
@@ -387,18 +387,18 @@ class Moderation(commands.Cog):
         """Removes all warnings for the user"""
         if not user:
             return await ctx.send("You must specify a member")
-        current = await self.client.db.fetchrow("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
+        current = await self.bot.db.fetchrow("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
         if not current:
             return await ctx.send(f"{user.mention} has no outstanding warnings")
-        async with self.client.db.acquire() as conn:
-            await self.client.db.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
+        async with self.bot.db.acquire() as conn:
+            await self.bot.db.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
         await ctx.send(f"Removed all warnings for {user.mention}")
-        channel = self.client.get_channel(self.client.modlogs.get(ctx.guild.id))
+        channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="CLEAR ALL WARNINGS", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
             embed.add_field(name='Responsible Moderator', value=str(ctx.author))
             await channel.send(embed=embed)
 
-def setup(client):
-    client.add_cog(Moderation(client))
+def setup(bot):
+    bot.add_cog(Moderation(bot))

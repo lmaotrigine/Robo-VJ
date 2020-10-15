@@ -34,8 +34,8 @@ def q_channel_protection(ctx):
 
 class Utilities(commands.Cog):
     """Utilities for your server. Require manage server permissions to use"""
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
         self.guild_state= {}
 
     @commands.command()
@@ -55,14 +55,14 @@ class Utilities(commands.Cog):
             except ValueError:
                 await ctx.send("Please enter a valid number of messages to wipe (Add 2 to your originally intended number). Enter `all` to wipe the entire channel. (Upto 100 messages in the past 14 days.)")
                 return
-        if ctx.channel == self.client.get_channel(self.client.qchannels.get(ctx.guild.id)):
+        if ctx.channel == self.bot.get_channel(self.bot.qchannels.get(ctx.guild.id)):
             msg = await ctx.send(f"React with \U00002705 to confirm wiping question channel.\nReact with \U0000274c to cancel.")
             await msg.add_reaction('\U00002705')
             await msg.add_reaction('\U0000274c')
             def check(reaction, user):
                 return user == ctx.author and str(reaction.emoji) in ['\U00002705', '\U0000274c'] and reaction.message == msg
             try:
-                reaction, user = await self.client.wait_for('reaction_add', timeout=30.0, check=check)
+                reaction, user = await self.bot.wait_for('reaction_add', timeout=30.0, check=check)
             except asyncio.TimeoutError:
                 await ctx.send("Timeout! Cancelling operation...", delete_after=20.0)
                 await msg.delete()
@@ -98,18 +98,18 @@ class Utilities(commands.Cog):
         #with open('readonly/prefixes.json', 'r') as file:
         #    prefixes = json.load(file)
         if pfx is None:
-            await ctx.send(f"My prefix in this server is `{self.client.prefixes.get(ctx.guild.id, '!')}`")
+            await ctx.send(f"My prefix in this server is `{self.bot.prefixes.get(ctx.guild.id, '!')}`")
             return
-        self.client.prefixes[ctx.guild.id] = pfx
+        self.bot.prefixes[ctx.guild.id] = pfx
         await ctx.send(f"My prefix in this server is now `{pfx}`")
-        test = await self.client.db.fetchrow(f"SELECT prefix FROM servers WHERE guild_id = {ctx.guild.id}")
-        connection = await self.client.db.acquire()
+        test = await self.bot.db.fetchrow(f"SELECT prefix FROM servers WHERE guild_id = {ctx.guild.id}")
+        connection = await self.bot.db.acquire()
         async with connection.transaction():
             if test:
-                await self.client.db.execute("UPDATE servers SET prefix = $1 WHERE guild_id = $2", pfx, ctx.guild.id)
+                await self.bot.db.execute("UPDATE servers SET prefix = $1 WHERE guild_id = $2", pfx, ctx.guild.id)
             else:
-                await self.client.db.execute("INSERT INTO servers (guild_id, prefix) VALUES ($1, $2)", ctx.guild.id, pfx)
-        await self.client.db.release(connection)
+                await self.bot.db.execute("INSERT INTO servers (guild_id, prefix) VALUES ($1, $2)", ctx.guild.id, pfx)
+        await self.bot.db.release(connection)
 
         #prefixes[str(ctx.guild.id)] = pfx
 
@@ -182,14 +182,14 @@ class Utilities(commands.Cog):
 
 class OwnerOnly(commands.Cog, name="Server Owner Commands"):
     """Commands only guild owner can call"""
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
 
     @commands.command(hidden=True)
     @commands.guild_only()
     async def approve(self, ctx, member:discord.Member):
         """Grants role Approved to the user"""
-        if ctx.author == ctx.guild.owner or await self.client.is_owner(ctx.author):
+        if ctx.author == ctx.guild.owner or await self.bot.is_owner(ctx.author):
             if not discord.utils.get(ctx.guild.roles, name="Approved"):
                 await ctx.send("Create role named 'Approved' and try again.")
                 return
@@ -212,7 +212,7 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
     @commands.guild_only()
     async def unapprove(self, ctx, member: discord.Member):
         """Revokes approval for a member"""
-        if not ctx.author == ctx.guild.owner and not await self.client.is_owner(ctx.author):
+        if not ctx.author == ctx.guild.owner and not await self.bot.is_owner(ctx.author):
             return
         if not discord.utils.get(member.roles, name="Approved"):
             await ctx.send(f"{member.mention} has not been approved.", delete_after=15.0)
@@ -257,7 +257,7 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
         def check(reaction, user):
             return user == ctx.author and str(reaction.emoji) in ['\U00002705', '\U0000274c'] and reaction.message == msg
         try:
-            reaction, user = await self.client.wait_for('reaction_add', timeout=30.0, check=check)
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=30.0, check=check)
         except asyncio.TimeoutError:
             await ctx.send("Timeout! Cancelling operation...", delete_after=20.0)
             await msg.delete()
@@ -279,17 +279,17 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
         if not ctx.author == ctx.guild.owner and not await ctx.bot.is_owner(ctx.author):
             return
         channel = ctx.channel
-        self.client.qchannels[ctx.guild.id] = channel.id
+        self.bot.qchannels[ctx.guild.id] = channel.id
         await ctx.send(f"{channel.mention} is marked as the questions channel and only the owner can wipe it.")
 
-        test = await self.client.db.fetchrow(f"SELECT qchannel FROM servers WHERE guild_id = {ctx.guild.id}")
-        connection = await self.client.db.acquire()
+        test = await self.bot.db.fetchrow(f"SELECT qchannel FROM servers WHERE guild_id = {ctx.guild.id}")
+        connection = await self.bot.db.acquire()
         async with connection.transaction():
             if test:
-                await self.client.db.execute(f"UPDATE servers SET qchannel = {channel.id} WHERE guild_id = {ctx.guild.id}")
+                await self.bot.db.execute(f"UPDATE servers SET qchannel = {channel.id} WHERE guild_id = {ctx.guild.id}")
             else:
-                await self.client.db.execute(f"""INSERT INTO servers (guild_id, qchannel) VALUES ({ctx.guild.id}, {channel.id})""")
-        await self.client.db.release(connection)
+                await self.bot.db.execute(f"""INSERT INTO servers (guild_id, qchannel) VALUES ({ctx.guild.id}, {channel.id})""")
+        await self.bot.db.release(connection)
 
     @commands.command()
     @commands.guild_only()
@@ -297,18 +297,18 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
         if not ctx.author == ctx.guild.owner and not await ctx.bot.is_owner(ctx.author):
             return
         channel = ctx.channel
-        self.client.pchannels[ctx.guild.id] = channel.id
+        self.bot.pchannels[ctx.guild.id] = channel.id
         await ctx.send(f"{channel.mention} is now the channel where pounces will appear.")
 
-        test = await self.client.db.fetchrow(f"SELECT pchannel FROM servers WHERE guild_id = {ctx.guild.id}")
-        connection = await self.client.db.acquire()
+        test = await self.bot.db.fetchrow(f"SELECT pchannel FROM servers WHERE guild_id = {ctx.guild.id}")
+        connection = await self.bot.db.acquire()
         async with connection.transaction():
             if test:
-                await self.client.db.execute(f"UPDATE servers SET pchannel = {channel.id} WHERE guild_id = {ctx.guild.id}")
+                await self.bot.db.execute(f"UPDATE servers SET pchannel = {channel.id} WHERE guild_id = {ctx.guild.id}")
             else:
-                await self.client.db.execute(f"""INSERT INTO servers (guild_id, pchannel) VALUES ({ctx.guild.id}, {channel.id})""")
-        await self.client.db.release(connection)
+                await self.bot.db.execute(f"""INSERT INTO servers (guild_id, pchannel) VALUES ({ctx.guild.id}, {channel.id})""")
+        await self.bot.db.release(connection)
 
-def setup(client):
-    client.add_cog(OwnerOnly(client))
-    client.add_cog(Utilities(client))
+def setup(bot):
+    bot.add_cog(OwnerOnly(bot))
+    bot.add_cog(Utilities(bot))
