@@ -91,6 +91,13 @@ class RoboVJ(commands.Bot):
             guild_id BIGINT,
             num INTEGER
         );
+        CREATE TABLE IF NOT EXISTS reminders (
+            id SERIAL PRIMARY KEY,
+            expires TIMESTAMP WITHOUT TIME ZONE,
+            created TIMESTAMP WITHOUT TIME ZONE DEFAULT (now() at time zone 'utc'),
+            event TEXT,
+            extra JSONB DEFAULT ('{}'::JSONB)
+        );
         """)
 
     async def on_command_error(self, ctx, error):
