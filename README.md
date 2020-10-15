@@ -53,6 +53,7 @@ Simply run `bot.py` from your venv. To configure `bot.service` and use systemd, 
 Open `bot.service` and edit the path to your python environment, working directory, and path to the `bot.py` as needed and then run the following: 
 ```sh
 sudo cp bot.service /etc/systemd/system/
+sudo systemctl daemon-reload
 sudo systemctl enable bot && sudo systemctl start bot
 ```
 
