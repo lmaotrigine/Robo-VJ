@@ -182,8 +182,8 @@ class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
         if len(available_partial_teams) + len(empty_teams) > 0:
             desc = f"Assigning a team to {', '.join([participant.mention for participant in participants])}.\nMention one of the available teams to assign."
             embed = discord.Embed(title="Available Teams", description=desc, colour=discord.Colour.blurple())
-            empty = '\n'.join([f"{team.mention} : {len(team.members)} / {self.max_per_team}" for team in sorted(empty_teams)])
-            partial = '\n'.join([f"{team.mention} : {len(team.members)} / {self.max_per_team}" for team in sorted(available_partial_teams)])
+            empty = '\n'.join([f"{team.mention} : {len(team.members)} / {self.max_per_team}" for team in sorted(empty_teams, key=lambda t: t.name)])
+            partial = '\n'.join([f"{team.mention} : {len(team.members)} / {self.max_per_team}" for team in sorted(available_partial_teams, key=lambda t: t.name)])
             if empty_teams:
                 embed.add_field(name='Empty teams', value=empty)
             if available_partial_teams:
