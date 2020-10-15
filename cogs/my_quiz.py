@@ -228,6 +228,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
     @commands.guild_only()
     @is_in_registration()
     async def withdraw(self, ctx):
+        """Withdraw your participation from a quiz."""
         if not any([ctx.author._roles.has(team) for team in TEAMS]):
             return await ctx.send("You are not in any team.")
         for role in ctx.author.roles:
