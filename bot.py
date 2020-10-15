@@ -59,7 +59,7 @@ class RoboVJ(commands.Bot):
         self.blacklist = Config('blacklist.json')
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
         self._auto_spam_count = Counter()
-        self.session = aiohttp.botSession(loop=self.loop)
+        self.session = aiohttp.ClientSession(loop=self.loop)
 
     async def init_db(self):    
         await self.db.execute("""CREATE TABLE IF NOT EXISTS servers (
