@@ -191,22 +191,26 @@ class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
             embed.set_footer(text="Timeout in 60s", icon_url=ctx.guild.icon_url)
             embed.timestamp = datetime.datetime.utcnow()
             await ctx.send(embed=embed)
-            try:
-                message = await self.bot.wait_for('message', timeout=60.0, check=confirm_check)
-            except asyncio.TimeoutError:
-                return await ctx.send(f"{ctx.author.mention} Timeout!\nCancelling operation...", delete_after=30.0)
-            else:
+            done = False
+            while not done:
                 try:
-                    role = await commands.RoleConverter().convert(ctx, message.content.split()[0])
-                except commands.BadArgument:
-                    return await ctx.send("Invalid Role {}".format(message.content.split()[0]))
+                    message = await self.bot.wait_for('message', timeout=60.0, check=confirm_check)
+                except asyncio.TimeoutError:
+                    return await ctx.send(f"{ctx.author.mention} Timeout!\nCancelling operation...", delete_after=30.0)
                 else:
-                    if role in available_partial_teams or role in empty_teams:
-                        for participant in participants:
-                            await participant.add_roles(role)
-                        await ctx.send(f"Assigned {', '.join(participant.mention for participant in participants)} to {role.mention}")
+                    try:
+                        role = await commands.RoleConverter().convert(ctx, message.content.split()[0])
+                    except commands.BadArgument:
+                        await ctx.send("Invalid Role {}".format(message.content.split()[0]), delete_after=10.0)
                     else:
-                        await ctx.send(f"**{role.name}** is not available.")
+                        if role in available_partial_teams or role in empty_teams:
+                            for participant in participants:
+                                await participant.add_roles(role)
+                                done = True
+                                break
+                            await ctx.send(f"Assigned {', '.join(participant.mention for participant in participants)} to {role.mention}")
+                        else:
+                            await ctx.send(f"**{role.name}** is not available.", delte_after=10.0)
 
         else:
             if len(partial_teams) > 0:
