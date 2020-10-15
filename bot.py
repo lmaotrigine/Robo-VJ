@@ -120,7 +120,7 @@ class RoboVJ(commands.Bot):
             pass
     @discord.utils.cached_property
     def stats_webhook(self):
-        wh_url = "https://discordapp.com/api/webhooks/759357220022124604/qs9KdS8X0xaENc1SjraEgXgx0B6fusuGg2WFiXDtBkWX-OGfGEyeeM4wwiVQglV6W8LB"
+        wh_url = config.stats_wh_url
         hook = discord.Webhook.from_url(wh_url, adapter=discord.AsyncWebhookAdapter(self.session))
         return hook
 
