@@ -150,8 +150,8 @@ class Meta(commands.Cog):
                                     pass
                                 else:
                                     total += 1
-                msg = f'I am made of {total:,} lines of Python, spread across {file_amount:,} files!'
-                return await ctx.send('\n'.join((msg, source_url)))
+            msg = f'I am made of {total:,} lines of Python, spread across {file_amount:,} files!'
+            return await ctx.send('\n'.join((msg, source_url)))
 
         if command == 'help':
             src = type(self.bot.help_command)
