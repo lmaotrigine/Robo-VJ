@@ -129,17 +129,29 @@ class Meta(commands.Cog):
         embed.timestamp = datetime.datetime.utcnow()
         await ctx.send(embed=embed)
 
-    @commands.command(hidden=True)
-    @commands.is_owner()
+    @commands.command()
     async def source(self, ctx, *, command: str = None):
         """Displays my full source code or for a specific command on GitHub.
         To display the source code of a subcommand you can separate it by
-        periods, e.g. utils.py for the py subcommand of the utils command
+        periods, e.g. modlog.assign for the assign subcommand of the modlog group,
         or by spaces."""
         source_url = 'https://github.com/darthshittious/Robo-VJ'
         branch = 'master'
         if command is None:
-            return await ctx.send(source_url)
+            total = 0
+            file_amount = 0
+            for path, subdirs, files in os.walk('.'):
+                for name in files:
+                    if name.endswith('.py'):
+                        file_amount += 1
+                        with codecs.open('./' + str(pathlib.PurePath(path, name)), 'r', 'utf-8') as f:
+                            for i, l in enumerate(f):
+                                if l.strip().startswith('#') or len(l.strip()) is 0:  # skip commented lines.
+                                    pass
+                                else:
+                                    total += 1
+                msg = f'I am made of {total:,} lines of Python, spread across {file_amount:,} files!'
+                return await ctx.send('\n'.join(msg, source_url))
 
         if command == 'help':
             src = type(self.bot.help_command)
@@ -172,26 +184,7 @@ class Meta(commands.Cog):
 
         final_url = f'<{source_url}/blob/{branch}/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'
         await ctx.send(final_url)
-
-    @commands.command(aliases=['size', 'numlines', 'codestats'])
-    async def lines(self, ctx):
-        total = 0
-        file_amount = 0
-        import codecs
-        import os
-        import pathlib
-        for path, subdirs, files in os.walk('.'):
-            for name in files:
-                if name.endswith('.py'):
-                    file_amount += 1
-                    with codecs.open('./' + str(pathlib.PurePath(path, name)), 'r', 'utf-8') as f:
-                        for i, l in enumerate(f):
-                            if l.strip().startswith('#') or len(l.strip()) is 0:  # skip commented lines.
-                                pass
-                            else:
-                                total += 1
-        msg = await ctx.send(f'I am made of {total:,} lines of Python, spread across {file_amount:,} files!')
-
+        
     @commands.command()
     async def avatar(self, ctx, *, user: Union[discord.Member, FetchedUser] = None):
         """Shows a user's enlarged avatar (if possible)."""
