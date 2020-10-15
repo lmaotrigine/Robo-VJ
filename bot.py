@@ -268,7 +268,7 @@ async def hello(ctx):
         coro = Greeter.greet(ctx)
         if coro:
             return await eval(coro)
-    greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!"])
+    greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!", "Beep boop!"])
     owner = client.get_user(client.owner_id)
     await ctx.send(f"{greeting} I'm a robot! {str(owner)} made me.")
 
