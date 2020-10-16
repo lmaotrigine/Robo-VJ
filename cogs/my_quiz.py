@@ -258,7 +258,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
 
     @commands.command()
     @commands.guild_only()
-    @commands.check_any(is_qm(), check.is_mod())
+    @commands.check_any(is_qm(), checks.is_mod())
     async def assign(self, ctx, members: commands.Greedy[discord.Member], role: discord.Role):
         """
         Assign members to roles.
