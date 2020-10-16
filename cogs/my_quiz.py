@@ -289,7 +289,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
             to_send += f"\n{', '.join(higher_roles)} still {'have' if len(higher_roles) > 1 else 'has'} other roles."
         await ctx.send(to_send)
 
-    @commands.command(name="cleanup", aliases=['clean'])
+    @commands.command(name="cleanroles")
     @commands.guild_only()
     @is_qm()
     async def cleanup_teams(self, ctx):
