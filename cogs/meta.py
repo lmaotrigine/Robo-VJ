@@ -279,8 +279,8 @@ class Meta(commands.Cog):
 
         channel_info = []
         key_to_emoji = {
-            discord.TextChannel: '<:text_channel:762631233040941056>',
-            discord.VoiceChannel: '<:voice_channel:762631252595310602>',
+            discord.TextChannel: '<:text_channel:766623209487335441>',
+            discord.VoiceChannel: '<:voice_channel:766623209092153378>',
         }
         for key, total in totals.items():
             secrets = secret[key]
@@ -313,20 +313,10 @@ class Meta(commands.Cog):
             'BANNER': 'Banner'
         }
 
-        def tick(opt, label=None):
-            lookup = {
-                True: '<:green_tick:762631000076845066>',
-                False: '<:red_tick:762631054544207893>',
-                None: '<:grey_tick:762631202036776968>',
-            }
-            emoji = lookup.get(opt, '<:redTick:330090723011592193>')
-            if label is not None:
-                return f'{emoji}: {label}'
-            return emoji
 
         for feature, label in all_features.items():
             if feature in features:
-                info.append(f'{tick(True)}: {label}')
+                info.append(f'{ctx.tick(True)}: {label}')
 
         if info:
             e.add_field(name='Features', value='\n'.join(info))
@@ -341,10 +331,10 @@ class Meta(commands.Cog):
             e.add_field(name='Boosts', value=boosts, inline=False)
 
         bots = sum(m.bot for m in guild.members)
-        fmt = f'<:online:762631155656425473> {member_by_status["online"]} ' \
-              f'<:idle:762631109283807242> {member_by_status["idle"]} ' \
-              f'<:dnd:762631136304168961> {member_by_status["dnd"]} ' \
-              f'<:offline:762631176383889449> {member_by_status["offline"]}\n' \
+        fmt = f'<:online:766623209687613466> {member_by_status["online"]} ' \
+              f'<:idle:766623209931407361> {member_by_status["idle"]} ' \
+              f'<:dnd:766623209721692161> {member_by_status["dnd"]} ' \
+              f'<:offline:766623210379673652>  {member_by_status["offline"]}\n' \
               f'Total: {guild.member_count} ({formats.plural(bots):bot})'
 
         e.add_field(name='Members', value=fmt, inline=False)

@@ -153,9 +153,9 @@ class Context(commands.Context):
 
     def tick(self, opt, label=None):
         lookup = {
-            True: '<:green_tick:762631000076845066>',
-            False: '<:red_tick:762631054544207893>',
-            None: '<:grey_tick:762631202036776968>'
+            True: '<:greenTick:766623209352855573>',
+            False: '<:redTick:766623210069819393>',
+            None: '<:greyTick:766623209550250024>'
         }
         emoji = lookup.get(opt, '<:red_tick:762631054544207893>')
         if label is not None:
