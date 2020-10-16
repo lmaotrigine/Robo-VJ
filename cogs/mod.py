@@ -1755,6 +1755,103 @@ class Moderation(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send('Missing a duration to selfmute for.')
 
+    def get_block_channels(self, guild, channel):
+         # TODO: Update
+        return [channel]
+
+    @commands.command()
+    @checks.is_mod()
+    async def block(self, ctx, *, member: discord.Member):
+        """Blocks a user from your channel."""
+
+        if member.top_role > ctx.author.top_role:
+            return
+
+        reason = f'Block by {ctx.author} (ID: {ctx.author.id})'
+
+        channels = self.get_block_channels(ctx.guild, ctx.channel)
+
+        try:
+            for channel in channels:
+                await channel.set_permissions(member, send_messages=False, add_reactions=False, reason=reason)
+        except:
+            await ctx.send('\N{THUMBS DOWN SIGN}')
+        else:
+            await ctx.send('\N{THUMBS UP SIGN}')
+
+    @commands.command()
+    @checks.is_mod()
+    async def tempblock(self, ctx, duration: time.FutureTime, *, member: discord.Member):
+        """Temporarily blocks a user from your channel.
+        The duration can be a a short time form, e.g. 30d or a more human
+        duration such as "until thursday at 3PM" or a more concrete time
+        such as "2017-12-31".
+        Note that times are in UTC.
+        """
+
+        if member.top_role > ctx.author.top_role:
+            return
+
+        reminder = self.bot.get_cog('Reminder')
+        if reminder is None:
+            return await ctx.send('Sorry, this functionality is currently unavailable. Try again later?')
+
+        channels = self.get_block_channels(ctx.guild, ctx.channel)
+        timer = await reminder.create_timer(duration.dt, 'tempblock', ctx.guild.id, ctx.author.id,
+                                                                      ctx.channel.id, member.id,
+                                                                      connection=ctx.db,
+                                                                      created=ctx.message.created_at)
+
+        reason = f'Tempblock by {ctx.author} (ID: {ctx.author.id}) until {duration.dt}'
+
+        try:
+            for channel in channels:
+                await channel.set_permissions(member, send_messages=False, add_reactions=False, reason=reason)
+        except:
+            await ctx.send('\N{THUMBS DOWN SIGN}')
+        else:
+            await ctx.send(f'Blocked {member} for {time.human_timedelta(duration.dt, source=timer.created_at)}.')
+
+    @commands.Cog.listener()
+    async def on_tempblock_timer_complete(self, timer):
+        guild_id, mod_id, channel_id, member_id = timer.args
+
+        guild = self.bot.get_guild(guild_id)
+        if guild is None:
+            # RIP
+            return
+
+        channel = guild.get_channel(channel_id)
+        if channel is None:
+            # RIP x2
+            return
+
+        to_unblock = guild.get_member(member_id)
+        if to_unblock is None:
+            # RIP x3
+            return
+
+        moderator = guild.get_member(mod_id)
+        if moderator is None:
+            try:
+                moderator = await self.bot.fetch_user(mod_id)
+            except:
+                # request failed somehow
+                moderator = f'Mod ID {mod_id}'
+            else:
+                moderator = f'{moderator} (ID: {mod_id})'
+        else:
+            moderator = f'{moderator} (ID: {mod_id})'
+
+
+        reason = f'Automatic unblock from timer made on {timer.created_at} by {moderator}.'
+
+        for ch in self.get_block_channels(guild, channel):
+            try:
+                await ch.set_permissions(to_unblock, send_messages=None, add_reactions=None, reason=reason)
+            except:
+                pass
+
 
     @commands.command()
     @checks.is_mod()
