@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 import sys
 from collections import Counter, deque, defaultdict
 from cogs.utils.config import Config
-from cogs.utils import time
+from cogs.utils import context, time
 import logging
 import traceback
 
@@ -28,19 +28,15 @@ except ImportError:
 log = logging.getLogger(__name__)
 load_dotenv()
 
-def pfx_helper(message):
-    """helper to get prefix"""
-    if not message.guild:
-        return '!'
-    return bot.prefixes.get(message.guild.id, '!')
-
-
-
-def get_prefix(bot, message):
-    """
-    loads the prefix for a guild from file
-    """
-    return commands.when_mentioned_or(pfx_helper(message))(bot, message)
+def _prefix_callable(bot, msg):
+    user_id = bot.user.id
+    base = [f'<@!{user_id}> ', f'<@{user_id}> ']
+    if msg.guild is None:
+        base.append('!')
+        base.append('?')
+    else:
+        base.extend(bot.prefixes.get(msg.guild.id, ['?', '!']))
+    return base
 
 async def create_db_pool():
     async def init(con):
@@ -68,7 +64,7 @@ class RoboVJ(commands.Bot):
         await self.db.execute("""CREATE TABLE IF NOT EXISTS servers (
             id SERIAL PRIMARY KEY,
             guild_id BIGINT,
-            prefix TEXT,
+            prefixes TEXT ARRAY,
             qchannel BIGINT,
             pchannel BIGINT,
             modlog BIGINT
@@ -150,6 +146,24 @@ class RoboVJ(commands.Bot):
         embed.timestamp = datetime.datetime.utcnow()
         return wh.send(embed=embed)
 
+    def get_guild_prefixes(self, guild, *, local_inject=_prefix_callable):
+        proxy_msg = discord.Object(id=0)
+        proxy_msg.guild = guild
+        return local_inject(self, proxy_msg)
+    
+    def get_raw_guild_prefixes(self, guild_id):
+        return self.prefixes.get(guild_id, ['?', '!'])
+
+    async def set_guild_prefixes(self, guild, prefixes):
+        if len(prefixes) == 0:
+            self.prefixes[guild.id] = []
+            await self.db.execute("UPDATE servers SET prefixes = $1 WHERE guild_id = $2", [], guild.id)
+        elif len(prefixes) > 10:
+            raise RuntimeError('Cannot have more than 10 custom prefixes.')
+        else:
+            self.prefixes[guild.id] = sorted(set(prefixes), reverse=True)
+            await self.db.execute("UPDATE servers SET prefixes = $1 WHERE guild_id = $2", sorted(set(prefixes), reverse=True), guild.id)
+
     async def on_ready(self):
         if not hasattr(self, 'uptime'):
             self.uptime = datetime.datetime.utcnow()
@@ -157,7 +171,7 @@ class RoboVJ(commands.Bot):
         print(f'Ready: {self.user} (ID: {self.user.id})')
 
     async def process_commands(self, message):
-        ctx = await self.get_context(message)
+        ctx = await self.get_context(message, cls=context.Context)
 
         if ctx.command is None:
             return
@@ -186,7 +200,7 @@ class RoboVJ(commands.Bot):
 
         await self.invoke(ctx)
 
-bot = RoboVJ(command_prefix=get_prefix, status=discord.Status.online, activity=discord.Activity(
+bot = RoboVJ(command_prefix=_prefix_callable, status=discord.Status.online, activity=discord.Activity(
     name=f"!help", type=discord.ActivityType.listening), owner_id=411166117084528640,
     #help_command=EmbedHelpCommand(dm_help=None),
     help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
@@ -221,9 +235,17 @@ async def before_startup():
 # Return prefix on being mentioned
 @bot.event
 async def on_message(message):
-    if message.content.strip() in ['<@743900453649252464>', '<@!743900453649252464>']:
-        pfx = pfx_helper(message)
-        await message.channel.send(f"My prefix is `{pfx}`. Use `{pfx}help` for more information.")
+    if message.content.strip() in [f'<@!{bot.user.id}>', f'<@{bot.user.id}>']:
+        prefixes = _prefix_callable(bot, message)
+        # we want to remove prefix #2, because it's the 2nd form of the mention
+        # and to the end user, this would end up making them confused why the
+        # mention is there twice
+        del prefixes[1]
+
+        e = discord.Embed(title='Prefixes', colour=discord.Colour.blurple())
+        e.set_footer(text=f'{len(prefixes)} prefixes')
+        e.description = '\n'.join(f'{index}. {elem}' for index, elem in enumerate(prefixes, 1))
+        await message.channel.send(embed=e)
     await bot.process_commands(message)
 
 
