@@ -89,7 +89,7 @@ class Utilities(commands.Cog):
 
     @commands.group(name='prefix', invoke_without_command=True)
     async def prefix(self, ctx):
-         """Manages the server's custom prefixes.
+        """Manages the server's custom prefixes.
         If called without a subcommand, this will list the currently set
         prefixes.
         """
@@ -121,7 +121,7 @@ class Utilities(commands.Cog):
         
         You must have Manage Server permission to use this command.
         """
-        current_prefixes = self.bit.get_raw_guild_prefixes(ctx.guild.id)
+        current_prefixes = self.bot.get_raw_guild_prefixes(ctx.guild.id)
         current_prefixes.append(prefix)
         try:
             await self.bot.set_guild_prefixes(ctx.guild, current_prefixes)
@@ -132,12 +132,12 @@ class Utilities(commands.Cog):
 
     @prefix_add.error
     async def prefix_add_error(self, ctx, error):
-    if isinstance(error, commands.TooManyArguments):
-        await ctx.send("You've given too many prefixes. Either quote it or only do it one by one.")
+        if isinstance(error, commands.TooManyArguments):
+            await ctx.send("You've given too many prefixes. Either quote it or only do it one by one.")
 
     @prefix.command(name='remove', aliases=['delete'], ignore_extra=False)
     async def prefix_remove(self, ctx, prefix: Prefix):
-         """Removes a prefix from the list of custom prefixes.
+        """Removes a prefix from the list of custom prefixes.
         
         This is the inverse of the 'prefix add' command. You can
         use this to remove prefixes from the default set as well.
@@ -154,7 +154,7 @@ class Utilities(commands.Cog):
         try:
             await self.bot.set_guild_prefixes(ctx.guild, current_prefixes)
         except Exception as e:
-            await ctx.send(f'{ctx.tick(False} {e}')
+            await ctx.send(f'{ctx.tick(False)} {e}')
         else:
             await ctx.send(ctx.tick(True))
 

@@ -218,7 +218,7 @@ async def startup():
     bot.owner = bot.get_user(bot.owner_id)
     data = await bot.db.fetch("SELECT * FROM servers")
     for record in data:
-        bot.prefixes[record['guild_id']] = record['prefix']
+        bot.prefixes[record['guild_id']] = record['prefixes']
         bot.qchannels[record['guild_id']] = record['qchannel']
         bot.pchannels[record['guild_id']] = record['pchannel']
         bot.modlogs[record['guild_id']] = record['modlog']

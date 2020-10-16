@@ -199,8 +199,8 @@ class QMOnly(GameState, name="QM Commands"):
         """Clears all team and spectator roles. Has a cooldown in place to avoid hitting rate limits."""
         if not "QM" in [role.name for role in ctx.author.roles]:
             return
-        teams = [role for role in guild.roles if role.name.lower().startswith('team')]
-        teams.append(discord.utils.get(guild.roles, name="Spectator"))
+        teams = [role for role in ctx.guild.roles if role.name.lower().startswith('team')]
+        teams.append(discord.utils.get(ctx.guild.roles, name="Spectator"))
         for team in teams:
             await (bot.get_command("purgeroles"))(ctx, role)
             await asyncio.sleep(1)

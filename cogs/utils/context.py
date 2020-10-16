@@ -83,7 +83,7 @@ class Context(commands.Context):
             await self.acquire()
 
     async def prompt(self, message, *, timeout=60.0, delete_after=True, reacquire=True, author_id=None):
-          """An interactive reaction confirmation dialog.
+        """An interactive reaction confirmation dialog.
         Parameters
         -----------
         message: str
@@ -106,8 +106,6 @@ class Context(commands.Context):
             ``None`` if deny due to timeout
         """
 
-        if not self.channel.permissions_for(self.me).add_reactions:
-            raise RuntimeError('Bot does not have Add Reactions permission.')
 
         fmt = f'{message}\n\nReact with \N{WHITE HEAVY CHECK MARK} to confirm or \N{CROSS MARK} to deny.'
 
@@ -168,7 +166,7 @@ class Context(commands.Context):
     def db(self):
         return self._db if self._db else self.pool
 
-    async def _acquire(self*, timeout=300.0):
+    async def _acquire(self, *, timeout=300.0):
         """Acquires a database connection from the pool. e.g. ::
             async with ctx.acquire():
                 await ctx.db.execute(...)
@@ -195,7 +193,7 @@ class Context(commands.Context):
 
         
     async def show_help(self, command=None):
-         """Shows the help command for the specified command if given.
+        """Shows the help command for the specified command if given.
         If no command is given, then it'll show help for the current
         command.
         """
