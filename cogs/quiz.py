@@ -162,50 +162,7 @@ class QMOnly(GameState, name="QM Commands"):
     def __init__(self, bot):
         super().__init__(bot)
 
-    @commands.command()
-    @commands.guild_only()
-    async def assign(self, ctx, members: commands.Greedy[discord.Member], team: discord.Role):
-        """
-        Assign members to teams.
-        This won't work for the server owner.
-        Usage: assign @member1 @member2 @team-01...
-        """
-        if not "QM" in [role.name for role in ctx.author.roles] and not ctx.author == ctx.guild.owner:
-            return
-        edited = []
-        higher_roles = []
-        for member in members:
-            await asyncio.sleep(1)
-            try:
-                await member.edit(roles=[discord.utils.get(ctx.guild.roles, name='Approved'), team])
-                edited.append(member.mention)
-            except discord.Forbidden:
-                await ctx.send(f"Couldn't edit `{member.display_name}#{member.discriminator}`. Trying to add to team without removing other roles...")
-                try:
-                    await member.add_roles(team)
-                    edited.append(member.mention)
-                    higher_roles.append(member.mention)
-                except discord.Forbidden:
-                    await ctx.send(f"Couldn't add `{member.display_name}#{member.discriminator}` to `{team.name}`. Contact the server owner to resolve permissions")
-
-        to_send = f"{', '.join(edited)} assigned to {team.mention}."
-        if higher_roles:
-            to_send += f"\n{', '.join(higher_roles)} still {'have' if len(higher_roles) > 1 else 'has'} other roles."
-        await ctx.send(to_send)
-
-    @commands.command(name="cleanup", aliases=['clean'])
-    @commands.guild_only()
-    async def cleanup_teams(self, ctx):
-        """Clears all team and spectator roles. Has a cooldown in place to avoid hitting rate limits."""
-        if not "QM" in [role.name for role in ctx.author.roles]:
-            return
-        teams = [role for role in ctx.guild.roles if role.name.lower().startswith('team')]
-        teams.append(discord.utils.get(ctx.guild.roles, name="Spectator"))
-        for team in teams:
-            await (bot.get_command("purgeroles"))(ctx, role)
-            await asyncio.sleep(1)
-            await ctx.send(f"Purged {team}")
-        await ctx.send("Cleanup complete.")
+    
 
     @commands.command(usage="points [<points> <team | member>...]")
     @commands.guild_only()
@@ -396,8 +353,10 @@ class QMOnly(GameState, name="QM Commands"):
             await ctx.send("Users gathered. Scores reset.")
 
     @commands.command(hidden=True, aliases=['in_play', 'safety', 'safe', 'state'])
+    @commands.is_owner()
     async def game_state(self, ctx):
-        if ctx.author.id != 411166117084528640:
+        """Shows current state of play across all servers."""
+        if ctx.author.id != self.bot.owner_id:
             return
         stateinfo = PrettyTable()
         stateinfo.field_names = ['Guild', 'Owner', 'in_play']

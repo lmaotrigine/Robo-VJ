@@ -4,6 +4,7 @@ import datetime
 import asyncio
 import sys
 import traceback
+from .utils import checks
 
 GUILD_ID = 718378271800033318
 NO_MIC_BOUNCE_ID = 758217695748554802
@@ -23,6 +24,8 @@ TEAMS = {
     718380316024242206,
     718380354339340358
 }
+SOLO_PARTICIPANT_ROLE = 766590219814043648
+APPROVED_ROLE = 743891769024053349
 REGISTRATION_CHANNEL_ID = 766223209938419712
 ANNOUNCEMENT_CHANNEL_ID = 743834763965759499
 
@@ -36,7 +39,8 @@ def is_in_registration():
         return ctx.channel.id == REGISTRATION_CHANNEL_ID
     return commands.check(predicate)
 
-class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
+
+class PubQuiz(commands.Cog, name="Pub Quiz"):
     """Commands exclusive to VJ's Pub Quiz Server"""
     def __init__(self, bot):
         self.bot = bot
@@ -109,7 +113,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
     @commands.guild_only()
     @is_qm()
     async def openregs(self, ctx, max_members_per_team: int):
-        """Open registrations for a quiz with optional maximum members per team"""
+        """Open registrations for a quiz."""
         self.reg_open = True
         self.max_per_team = max_members_per_team
         text = f'\nMax. members per team = **{max_members_per_team}**' if max_members_per_team else ''
@@ -147,6 +151,14 @@ class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
         if not self.reg_open:
             return
         
+        if self.max_per_team == 1:
+            if ctx.author._roles.has(SOLO_PARTICIPANT_ROLE):
+                    return await ctx.send("You are already registered to participate.")
+            if teammates:
+                await ctx.send("Ignoring arguments as this is a solo quiz...", delete_after=10.0)
+            await (ctx.bot.get_command('assign'))(ctx, ctx.author, ctx.guild.get_role(SOLO_PARTICIPANT_ROLE))
+            return
+
         all_teams = {ctx.guild.get_role(id) for id in TEAMS}
         partial_teams = {team for team in all_teams if 0 < len(team.members) < self.max_per_team}
         empty_teams = {team for team in all_teams if len(team.members) == 0}
@@ -229,6 +241,13 @@ class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
     @is_in_registration()
     async def withdraw(self, ctx):
         """Withdraw your participation from a quiz."""
+        if not self.reg_open:
+            return
+        if self.max_per_team == 1:
+            if not ctx.author._roles.has(SOLO_PARTICIPANT_ROLE):
+                return await ctx.send("You are not registered to participate.")
+            await ctx.author.remove_roles(ctx.guild.get_role(SOLO_PARTICIPANT_ROLE))
+            return await ctx.send(f"{ctx.author.mention} is no longer a participant.")
         if not any([ctx.author._roles.has(team) for team in TEAMS]):
             return await ctx.send("You are not in any team.")
         for role in ctx.author.roles:
@@ -236,6 +255,93 @@ class PubQuiz(commands.Cog, name="Pub Quiz", command_attrs=dict(hidden=True)):
                 await ctx.author.remove_roles(role)
                 break # Only one team per person.
         await ctx.send(f"Removed {ctx.author.mention} from {role.mention}")
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.check_any(is_qm(), check.is_mod())
+    async def assign(self, ctx, members: commands.Greedy[discord.Member], role: discord.Role):
+        """
+        Assign members to roles.
+        This won't work for the server owner.
+        Usage: assign @member1 @member2 @team-01...
+
+        You must have the manage server permission or be a QM to use this.
+        """
+
+        edited = []
+        higher_roles = []
+        for member in members:
+            await asyncio.sleep(1)
+            try:
+                await member.edit(roles=[ctx.guild.get_role(APPROVED_ROLE), role])
+                edited.append(member.mention)
+            except discord.Forbidden:
+                await ctx.send(f"Couldn't edit `{member.display_name}#{member.discriminator}`. Trying to add roles without removing other roles...")
+                try:
+                    await member.add_roles(role)
+                    edited.append(member.mention)
+                    higher_roles.append(member.mention)
+                except discord.Forbidden:
+                    await ctx.send(f"Couldn't add `{member.display_name}#{member.discriminator}` to `{team.name}`. Contact the server owner to resolve permissions")
+
+        to_send = f"{', '.join(edited)} assigned to {role.mention}."
+        if higher_roles:
+            to_send += f"\n{', '.join(higher_roles)} still {'have' if len(higher_roles) > 1 else 'has'} other roles."
+        await ctx.send(to_send)
+
+    @commands.command(name="cleanup", aliases=['clean'])
+    @commands.guild_only()
+    @is_qm()
+    async def cleanup_teams(self, ctx):
+        """Clears all team and spectator roles. Has a cooldown in place to avoid hitting rate limits."""
+        teams = [ctx.guild.get_role(team) for team in TEAMS]
+        teams.append(ctx.guild.get_role(SPECTATOR_ROLE))
+        teams.append(ctx.guild.get_role(QM_ROLE))
+        for team in teams:
+            await (bot.get_command("purgeroles"))(ctx, team)
+            await asyncio.sleep(1)
+        await ctx.send("Cleanup complete.")
+
+    @commands.command(hidden=True)
+    @commands.guild_only()
+    @checks.is_admin()
+    async def approve(self, ctx, member:discord.Member):
+        """Grants role Approved to the user"""
+
+        approved = ctx.guild.get_role(APPROVED_ROLE)
+        if member._roles.has(APPROVED_ROLE):
+            await ctx.send(f"{member.mention} is already approved.", delete_after=15.0)
+            await ctx.message.delete()
+            return
+        
+        await member.add_roles(approved)
+        
+        await ctx.message.delete()
+        embed = discord.Embed(title=f"Approved {member}", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
+        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        await ctx.guild.system_channel.send(embed=embed)
+
+    @commands.command(hidden=True)
+    @commands.guild_only()
+    @checks.is_admin()
+    async def unapprove(self, ctx, member: discord.Member):
+        """Revokes approval for a member"""
+        if not member._roles.has(APPROVED_ROLE):
+            await ctx.send(f"{member.mention} has not been approved.", delete_after=15.0)
+            await ctx.message.delete()
+            return
+        
+        await member.remove_roles(ctx.guild.get_role(APPROVED_ROLE))
+        
+        await ctx.message.delete()
+        embed=discord.Embed(title=f"Revoked approval for {member}.", colour=0xFF0000, timestamp=datetime.datetime.utcnow())
+        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        await ctx.guild.system_channel.send(embed=embed)
+
+    
+
 
 def setup(bot):
     bot.add_cog(PubQuiz(bot))

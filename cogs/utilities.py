@@ -181,7 +181,9 @@ class Utilities(commands.Cog):
                     # or
                     purgeroles @member1 @member2 @role
                     # or
-                    purgeroles @role"""
+                    purgeroles @role
+                    
+            You must have Manage Server permissions to use this command."""
         members = []
         role = None
         for arg in args.split():
@@ -190,9 +192,11 @@ class Utilities(commands.Cog):
             elif len(id := re.findall('<@&([0-9]+)>', arg)) == 1:
                 role = ctx.guild.get_role(int(id[0]))
                 break
-
+        
         if role:
+            flag = False
             if len(members) == 0:
+                flag - True
                 members = role.members
             for member in members:
                 if role in member.roles:
@@ -205,6 +209,8 @@ class Utilities(commands.Cog):
                 else:
                     await ctx.send(content=f"{member.mention} does not have the role {role.mention}. Ignoring...", delete_after=30.0)
                 await asyncio.sleep(1)
+            if flag:
+                return await ctx.send(f"Purged {role.mention}")
         else:
             for member in members:
                 await asyncio.sleep(1)
@@ -221,7 +227,9 @@ class Utilities(commands.Cog):
                         except discord.Forbidden:
                             await ctx.send(content=f"Cannot remove role {role.mention}. Attempting to remove other roles...", delete_after=30.0)
                             continue
-        if approved := discord.utils.get(ctx.guild.roles, name="Approved"): # For use in my server, and others if need be
+        
+        # Pub quiz specific.
+        if approved := discord.utils.get(ctx.guild.roles, name="Approved"):
             for member in members:
                 await member.add_roles(approved)
                 await asyncio.sleep(1)
@@ -237,50 +245,7 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(hidden=True)
-    @commands.guild_only()
-    async def approve(self, ctx, member:discord.Member):
-        """Grants role Approved to the user"""
-        if ctx.author == ctx.guild.owner or await self.bot.is_owner(ctx.author):
-            if not discord.utils.get(ctx.guild.roles, name="Approved"):
-                await ctx.send("Create role named 'Approved' and try again.")
-                return
-            if discord.utils.get(member.roles, name="Approved"):
-                await ctx.send(f"{member.mention} is already approved.", delete_after=15.0)
-                await ctx.message.delete()
-                return
-            try:
-                await member.add_roles(discord.utils.get(ctx.guild.roles, name="Approved"))
-            except discord.Forbidden:
-                await ctx.send(f"I do not have permissions to approve members in `{ctx.message.guild.name}`. Make sure I have a role higher up than `Approved`")
-                return
-            await ctx.message.delete()
-            embed = discord.Embed(title=f"Approved {member}", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
-            embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
-            embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
-            await ctx.guild.system_channel.send(embed=embed)
-
-    @commands.command(hidden=True)
-    @commands.guild_only()
-    async def unapprove(self, ctx, member: discord.Member):
-        """Revokes approval for a member"""
-        if not ctx.author == ctx.guild.owner and not await self.bot.is_owner(ctx.author):
-            return
-        if not discord.utils.get(member.roles, name="Approved"):
-            await ctx.send(f"{member.mention} has not been approved.", delete_after=15.0)
-            await ctx.message.delete()
-            return
-        try:
-            await member.remove_roles(discord.utils.get(member.roles, name="Approved"))
-        except discord.Forbidden:
-            await ctx.send("I do not have permissions to remove the `Approved` role. Does this member have higher roles than me?")
-            return
-        await ctx.message.delete()
-        embed=discord.Embed(title=f"Revoked approval for {member}.", colour=0xFF0000, timestamp=datetime.datetime.utcnow())
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
-        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
-        await ctx.guild.system_channel.send(embed=embed)
-
+    
 
     @commands.command()
     @commands.guild_only()
@@ -327,38 +292,38 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
 
     @commands.command()
     @commands.guild_only()
-    async def qchannel(self, ctx):
+    async def qchannel(self, ctx, channel: discord.TextChannel=None):
         if not ctx.author == ctx.guild.owner and not await ctx.bot.is_owner(ctx.author):
             return
-        channel = ctx.channel
+        channel = channel or ctx.channel
         self.bot.qchannels[ctx.guild.id] = channel.id
-        await ctx.send(f"{channel.mention} is marked as the questions channel and only the owner can wipe it.")
+        await ctx.send(f"{channel.mention} is marked as the questions channel and only the server owner can wipe it.")
 
-        test = await self.bot.db.fetchrow(f"SELECT qchannel FROM servers WHERE guild_id = {ctx.guild.id}")
+        test = await self.bot.db.fetchrow(f"SELECT qchannel FROM servers WHERE guild_id = $1", ctx.guild.id)
         connection = await self.bot.db.acquire()
         async with connection.transaction():
             if test:
-                await self.bot.db.execute(f"UPDATE servers SET qchannel = {channel.id} WHERE guild_id = {ctx.guild.id}")
+                await self.bot.db.execute(f"UPDATE servers SET qchannel = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
             else:
-                await self.bot.db.execute(f"""INSERT INTO servers (guild_id, qchannel) VALUES ({ctx.guild.id}, {channel.id})""")
+                await self.bot.db.execute(f"INSERT INTO servers (guild_id, qchannel) VALUES ($1, $2)", ctx.guild.id, channel.id)
         await self.bot.db.release(connection)
 
     @commands.command()
     @commands.guild_only()
-    async def pchannel(self, ctx):
+    async def pchannel(self, ctx, channel: discord.TextChannel=None):
         if not ctx.author == ctx.guild.owner and not await ctx.bot.is_owner(ctx.author):
             return
-        channel = ctx.channel
+        channel = channel or ctx.channel
         self.bot.pchannels[ctx.guild.id] = channel.id
         await ctx.send(f"{channel.mention} is now the channel where pounces will appear.")
 
-        test = await self.bot.db.fetchrow(f"SELECT pchannel FROM servers WHERE guild_id = {ctx.guild.id}")
+        test = await self.bot.db.fetchrow(f"SELECT pchannel FROM servers WHERE guild_id = $1", ctx.guild.id)
         connection = await self.bot.db.acquire()
         async with connection.transaction():
             if test:
-                await self.bot.db.execute(f"UPDATE servers SET pchannel = {channel.id} WHERE guild_id = {ctx.guild.id}")
+                await self.bot.db.execute(f"UPDATE servers SET pchannel = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
             else:
-                await self.bot.db.execute(f"""INSERT INTO servers (guild_id, pchannel) VALUES ({ctx.guild.id}, {channel.id})""")
+                await self.bot.db.execute("INSERT INTO servers (guild_id, pchannel) VALUES ($1, $2)", ctx.guild.id, channel.id)
         await self.bot.db.release(connection)
 
 def setup(bot):
