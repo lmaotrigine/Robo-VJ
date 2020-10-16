@@ -498,7 +498,7 @@ class Moderation(commands.Cog):
             return
 
         query = """UPDATE guild_mod_config SET (mute_role_id, muted_members) = (NULL, '{}'::bigint[]) WHERE id=$1;"""
-        await self.bot.pool.execute(query, guild_id)
+        await self.bot.db.execute(query, guild_id)
         self.get_guild_config.invalidate(self, guild_id)
 
     @commands.command(aliases=['newmembers'])
@@ -583,7 +583,7 @@ class Moderation(commands.Cog):
                         broadcast_channel = NULL;
                 """
 
-        await self.bot.pool.execute(query, guild_id, RaidMode.off.value)
+        await self.bot.db.execute(query, guild_id, RaidMode.off.value)
         self._spam_check.pop(guild_id, None)
         self.get_guild_config.invalidate(self, guild_id)
 
@@ -1367,7 +1367,7 @@ class Moderation(commands.Cog):
                        mute_role_id = EXCLUDED.mute_role_id,
                        muted_members = EXCLUDED.muted_members
                 """
-        await self.bot.pool.execute(query, guild.id, role.id, list(members))
+        await self.bot.db.execute(query, guild.id, role.id, list(members))
         self.get_guild_config.invalidate(self, guild.id)
 
     @staticmethod
@@ -1701,7 +1701,7 @@ class Moderation(commands.Cog):
                 return await ctx.send('Aborting.')
 
         query = """UPDATE guild_mod_config SET (mute_role_id, muted_members) = (NULL, '{}'::bigint[]) WHERE id=$1;"""
-        await self.bot.pool.execute(query, guild_id)
+        await self.bot.db.execute(query, guild_id)
         self.get_guild_config.invalidate(self, guild_id)
         await ctx.send('Successfully unbound mute role.')
 
