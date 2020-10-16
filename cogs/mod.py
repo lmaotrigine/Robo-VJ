@@ -1124,7 +1124,7 @@ class Moderation(commands.Cog):
 
     @commands.group(aliases=['purge'])
     @commands.guild_only()
-    @checks.has_permissions(manage_messages=True)
+    @checks.is_admin()
     async def remove(self, ctx):
         """Removes messages that meet a criteria.
         In order to use this command, you must have Manage Messages permissions.
