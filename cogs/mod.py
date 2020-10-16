@@ -1759,7 +1759,7 @@ class Moderation(commands.Cog):
     @commands.command()
     @checks.is_mod()
     @commands.guild_only()
-    async def warn(self, ctx, user: Sinner=None,*, reason=None):
+    async def warn(self, ctx, user: discord.Member=None,*, reason=None):
         """Issues a warning to a user. Current status can be accessed by warnstats"""
         if not user:
             return await ctx.send("You must specify a user")
@@ -1812,7 +1812,7 @@ class Moderation(commands.Cog):
     @commands.command()
     @checks.is_mod()
     @commands.guild_only()
-    async def unwarn(self, ctx, user: Sinner=None):
+    async def unwarn(self, ctx, user: discord.Member=None):
         """Removes one warning from a user"""
         if not user:
             return await ctx.send("You must specify a user")
