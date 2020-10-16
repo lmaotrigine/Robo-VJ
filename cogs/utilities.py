@@ -9,14 +9,7 @@ import re
 import discord
 from discord.ext import commands, tasks
 from typing import Optional, Tuple
-
-def check_util_perms(ctx):
-    """
-    Checks if user has "Manage server" permissions
-    """
-    if ctx.guild is None:
-        return True
-    return ctx.author.guild_permissions.manage_guild
+from .utils import checks
 
 def q_channel_protection(ctx):
     """
@@ -32,6 +25,13 @@ def q_channel_protection(ctx):
         return True
     return False
 
+class Prefix(commands.Converter):
+    async def convert(self, ctx, argument):
+        user_id = ctx.bot.user.id
+        if argument.startswith((f'<@{user_id}>', f'<@!{user_id}>')):
+            raise commands.BadArgument('That is a reserved prefix already in use.')
+        return argument
+
 class Utilities(commands.Cog):
     """Utilities for your server. Require manage server permissions to use"""
     def __init__(self, bot):
@@ -40,7 +40,7 @@ class Utilities(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
-    @commands.check(check_util_perms)
+    @checks.is_mod()
     @commands.check(q_channel_protection)
     async def wipe(self, ctx, limit):
         """
@@ -87,40 +87,92 @@ class Utilities(commands.Cog):
             await ctx.message.delete()
             await ctx.send("Please enter a number of messages to wipe (Accomodate this message into your count). Enter `all` to wipe the entire channel. (Upto 100 messages in the past 14 days.)")
 
+    @commands.group(name='prefix', invoke_without_command=True)
+    async def prefix(self, ctx):
+         """Manages the server's custom prefixes.
+        If called without a subcommand, this will list the currently set
+        prefixes.
+        """
+                
+        prefixes = self.bot.get_guild_prefixes(ctx.guild)
+        
+        # we want to remove prefix #2, because it's the second form of the mention
+        # and to the end user, this would end up making them confused why the
+        # mention is there twice
+        del prefixes[1]
+
+        embed = discord.Embed(title='Prefixes', colour=discord.Colour.blurple())
+        embed.set_footer(text=f'{len(prefixes)} prefixes')
+        embed.description = '\n'.join(f'{index}. {elem}' for index, elem in enumerate(prefixes, 1))
+        await ctx.send(embed=embed)
+
+    @prefix.command(name='add', ignore_extra=False)
+    async def prefix_add(self, ctx, prefix: Prefix):
+        """Appends a prefix to the list of custom prefixes.
+        
+        Previously set prefixes are not overridden.
+        
+        To have a word prefix, you should quote it and end it with
+        a space, e.g. "hello " to set the prefix to "hello ". This
+        is because Discord removes spaces when sending messages so
+        the spaces are not preserved.
+        
+        Multi-word prefixes must be quoted also.
+        
+        You must have Manage Server permission to use this command.
+        """
+        current_prefixes = self.bit.get_raw_guild_prefixes(ctx.guild.id)
+        current_prefixes.append(prefix)
+        try:
+            await self.bot.set_guild_prefixes(ctx.guild, current_prefixes)
+        except Exception as e:
+            await ctx.send(f'{ctx.tick(False)} {e}')
+        else:
+            await ctx.send(ctx.tick(True))
+
+    @prefix_add.error
+    async def prefix_add_error(self, ctx, error):
+    if isinstance(error, commands.TooManyArguments):
+        await ctx.send("You've given too many prefixes. Either quote it or only do it one by one.")
+
+    @prefix.command(name='remove', aliases=['delete'], ignore_extra=False)
+    async def prefix_remove(self, ctx, prefix: Prefix):
+         """Removes a prefix from the list of custom prefixes.
+        
+        This is the inverse of the 'prefix add' command. You can
+        use this to remove prefixes from the default set as well.
+        
+        You must have Manage Server permission to use this command.
+        """
+        current_prefixes = self.bot.get_raw_guild_prefixes(ctx.guild.id)
+
+        try:
+            current_prefixes.remove(prefix)
+        except ValueError:
+            return await ctx.send('I do not have this prefix registered.')
+
+        try:
+            await self.bot.set_guild_prefixes(ctx.guild, current_prefixes)
+        except Exception as e:
+            await ctx.send(f'{ctx.tick(False} {e}')
+        else:
+            await ctx.send(ctx.tick(True))
+
+    @prefix.command(name='clear')
+    @checks.is_mod()
+    async def prefix_clear(self, ctx):
+        """Removes all custom prefixes.
+        After this, the bot will listen to only mention prefixes.
+        You must have Manage Server permission to use this command.
+        """
+
+        await self.bot.set_guild_prefixes(ctx.guild, [])
+        await ctx.send(ctx.tick(True))
+
 
     @commands.command()
     @commands.guild_only()
-    @commands.check(check_util_perms)
-    async def prefix(self, ctx, pfx=None):
-        """
-        Change the prefix of the bot in this server, or return the current prefix if none specified.
-        """
-        #with open('readonly/prefixes.json', 'r') as file:
-        #    prefixes = json.load(file)
-        if pfx is None:
-            await ctx.send(f"My prefix in this server is `{self.bot.prefixes.get(ctx.guild.id, '!')}`")
-            return
-        self.bot.prefixes[ctx.guild.id] = pfx
-        await ctx.send(f"My prefix in this server is now `{pfx}`")
-        test = await self.bot.db.fetchrow(f"SELECT prefix FROM servers WHERE guild_id = {ctx.guild.id}")
-        connection = await self.bot.db.acquire()
-        async with connection.transaction():
-            if test:
-                await self.bot.db.execute("UPDATE servers SET prefix = $1 WHERE guild_id = $2", pfx, ctx.guild.id)
-            else:
-                await self.bot.db.execute("INSERT INTO servers (guild_id, prefix) VALUES ($1, $2)", ctx.guild.id, pfx)
-        await self.bot.db.release(connection)
-
-        #prefixes[str(ctx.guild.id)] = pfx
-
-        #with open('readonly/prefixes.json', 'w') as file:
-        #    json.dump(prefixes, file, indent=4)
-
-
-
-    @commands.command()
-    @commands.guild_only()
-    @commands.has_guild_permissions(manage_guild=True)
+    @checks.is_mod()
     async def purgeroles(self, ctx, *, args):
         """Clears all roles of a particular member, or all members of a particular role.
 

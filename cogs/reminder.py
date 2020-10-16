@@ -256,44 +256,7 @@ class Reminder(commands.Cog):
 
         await ctx.send("Successfully deleted reminder.")
 
-    async def prompt(self, ctx, message, *, timeout=60.0, delete_after=True, author_id=None):
-        fmt = f'{message}\n\nReact with \N{WHITE HEAVY CHECK MARK} to confirm or \N{CROSS MARK} to deny.'
-
-        author_id = author_id or ctx.author.id
-        msg = await ctx.send(fmt)
-
-        confirm = None
-
-        def check(payload):
-            nonlocal confirm
-
-            if payload.message_id != msg.id or payload.user_id != author_id:
-                return False
-
-            codepoint = str(payload.emoji)
-
-            if codepoint == '\N{WHITE HEAVY CHECK MARK}':
-                confirm = True
-                return True
-            elif codepoint == '\N{CROSS MARK}':
-                confirm = False
-                return True
-
-            return False
-
-        for emoji in ('\N{WHITE HEAVY CHECK MARK}', '\N{CROSS MARK}'):
-            await msg.add_reaction(emoji)
-
-        try:
-            await self.bot.wait_for('raw_reaction_add', check=check, timeout=timeout)
-        except asyncio.TimeoutError:
-            confirm = None
-
-        try:
-            if delete_after:
-                await msg.delete()
-        finally:
-            return confirm
+    
 
     @reminder.command(name='clear', ignore_extra=False)
     async def reminder_clear(self, ctx):
@@ -313,7 +276,7 @@ class Reminder(commands.Cog):
         if total == 0:
             return await ctx.send("You do not have any reminders to delete.")
 
-        confirm = await self.prompt(f'Are you sure you want to delete {formats.plural(total):reminder}?')
+        confirm = await ctx.prompt(f'Are you sure you want to delete {formats.plural(total):reminder}?')
         if not confirm:
             return await ctx.send('Aborting')
 
