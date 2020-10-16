@@ -167,7 +167,7 @@ class Reminder(commands.Cog):
                    RETURNING id;
                 """
 
-        row = await connection.fetchrow(query, event, { 'args': args, 'kwargs': kwargs }, when, now)
+        row = await connection.fetchrow(query, event, { "args": args, "kwargs": kwargs }, when, now)
         timer.id = row[0]
 
         # only set the data check if it can be waited on
