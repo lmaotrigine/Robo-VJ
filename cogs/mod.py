@@ -50,7 +50,7 @@ class ModConfig:
         self.bot = bot
         self.raid_mode = record['raid_mode']
         self.id = record['id']
-        self.broadcast_channel_id = record['broadcast_channel_id']
+        self.broadcast_channel_id = record['broadcast_channel']
         self.mention_count = record['mention_count']
         self.safe_mention_channel_ids = set(record['safe_mention_channel_ids'] or [])
         self.muted_members = set(record['muted_members'] or [])
