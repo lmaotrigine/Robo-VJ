@@ -69,16 +69,14 @@ class RoboVJ(commands.Bot):
             pchannel BIGINT,
             modlog BIGINT
         );
-        CREATE TABLE IF NOT EXISTS blocks (
-            user_id BIGINT,
-            guild_id BIGINT,
-            channel_id BIGINT,
-            block_until TIMESTAMP WITH TIME ZONE
-        );
-        CREATE TABLE IF NOT EXISTS mutes (
-            user_id BIGINT,
-            guild_id BIGINT,
-            mute_until TIMESTAMP WITH TIME ZONE
+        CREATE TABLE IF NOT EXISTS guild_mod_config (
+            id BIGINT PRIMARY KEY,
+            raid_mode SMALLINT,
+            broadcast_channel BIGINT,
+            mention_count SMALLINT,
+            safe_mention_channel_ids BIGINT ARRAY,
+            mute_role_id BIGINT,
+            muted_members BIGINT ARRAY
         );
         CREATE TABLE IF NOT EXISTS named_servers (
             id SERIAL PRIMARY KEY,
