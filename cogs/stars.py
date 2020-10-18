@@ -205,7 +205,7 @@ class Stars(commands.Cog):
             return
 
         try:
-            await method(channel, payload.message_id, payload.user_id, verify=True)
+            await method(channel, payload.message_id, payload.user_id, verify=False)
         except StarError:
             pass
 
@@ -631,7 +631,7 @@ class Stars(commands.Cog):
         functionality.
         """
         try:
-            await self.unstar_message(ctx.channel, message, ctx.author.id, verify=True)
+            await self.unstar_message(ctx.channel, message, ctx.author.id, verify=False)
         except StarError as e:
             return await ctx.send(e)
         else:
