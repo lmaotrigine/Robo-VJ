@@ -695,6 +695,13 @@ class Moderation(commands.Cog):
 
         await ctx.guild.kick(member, reason=reason)
         await ctx.send('\N{OK HAND SIGN}')
+        e = discord.Embed(title=f'[KICK] {member}', colour=discord.Colour.red(), timestamp=datetime.datetime.utcnow())
+        e.add_field(name='Member ID', value=member.id)
+        e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
+        e.add_field(name='Reason', value=reason, inline=False)
+        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        if modlog_channel:
+            await modlog_channel.send(embed=e)
 
     @commands.command()
     @commands.guild_only()
@@ -944,6 +951,13 @@ class Moderation(commands.Cog):
         await ctx.guild.ban(member, reason=reason)
         await ctx.guild.unban(member, reason=reason)
         await ctx.send('\N{OK HAND SIGN}')
+        e = discord.Embed(title=f'[SOFTBAN] {member}', colour=discord.Colour.red(), timestamp=datetime.datetime.utcnow())
+        e.add_field(name='Member ID', value=member.id)
+        e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
+        e.add_field(name='Reason', value=reason, inline=False)
+        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        if modlog_channel:
+            await modlog_channel.send(embed=e)
 
     @commands.command()
     @commands.guild_only()
@@ -955,15 +969,22 @@ class Moderation(commands.Cog):
         In order for this to work, the bot must have Ban Member permissions.
         To use this command you must have Ban Members permissions.
         """
-
+        e = discord.Embed(title=f'[UNBAN] {member}', colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
+        e.add_field(name='Member ID', value=member.id)
+        e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
+        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        
         if reason is None:
             reason = f'Action done by {ctx.author} (ID: {ctx.author.id})'
 
         await ctx.guild.unban(member.user, reason=reason)
         if member.reason:
             await ctx.send(f'Unbanned {member.user} (ID: {member.user.id}), previously banned for {member.reason}.')
+            e.add_field(name='Banned for', value=member.reason, inline=False)
         else:
             await ctx.send(f'Unbanned {member.user} (ID: {member.user.id}).')
+        if modlog_channel:
+            await modlog_channel.send(embed=e)
 
     @commands.command()
     @commands.guild_only()
@@ -1004,6 +1025,14 @@ class Moderation(commands.Cog):
                                                                     connection=ctx.db,
                                                                     created=ctx.message.created_at)
         await ctx.send(f'Banned {member} for {time.human_timedelta(duration.dt, source=timer.created_at)}.')
+        e = discord.Embed(title=f'[TEMPBAN] {member}', colour=0xFF0000, timestamp=datetime.datetime.utcnow())
+        e.add_field(name='Member ID', value=member.id)
+        e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
+        e.add_field(name='Duration', value=time.human_timedelta(duration.dt, source=timer.created_at))
+        e.add_field(name='Reason', value=reason, inline=False)
+        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        if modlog_channel:
+            await modlog_channel.send(embed=e)
 
     @commands.Cog.listener()
     async def on_tempban_timer_complete(self, timer):
@@ -1422,6 +1451,13 @@ class Moderation(commands.Cog):
             await ctx.send('\N{THUMBS UP SIGN}')
         else:
             await ctx.send(f'Muted [{total - failed}/{total}]')
+        e = discord.Embed(title=f'[MUTE] {", ".join([str(member) for member in members])}', colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
+        e.add_field(name='Member ID', value=member.id)
+        e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
+        e.add_field(name='Reason', value=reason, inline=False)
+        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        if modlog_channel:
+            await modlog_channel.send(embed=e)
 
     @commands.command(name='unmute')
     @can_mute()
@@ -1453,7 +1489,13 @@ class Moderation(commands.Cog):
             await ctx.send('\N{THUMBS UP SIGN}')
         else:
             await ctx.send(f'Unmuted [{total - failed}/{total}]')
-
+        e = discord.Embed(title=f'[UNMUTE] {", ".join([member for member in members])}', colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
+        e.add_field(name='Member IDs', value='\n'.join([member.id for member in members]))
+        e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
+        e.add_field(name='Reason', value=reason, inline=False)
+        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        if modlog_channel:
+            await modlog_channel.send(embed=e)
 
     @commands.command()
     @can_mute()
@@ -1482,6 +1524,14 @@ class Moderation(commands.Cog):
                                                                      created=ctx.message.created_at)
         delta = time.human_timedelta(duration.dt, source=timer.created_at)
         await ctx.send(f'Muted {discord.utils.escape_mentions(str(member))} for {delta}.')
+        e = discord.Embed(title=f'[TEMPMUTE] {member}', colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
+        e.add_field(name='Member ID', value=member.id)
+        e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
+        e.add_field(name='Duration', value=delta)
+        e.add_field(name='Reason', value=reason, inline=False)
+        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        if modlog_channel:
+            await modlog_channel.send(embed=e)
 
     @commands.Cog.listener()
     async def on_tempmute_timer_complete(self, timer):
@@ -1778,6 +1828,13 @@ class Moderation(commands.Cog):
             await ctx.send('\N{THUMBS DOWN SIGN}')
         else:
             await ctx.send('\N{THUMBS UP SIGN}')
+            e = discord.Embed(title=f'[BLOCK] {member}', colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
+            e.add_field(name='Member ID', value=member.id)
+            e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
+            e.add_field(name='Channel', value=ctx.channel.mention)
+            modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+            if modlog_channel:
+                await modlog_channel.send(embed=e)
 
     @commands.command()
     @checks.is_mod()
@@ -1811,7 +1868,15 @@ class Moderation(commands.Cog):
             await ctx.send('\N{THUMBS DOWN SIGN}')
         else:
             await ctx.send(f'Blocked {member} for {time.human_timedelta(duration.dt, source=timer.created_at)}.')
-
+            e = discord.Embed(title=f'[TEMPBLOCK] {member}', colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
+            e.add_field(name='Member ID', value=member.id)
+            e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
+            e.add_field(name='Channel', value=ctx.channel.mention)
+            e.add_field(name='Duration', value=time.human_timedelta(duration.dt, source=timer.created_at))
+            modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+            if modlog_channel:
+                await modlog_channel.send(embed=e)
+            
     @commands.Cog.listener()
     async def on_tempblock_timer_complete(self, timer):
         guild_id, mod_id, channel_id, member_id = timer.args

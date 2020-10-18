@@ -11,9 +11,14 @@ from collections import Counter
 import asyncio
 import codecs
 import pathlib
-from .utils.help import EmbedHelpCommand
+from .utils.help import PaginatedHelpCommand
 import psutil
 import pygit2
+
+try:
+    from assets.hello import Greeter
+except ImportError:
+    Greeter = None
 
 class FetchedUser(commands.Converter):
     async def convert(self, ctx, argument):
@@ -33,7 +38,7 @@ class Meta(commands.Cog):
         self.bot = bot
         self.process = psutil.Process()
         self._original_help_command = self.bot.help_command
-        bot.help_command = EmbedHelpCommand(dm_help=None, dm_help_threshold=10)
+        bot.help_command = PaginatedHelpCommand()
         bot.help_command.cog = self
 
     def cog_unload(self):
@@ -413,6 +418,68 @@ class Meta(commands.Cog):
             return await ctx.send('Member not found?')
 
         await self.say_permissions(ctx, member, channel)
+
+    # General commands
+    @commands.command(aliases=["hi"], hidden=True)
+    async def hello(self, ctx):
+        """Go ahead, say hi!"""
+        if Greeter:
+            coro = Greeter.greet(ctx)
+            if coro:
+                return await eval(coro)
+        greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!", "Beep boop!"])
+        owner = self.bot.get_user(bot.owner_id)
+        await ctx.send(f"{greeting} I'm a robot! {str(owner)} made me.")
+
+
+    @commands.command(aliases=['invite'])
+    async def join(self, ctx):
+        """Get the invite link to add the bot to your server"""
+        embed = discord.Embed(title="Click here to add me to your server", colour=discord.Colour(0xFF0000),
+                            url=discord.utils.oauth_url(self.bot.user.id, discord.Permissions(administrator=True)))
+        embed.set_author(name=self.bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name, icon_url=self.bot.user.avatar_url)
+        await ctx.send(embed=embed)
+
+    # leave a guild
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def leave(self, ctx, guild_id = None):
+        if not await self.bot.is_owner(ctx.author):
+            return
+        if not guild_id:
+            guild = ctx.guild
+        elif not guild_id.isnumeric():
+            return await ctx.send("Enter a valid guild ID", delete_after=30.0)
+
+        if guild_id:
+            guild = self.bot.get_guild(guild_id)
+        if not guild:
+            guild = await self.bot.fetch_guild(guild_id)
+        name = guild.name
+        await guild.leave()
+        await self.bot.owner.send(f"Left '{name}'")
+
+    @commands.command(hidden=True, aliases=["good bot"])
+    async def goodbot(self, ctx):
+        """Appreci8 that wun"""
+        await ctx.send(f"Thanks {ctx.author.mention}, I try :slight_smile:")
+
+
+    @commands.command(hidden=True)
+    async def ping(self, ctx):
+        """
+        Returns bot latency
+        """
+        await ctx.send(f"Pong! {round(self.bot.latency * 1000)}ms")
+
+
+    @commands.command()
+    async def support(self, ctx):
+        """Join the support server to report issues or get updates or just hang out"""
+        embed = discord.Embed(title="Click here to join the support server", colour=discord.Colour(0xFF0000),
+                            url="https://discord.gg/rqgRyF8")
+        embed.set_author(name=self.bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name, icon_url=self.bot.user.avatar_url)
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Meta(bot))

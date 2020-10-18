@@ -1,4 +1,5 @@
 git+https://github.com/Rapptz/discord.py@master
+git+https://github.com/Rapptz/discord-ext-menus@master
 git+https://github.com/ssut/py-googletrans@master
 asyncpg>=0.21.0
 Pillow>=7.2.0
@@ -10,4 +11,4 @@ psutil
 lru_dict
 pygit2
 
-jishaku @ git+https://github.com/Gorialis/jishaku@master
+jishaku @ git+https://github.com/darthshittious/jishaku

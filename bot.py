@@ -95,6 +95,46 @@ class RoboVJ(commands.Bot):
             event TEXT,
             extra JSONB DEFAULT ('{}'::JSONB)
         );
+        CREATE TABLE IF NOT EXISTS starboard (
+            id BIGINT PRIMARY KEY,
+            channel_id BIGINT,
+            threshold INTEGER DEFAULT (1) NOT NULL,
+            locked BOOLEAN DEFAULT FALSE,
+            max_age INTERVAL DEFAULT ('7 days'::INTERVAL) NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS starboard_entries (
+            id SERIAL PRIMARY KEY,
+            bot_message_id BIGINT UNIQUE NOT NULL,
+            channel_id BIGINT,
+            author_id BIGINT,
+            guild_id BIGINT REFERENCES starboard (id) ON DELETE CASCADE ON UPDATE NO ACTION NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS starrers (
+            id SERIAL PRIMARY KEY,
+            author_id BIGINT NOT NULL,
+            entry_id INTEGER REFERENCES starboard_entries (id) ON DELETE CASCADE ON UPDATE NO ACTION NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS starboard_entries_bot_message_id_idx ON starboard_entries (bot_message_id);
+        CREATE INDEX IF NOT EXISTS starboard_entries_message_id_idx ON starboard_entries (message_id);
+        CREATE INDEX IF NOT EXISTS starboard_entries_guild_id_idx ON starboard_entries (guild_id);
+        CREATE INDEX IF NOT EXISTS starrers_entry_id_idx ON starrers (entry_id);
+        CREATE UNIQUE INDEX IF NOT EXISTS starrers_uniq_idx ON starrers (author_id, entry_id);
+        CREATE TABLE IF NOT EXISTS plonks (
+            id SERIAL PRIMARY KEY,
+            guild_id BIGINT,
+            entity_id BIGINT UNIQUE
+        );
+        CREATE INDEX IF NOT EXISTS plonks_guild_id_idx ON plonks (guild_id);
+        CREATE INDEX IF NOT EXISTS plonks_entity_id_idx ON plonks (entity_id);
+        CREATE TABLE IF NOT EXISTS command_config (
+            id SERIAL PRIMARY KEY,
+            guild_id BIGINT,
+            channel_id BIGINT,
+            name TEXT,
+            whitelist BOOLEAN
+        );
+        CREATE INDEX IF NOT EXISTS command_config_guild_id_idx ON command_config (guild_id);
+        CREATE UNIQUE INDEX IF NOT EXISTS command_config_uniq_idx ON command_config (channel_id, name, whitelist);
         """)
 
     async def on_command_error(self, ctx, error):
@@ -248,7 +288,7 @@ async def on_message(message):
 
 
 # Load cogs
-bot.load_extension("cogs.admin")
+bot.load_extension("jishaku")
 for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
         bot.load_extension(f'cogs.{filename[:-3]}')
@@ -290,67 +330,7 @@ async def on_guild_update(before, after):
     if before.name != after.name:
         await bot.db.execute("UPDATE named_servers SET name = $1 WHERE guild_id = $2", after.name, after.id)
 
-# General commands
-@bot.command(aliases=["hi"])
-async def hello(ctx):
-    """Go ahead, say hi!"""
-    if Greeter:
-        coro = Greeter.greet(ctx)
-        if coro:
-            return await eval(coro)
-    greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!", "Beep boop!"])
-    owner = bot.get_user(bot.owner_id)
-    await ctx.send(f"{greeting} I'm a robot! {str(owner)} made me.")
 
-
-@bot.command(aliases=['invite'])
-async def join(ctx):
-    """Get the invite link to add the bot to your server"""
-    embed = discord.Embed(title="Click here to add me to your server", colour=discord.Colour(0xFF0000),
-                          url=discord.utils.oauth_url(bot.user.id, discord.Permissions(administrator=True)))
-    embed.set_author(name=bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name, icon_url=bot.user.avatar_url)
-    await ctx.send(embed=embed)
-
-# leave a guild
-@bot.command(hidden=True)
-@commands.is_owner()
-async def leave(ctx, guild_id = None):
-    if not await bot.is_owner(ctx.author):
-        return
-    if not guild_id:
-        guild = ctx.guild
-    elif not guild_id.isnumeric():
-        return await ctx.send("Enter a valid guild ID", delete_after=30.0)
-
-    if guild_id:
-        guild = bot.get_guild(guild_id)
-    if not guild:
-        guild = await bot.fetch_guild(guild_id)
-    name = guild.name
-    await guild.leave()
-    await bot.owner.send(f"Left '{name}'")
-
-@bot.command(hidden=True, aliases=["good bot"])
-async def goodbot(ctx):
-    """Appreci8 that wun"""
-    await ctx.send(f"Thanks {ctx.author.mention}, I try :slight_smile:")
-
-
-@bot.command(hidden=True)
-async def ping(ctx):
-    """
-    Returns bot latency
-    """
-    await ctx.send(f"Pong! {round(bot.latency * 1000)}ms")
-
-
-@bot.command()
-async def support(ctx):
-    """Join the support server to report issues or get updates or just hang out"""
-    embed = discord.Embed(title="Click here to join the support server", colour=discord.Colour(0xFF0000),
-                          url="https://discord.gg/rqgRyF8")
-    embed.set_author(name=bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name, icon_url=bot.user.avatar_url)
-    await ctx.send(embed=embed)
 
 # Get things rolling
 
