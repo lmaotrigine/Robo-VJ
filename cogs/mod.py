@@ -501,6 +501,34 @@ class Moderation(commands.Cog):
         await self.bot.db.execute(query, guild_id)
         self.get_guild_config.invalidate(self, guild_id)
 
+    @commands.group(name='modlog')
+    @commands.guild_only()
+    @checks.is_mod()
+    async def modlog(self, ctx, invoke_without_command=True):
+        channel_id = await self.bot.db.fetchval("SELECT modlog FROM servers WHERE guild_id = $1", ctx.guild.id)
+        channel = ctx.guild.get_channel(channel_id)
+        if channel_id is None or channel is None:
+            return await ctx.send("No channel set up for logging modlogs in this server.")
+        await ctx.send(f"Modration events are logged to {channel.mention}")
+
+    @modlog.command(name='assign')
+    @commands.guild_only()
+    @checks.is_admin()
+    async def modlog_assign(self, ctx, channel: discord.TextChannel):
+        if channel.guild != ctx.guild:
+            return await ctx.send("Channel does not belong to this server.")
+        await ctx.db.execute("UPDATE servers SET modlog = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
+        self.bot.modlogs[ctx.guild.id] = channel.id
+        await ctx.send(ctx.tick(True))
+
+    @modlog.command(name='remove', aliases=['delete'])
+    @commands.guild_only()
+    @checks.is_admin()
+    async def modlog_remove(self, ctx):
+        await ctx.db.execute("UPDATE servers SET modlog = NULL WHERE guild_id = $1", ctx.guild.id)
+        self.bot.modlogs.pop(ctx.guild.id)
+        await ctx.send(ctx.tick(True))
+
     @commands.command(aliases=['newmembers'])
     @commands.guild_only()
     async def newusers(self, ctx, *, count=5):
