@@ -105,10 +105,12 @@ class RoboVJ(commands.Bot):
         CREATE TABLE IF NOT EXISTS starboard_entries (
             id SERIAL PRIMARY KEY,
             bot_message_id BIGINT UNIQUE NOT NULL,
+            message_id BIGINT UNIQUE NOT NULL,
             channel_id BIGINT,
             author_id BIGINT,
             guild_id BIGINT REFERENCES starboard (id) ON DELETE CASCADE ON UPDATE NO ACTION NOT NULL
         );
+        CREATE INDEX IF NOT EXISTS starboard_entries_message_id_idx ON starboard_entries (message_id);
         CREATE TABLE IF NOT EXISTS starrers (
             id SERIAL PRIMARY KEY,
             author_id BIGINT NOT NULL,
