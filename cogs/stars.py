@@ -106,7 +106,7 @@ class Stars(commands.Cog):
         connection = connection or self.bot.db
         query = "SELECT * FROM starboard WHERE id = $1;"
         record = await connection.fetchrow(query, guild_id)
-        return StarboardConfig(guiild_id=guild_id, bot=self.bot, record=record)
+        return StarboardConfig(guild_id=guild_id, bot=self.bot, record=record)
 
     def star_emoji(self, stars):
         if 5 > stars >= 0:
