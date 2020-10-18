@@ -51,7 +51,7 @@ class StarboardConfig:
         if record:
             self.channel_id = record['channel_id']
             self.threshold = record['threshold']
-            self.locked = threshold['locked']
+            self.locked = record['locked']
             self.needs_migration = self.locked is None
             if self.needs_migration:
                 self.locked = True
