@@ -170,7 +170,7 @@ class Stars(commands.Cog):
             embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url_as(format='png'))
             embed.timestamp = message.created_at
             embed.colour = self.star_gradient_colour(stars)
-            return content, embed
+        return content, embed
 
     async def get_message(self, channel, message_id):
         try:
