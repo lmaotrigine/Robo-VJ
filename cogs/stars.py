@@ -229,7 +229,7 @@ class Stars(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
-        await self.reaction_Action('unstar', payload)
+        await self.reaction_action('unstar', payload)
 
     @commands.Cog.listener()
     async def on_raw_message_delete(self, payload):
