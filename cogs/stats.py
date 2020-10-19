@@ -731,6 +731,25 @@ class Stats(commands.Cog):
         embed.description = '\n'.join(description)
         await ctx.send(embed=embed)
 
+    async def tabulate_query(self, ctx, query, *args):
+        records = await ctx.db.fetch(query, *args)
+
+        if len(records) == 0:
+            return await ctx.send('No results found.')
+
+        headers = list(records[0].keys())
+        table = formats.TabularData()
+        table.set_columns(headers)
+        table.add_rows(list(r.values()) for r in records)
+        render = table.render()
+
+        fmt = f'```\n{render}\n```'
+        if len(fmt) > 2000:
+            fp = io.BytesIO(fmt.encode('utf-8'))
+            await ctx.send('Too many results...', file=discord.File(fp, 'results.txt'))
+        else:
+            await ctx.send(fmt)
+
     @commands.group(hidden=True, invoke_without_command=True)
     @commands.is_owner()
     async def command_history(self, ctx):
