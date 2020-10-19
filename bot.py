@@ -55,6 +55,13 @@ class RoboVJ(commands.Bot):
         self._auto_spam_count = Counter()
         self.session = aiohttp.ClientSession(loop=self.loop)
 
+        self._prev_events = deque(maxlen=10)
+
+        # shard_id: List[datetime.datetime]
+        # shows the last attempted IDENTIFYs and RESUMEs
+        self.resumes = defaultdict(list)
+        self.identifies = defaultdict(list)
+
     async def init_db(self):    
         await self.db.execute("""CREATE TABLE IF NOT EXISTS servers (
             id SERIAL PRIMARY KEY,
