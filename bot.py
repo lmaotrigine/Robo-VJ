@@ -372,5 +372,5 @@ async def on_guild_update(before, after):
 
 startup.start()
 bot.loop.run_until_complete(create_db_pool())
-bot.run(config.token)
+bot.run()
 startup.cancel()
