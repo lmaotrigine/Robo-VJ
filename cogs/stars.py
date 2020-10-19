@@ -1019,6 +1019,13 @@ class Stars(commands.Cog):
         if ctx.starboard.locked:
             return await ctx.send('Starboard must be unlocked to migrate. It will be locked during the migration.')
 
+        stats = self.bot.get_cog('Stats')
+        if stats is None:
+            return await ctx.send('Internal error occurred: Stats cog not loaded')
+
+        webhook = stats.webhook
+
+
         start = time.time()
         guild_id = ctx.guild.id
         query = "UPDATE starboard SET locked=TRUE WHERE id=$1;"
@@ -1075,7 +1082,7 @@ class Stars(commands.Cog):
             e.add_field(name='ID', value=guild_id)
             e.set_footer(text=f'Took {delta:.2f}s to migrate')
             e.timestamp = m.created_at
-            await ctx.send(embed=e)
+            await webhook.send(embed=e)
 
     @star.command(name='limit', aliases=['threshold'])
     @checks.is_mod()
