@@ -46,11 +46,6 @@ async def create_db_pool():
     except KeyboardInterrupt:
         await bot.db.close()
 
-async def close_db():
-    await bot.db.close()
-    await bot.session.close()
-
-
 # initialise bot
 class RoboVJ(commands.Bot):
     def __init__(self, **kwargs):
@@ -136,6 +131,21 @@ class RoboVJ(commands.Bot):
         );
         CREATE INDEX IF NOT EXISTS command_config_guild_id_idx ON command_config (guild_id);
         CREATE UNIQUE INDEX IF NOT EXISTS command_config_uniq_idx ON command_config (channel_id, name, whitelist);
+        CREATE TABLE IF NOT EXISTS commands (
+            id SERIAL PRIMARY KEY,
+            guild_id BIGINT,
+            channel_id BIGINT,
+            author_id BIGINT,
+            used TIMESTAMP,
+            prefix TEXT,
+            command TEXT,
+            failed BOOLEAN
+        );
+        CREATE INDEX IF NOT EXISTS commands_guild_id_idx ON commands (guild_id);
+        CREATE INDEX IF NOT EXISTS commands_author_id_idx ON commands (author_id);
+        CREATE INDEX IF NOT EXISTS commands_used_idx ON commands (used);
+        CREATE INDEX IF NOT EXISTS commands_command_idx ON commands (command);
+        CREATE INDEX IF NOT EXISTS commands_failed_idx ON commands (failed);
         """)
 
     async def on_command_error(self, ctx, error):
@@ -163,10 +173,11 @@ class RoboVJ(commands.Bot):
             await self.blacklist.remove(object_id)
         except KeyError:
             pass
+
     @discord.utils.cached_property
     def stats_webhook(self):
-        wh_url = config.stats_wh_url
-        hook = discord.Webhook.from_url(wh_url, adapter=discord.AsyncWebhookAdapter(self.session))
+        wh_id, wh_token = self.config.stat_webhook
+        hook = discord.Webhook.partial(id=wh_id, token=wh_token, adapter=discord.AsyncWebhookAdapter(self.session))
         return hook
 
     def log_spammer(self, ctx, message, retry_after, *, autoblock=False):
@@ -236,8 +247,50 @@ class RoboVJ(commands.Bot):
             return
         else:
             self._auto_spam_count.pop(author_id, None)
+        try:
+            await self.invoke(ctx)
+        finally:
+            # just in case we have any outstadning DB connections
+            await ctx.release()
 
-        await self.invoke(ctx)
+    async def on_message(self, message):
+        if message.author.bot:
+            return
+        if message.content.strip() in [f'<@!{self.user.id}>', f'<@{self.user.id}>']:
+            prefixes = _prefix_callable(self, message)
+            # we want to remove prefix #2, because it's the 2nd form of the mention
+            # and to the end user, this would end up making them confused why the
+            # mention is there twice
+            del prefixes[1]
+
+            e = discord.Embed(title='Prefixes', colour=discord.Colour.blurple())
+            e.set_footer(text=f'{len(prefixes)} prefixes')
+            e.description = '\n'.join(f'{index}. {elem}' for index, elem in enumerate(prefixes, 1))
+            await message.channel.send(embed=e)
+        await self.process_commands(message)
+
+    async def close(self):
+        await super().close()
+        await self.session.close()
+
+    def run(self):
+        try:
+            super().run(config.token, reconnect=True)
+        finally:
+            with open('prev_events.log', 'w', encoding='utf-8') as fp:
+                for data in self._prev_events:
+                    try:
+                        x = json.dumps(data, ensure_ascii=True, indent=4)
+                    except:
+                        fp.write(f'{data}\n')
+                    else:
+                        fp.write(f'{x}\n')
+    
+    @property
+    def config(self):
+        return __import__('config')
+
+    
 
 bot = RoboVJ(command_prefix=_prefix_callable, status=discord.Status.online, activity=discord.Activity(
     name=f"!help", type=discord.ActivityType.listening), owner_id=411166117084528640,
@@ -264,29 +317,9 @@ async def startup():
 
     print('Data loaded')
 
-
-
 @startup.before_loop
 async def before_startup():
     await bot.wait_until_ready()
-
-
-# Return prefix on being mentioned
-@bot.event
-async def on_message(message):
-    if message.content.strip() in [f'<@!{bot.user.id}>', f'<@{bot.user.id}>']:
-        prefixes = _prefix_callable(bot, message)
-        # we want to remove prefix #2, because it's the 2nd form of the mention
-        # and to the end user, this would end up making them confused why the
-        # mention is there twice
-        del prefixes[1]
-
-        e = discord.Embed(title='Prefixes', colour=discord.Colour.blurple())
-        e.set_footer(text=f'{len(prefixes)} prefixes')
-        e.description = '\n'.join(f'{index}. {elem}' for index, elem in enumerate(prefixes, 1))
-        await message.channel.send(embed=e)
-    await bot.process_commands(message)
-
 
 # Load cogs
 bot.load_extension("jishaku")
@@ -298,6 +331,8 @@ for filename in os.listdir('./cogs'):
 # update prefixes on joining a server
 @bot.event
 async def on_guild_join(guild):
+    if guild.id in bot.blacklist:
+            await guild.leave()
     if guild.id not in bot.prefixes.keys() or not await bot.db.fetchrow("SELECT prefix FROM servers WHERE guild_id = $1", guild.id):
         bot.prefixes[guild.id] = '!'
         connection = await bot.db.acquire()
@@ -306,7 +341,7 @@ async def on_guild_join(guild):
             if not await bot.db.fetchrow("SELECT name FROM named_servers WHERE guild_id = $1", guild.id):
                 await bot.db.execute("INSERT INTO named_servers (guild_id, name) VALUES ($1, $2)", guild.id, guild.name)
         await bot.db.release(connection)
-    pfx = bot.prefixes[guild.id]
+    pfx = bot.prefixes[guild.id][0]
     if guild.system_channel:
         send_here = guild.system_channel
     else:
@@ -336,13 +371,6 @@ async def on_guild_update(before, after):
 # Get things rolling
 
 startup.start()
-try:
-    bot.loop.run_until_complete(create_db_pool())
-    bot.loop.run_until_complete(bot.start(config.token))
-except KeyboardInterrupt:
-    bot.loop.run_until_complete(bot.logout())
-    bot.loop.run_until_complete(close_db())
-finally:
-    bot.loop.close()
-#bot.run(TOKEN)
+bot.loop.run_until_complete(create_db_pool())
+bot.run(config.token)
 startup.cancel()

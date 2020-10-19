@@ -36,7 +36,6 @@ class Meta(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.process = psutil.Process()
         self._original_help_command = self.bot.help_command
         bot.help_command = PaginatedHelpCommand()
         bot.help_command.cog = self
@@ -63,76 +62,7 @@ class Meta(commands.Cog):
             return await ctx.send('Output too long to display.')
         await ctx.send(msg)
 
-    def get_bot_uptime(self, *, brief=False):
-        return time.human_timedelta(self.bot.uptime, accuracy=None, brief=brief, suffix=False)
-
-    def format_commit(self, commit):
-        short, _, _ = commit.message.partition('\n')
-        short_sha2 = commit.hex[0:6]
-        commit_tz = datetime.timezone(datetime.timedelta(minutes=commit.commit_time_offset))
-        commit_time = datetime.datetime.fromtimestamp(commit.commit_time).replace(tzinfo=commit_tz)
-
-        # [`hash`](url) message (offset)
-        offset = time.human_timedelta(commit_time.astimezone(datetime.timezone.utc).replace(tzinfo=None), accuracy=1)
-        return f'[`{short_sha2}`](https://github.com/darthshittious/Robo-VJ/commit/{commit.hex}) {short} ({offset})'
-
-    def get_last_commits(self, count=3):
-        repo = pygit2.Repository('.git')
-        commits = list(itertools.islice(repo.walk(repo.head.target, pygit2.GIT_SORT_TOPOLOGICAL), count))
-        return '\n'.join(self.format_commit(c) for c in commits)
-
-
-    @commands.command()
-    async def uptime(self, ctx):
-        """Tells you how long the bot has been up for."""
-        await ctx.send(f'Uptime: **{self.get_bot_uptime()}**')
-
-    @commands.command(name="about")
-    async def _about(self, ctx):
-        """Tells you information about the bot itself."""
-        revision = self.get_last_commits()
-        embed = discord.Embed(description='Latest Changes:\n' + revision)
-        embed.colour=discord.Colour.blurple()
-        name = self.bot.user.display_name
-        embed.title = f"{name} {chr(0x2014)} v{self.bot.version}"
-        embed.set_thumbnail(url=self.bot.user.avatar_url)
-        embed.set_author(name=str(self.bot.owner), url=f"https://discord.com/users/{self.bot.owner_id}", icon_url=self.bot.owner.avatar_url)
-
-        # Statistics
-        total_members = 0
-        total_unique = len(self.bot.users)
-
-        text = 0
-        voice = 0
-        guilds = 0
-        for guild in self.bot.guilds:
-            guilds += 1
-            total_members += guild.member_count
-            for channel in guild.channels:
-                if isinstance(channel, discord.TextChannel):
-                    text += 1
-                elif isinstance(channel, discord.VoiceChannel):
-                    voice += 1
-        
-        embed.add_field(name='Members', value=f'{total_members} total\n{total_unique} unique')
-        embed.add_field(name='Channels', value=f'{text + voice} total\n{text} text\n{voice} voice')
-
-        memory_usage = self.process.memory_full_info().uss / 1024**2
-        cpu_usage = self.process.cpu_percent() / psutil.cpu_count()
-        embed.add_field(name='Process', value=f'{memory_usage:.2f} MiB\n{cpu_usage:.2f}% CPU')
-        embed.add_field(name="Guilds", value=guilds)
-        embed.add_field(name="Visible Commands", value=f"{len(list(filter(lambda x: not x.hidden, self.bot.commands)))}", inline=True)
-        embed.add_field(name="Uptime", value=self.get_bot_uptime(brief=True))
-        embed.add_field(name="Server Invite", value=f"[Official bot server invite](https://discord.gg/rqgRyF8)", inline=False)
-        invite_url = discord.utils.oauth_url(self.bot.user.id, discord.Permissions(administrator=True))
-        embed.add_field(name="OAuth2 Invite", value=f"[Click here to add the bot to your server.]({invite_url})", inline=False)
-        bot_source = "https://github.com/darthshittious/Robo-VJ"
-        discord_source = "https://github.com/Rapptz/discord.py"
-        embed.add_field(name="Source", value=f"Bot: {bot_source}\nLibrary: {discord_source}", inline=False)
-        version = pkg_resources.get_distribution('discord.py').version
-        embed.set_footer(text=f"Made with discord.py v{version}", icon_url="http://i.imgur.com/5BFecvA.png")
-        embed.timestamp = datetime.datetime.utcnow()
-        await ctx.send(embed=embed)
+    
 
     @commands.command()
     async def source(self, ctx, *, command: str = None):
