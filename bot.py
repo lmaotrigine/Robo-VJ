@@ -340,6 +340,13 @@ for filename in os.listdir('./cogs'):
 async def on_guild_join(guild):
     if guild.id in bot.blacklist:
             await guild.leave()
+    test = await bot.db.fetchrow("SELECT * FROM servers WHERE guild_id = $1", guild.id)
+    if not test:
+        async with bot.db.acquire() as con:
+            await con.execute("INSERT INTO servers (guild_id) VALUES ($1)", guild.id)
+            await con.execute("INSERT INTO named_servers (guild_id, name) VALUES ($1, $2)", guild.id, guild.name)
+        await bot.set_guild_prefixes(guild, ['!'])
+
     pfx = bot.get_raw_guild_prefixes(guild.id)[0]
     if guild.system_channel:
         send_here = guild.system_channel
