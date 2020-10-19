@@ -132,7 +132,7 @@ class Stats(commands.Cog):
         hook = discord.Webhook.partial(id=wh_id, token=wh_token, adapter=discord.AsyncWebhookAdapter(self.bot.session))
         return hook
 
-    async def log_error(self*, ctx=None, extra=None):
+    async def log_error(self, *, ctx=None, extra=None):
         e = discord.Embed(title='Error', colour=0xDD5F53)
         e.description = f'```py\n{traceback.format_exc()}\n```'
         e.add_field(name='Extra', value=extra, inline=False)
