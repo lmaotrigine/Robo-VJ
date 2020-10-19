@@ -501,10 +501,10 @@ class Moderation(commands.Cog):
         await self.bot.db.execute(query, guild_id)
         self.get_guild_config.invalidate(self, guild_id)
 
-    @commands.group(name='modlog')
+    @commands.group(name='modlog', invoke_without_command=True)
     @commands.guild_only()
     @checks.is_mod()
-    async def modlog(self, ctx, invoke_without_command=True):
+    async def modlog(self, ctx):
         channel_id = await self.bot.db.fetchval("SELECT modlog FROM servers WHERE guild_id = $1", ctx.guild.id)
         channel = ctx.guild.get_channel(channel_id)
         if channel_id is None or channel is None:
