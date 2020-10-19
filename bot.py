@@ -345,7 +345,7 @@ async def on_guild_join(guild):
         async with bot.db.acquire() as con:
             await con.execute("INSERT INTO servers (guild_id) VALUES ($1)", guild.id)
             await con.execute("INSERT INTO named_servers (guild_id, name) VALUES ($1, $2)", guild.id, guild.name)
-        await bot.set_guild_prefixes(guild, ['!'])
+        await bot.set_guild_prefixes(guild, ['!', '?'])
 
     pfx = bot.get_raw_guild_prefixes(guild.id)[0]
     if guild.system_channel:
