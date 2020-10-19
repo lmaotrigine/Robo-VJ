@@ -731,7 +731,7 @@ class Stats(commands.Cog):
         embed.description = '\n'.join(description)
         await ctx.send(embed=embed)
 
-    @commands.group(hidden=True, invoke_without_command=True):
+    @commands.group(hidden=True, invoke_without_command=True)
     @commands.is_owner()
     async def command_history(self, ctx):
         """Command history."""
