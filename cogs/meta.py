@@ -11,6 +11,7 @@ from collections import Counter
 import asyncio
 import codecs
 import pathlib
+import random
 from .utils.help import PaginatedHelpCommand
 import psutil
 import pygit2
