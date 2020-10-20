@@ -10,5 +10,7 @@ parsedatetime
 psutil
 lru_dict
 pygit2
+lxml
+click
 
 jishaku @ git+https://github.com/darthshittious/jishaku
