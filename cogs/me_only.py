@@ -80,15 +80,15 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
     @commands.command(hidden=True)
     @commands.guild_only()
     async def autoapprove(self, ctx):
-        if not ctx.author.id == 411166117084528640:
+        if not ctx.author.id == self.bot.owner_id:
             return
         if not discord.utils.get(ctx.guild.roles, name="Approved"):
             await ctx.send("Create role named 'Approved' and try again.")
             return
-        Text= "Since this server was originally created for a fundraiser, there is a system in place that only allows you full access to the server on being approved by a moderator.\n\n"
-        Text += "For now, you may approve yourself by clicking on ✅.\n\nBy doing so, you agree to abide by these rules."
+        Text= "To gain access to the rest of this server, click on :white_check_mark: below\n\n"
+        Text += "By doing so, you agree to abide by these rules."
         await ctx.message.delete()
-        message = await ctx.send(embed=discord.Embed(title='Verification', description=Text, colour = 0xFF0000))
+        message = await ctx.send(embed=discord.Embed(title='Confirmation', description=Text, colour = 0xFF0000))
         await message.add_reaction('✅')
         self.messages[str(ctx.guild.id)] = message.id
         with open('assets/autoapprove_messages.json', 'w') as file:
