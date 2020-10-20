@@ -127,9 +127,9 @@ class Funhouse(commands.Cog):
         if res == 0:
             text += "\nIt's a tie!"
         elif res < 3:
-            text += f'\n{bot_choice.name.capitalize()} {RULE_DICT[bot_choice.name.lower()][choice.name.lower()]} {choice.name.capitalize()}!\nI win!'
+            text += f'\n_**{bot_choice.name.capitalize()}**_ {RULE_DICT[bot_choice.name.lower()][choice.name.lower()]} _**{choice.name.capitalize()}**_!\nI win!'
         else:
-            text += f'\n{choice.name.capitalize()} {RULE_DICT[choice.name.lower()][bot_choice.name.lower()]} {bot_choice.name.capitalize()}!\nYou win!'
+            text += f'\n_**{choice.name.capitalize()}**_ {RULE_DICT[choice.name.lower()][bot_choice.name.lower()]} _**{bot_choice.name.capitalize()}**_!\nYou win!'
         await ctx.send(text)
 
     @commands.command()
@@ -151,9 +151,9 @@ class Funhouse(commands.Cog):
         if res == 0:
             text += "\nIt's a tie!"
         elif res == 1:
-            text += f'\n{bot_choice.name.capitalize()} {RULE_DICT[bot_choice.name.lower()][choice.name.lower()]} {choice.name.capitalize()}!\nI win!'
+            text += f'\n_**{bot_choice.name.capitalize()}**_ {RULE_DICT[bot_choice.name.lower()][choice.name.lower()]} _**{choice.name.capitalize()}**_!\nI win!'
         else:
-            text += f'\n{choice.name.capitalize()} {RULE_DICT[choice.name.lower()][bot_choice.name.lower()]} {bot_choice.name.capitalize()}!\nYou win!'
+            text += f'\n_**{choice.name.capitalize()}**_ {RULE_DICT[choice.name.lower()][bot_choice.name.lower()]} _**{bot_choice.name.capitalize()}**_!\nYou win!'
         await ctx.send(text)
 
 
