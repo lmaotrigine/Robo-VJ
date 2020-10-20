@@ -113,7 +113,7 @@ class Funhouse(commands.Cog):
         Rock crushes Scissors
         """
         if choice is None:
-            await ctx.send_help('rpsls')
+            return await ctx.send_help('rpsls')
         try:
             choice = RPSLS[choice.upper()]
         except KeyError:
@@ -137,7 +137,7 @@ class Funhouse(commands.Cog):
     async def rps(self, ctx, choice=None):
         """Straightforward Rock paper scissors"""
         if choice is None:
-            await ctx.send_help('rps')
+            return await ctx.send_help('rps')
         try:
             choice = RPS[choice.upper()]
         except KeyError:
