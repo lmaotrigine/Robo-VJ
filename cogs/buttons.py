@@ -296,7 +296,7 @@ class Buttons(commands.Cog):
             data.description = text
         
         data.set_author(name=ctx.author.id)
-        data.set_footer(name=ctx.channel.id)
+        data.set_footer(text=ctx.channel.id)
 
         try:
             message = await storage.send(embed=data, files=files)
