@@ -1,7 +1,45 @@
+import enum
 import discord
 from discord.ext import commands
 import googletrans
 import io
+import random
+
+class RPS(enum.Enum):
+    ROCK = 0
+    PAPER = 1
+    SCISSORS = 2
+
+class RPSLS(enum.Enum):
+    ROCK = 0
+    SPOCK = 1
+    PAPER = 2
+    LIZARD = 3
+    SCISSORS = 4
+
+RULE_DICT = {
+    'rock': {
+        'lizard': 'crushes',
+        'scissors': 'crushes'
+    },
+    'paper': {
+        'rock': 'covers',
+        'spock': 'disproves',
+    },
+    'scissors': {
+        'paper': 'cuts',
+        'lizard': 'decapitaties'
+    },
+    'lizard': {
+        'spock': 'poisons',
+        'paper': 'eats'
+    },
+    'spock': {
+        'scissors': 'smashes',
+        'rock': 'vapourises'
+    }
+}
+
 
 class Funhouse(commands.Cog):
     def __init__(self, bot):
@@ -57,6 +95,67 @@ class Funhouse(commands.Cog):
                         await ctx.send(file=discord.File(fp, filename=filename))
             else:
                 await ctx.send(embed=discord.Embed(title='Random Dog').set_image(url=url))
+
+    @commands.command()
+    @commands.cooldown(1, 5.0, commands.BucketType.user)
+    async def rpsls(self, ctx, choice=None):
+        """It's very simple:
+        Scissors cuts Paper
+        Paper covers Rock
+        Rock cruches Lizard
+        Lizard poisons Spock
+        Spock smashes Scissors
+        Scissors decapitates Lizard
+        Lizard eats Paper
+        Paper disproves Spock
+        Spock vapourises Rock
+        And, as it always has,
+        Rock crushes Scissors
+        """
+        if choice is None:
+            await ctx.send_help('rpsls')
+        try:
+            choice = RPSLS[choice.upper()]
+        except KeyError:
+            return await ctx.send(f"Invalid choice. Choose one of {', '.join(name.capitalize() for name, _ in RPSLS.__members__.items())}.")
+
+        bot_choice = RPSLS(random.randrange(5))
+        
+        res = (bot_choice.value - choice.value) % 5
+        text = f"You chose _**{choice.name.capitalize()}**_."
+        text += f"\nI choose _**{bot_choice.name.capitalize()}**_."
+        if res == 0:
+            text += "\nIt's a tie!"
+        elif res < 3:
+            text += f'\n{bot_choice.name.capitalize()} {RULE_DICT[bot_choice.name.lower()][choice.name.lower()]} {choice.name.capitalize()}!\nI win!'
+        else:
+            text += f'\n{choice.name.capitalize()} {RULE_DICT[choice.name.lower()][bot_choice.name.lower()]} {bot_choice.name.capitalize()}!\nYou win!'
+        await ctx.send(text)
+
+    @commands.command()
+    @commands.cooldown(1, 5.0, commands.BucketType.user)
+    async def rps(self, ctx, choice=None):
+        """Straightforward Rock paper scissors"""
+        if choice is None:
+            await ctx.send_help('rps')
+        try:
+            choice = RPS[choice.upper()]
+        except KeyError:
+            return await ctx.send(f"Invalid choice. Choose one of {', '.join(name.capitalize() for name, _ in RPS.__members__.items())}.")
+
+        bot_choice = RPS(random.randrange(3))
+   
+        res = (bot_choice.value - choice.value) % 3
+        text = f"You chose _**{choice.name.capitalize()}**_."
+        text += f"\nI choose _**{bot_choice.name.capitalize()}**_."
+        if res == 0:
+            text += "\nIt's a tie!"
+        elif res == 1:
+            text += f'\n{bot_choice.name.capitalize()} {RULE_DICT[bot_choice.name.lower()][choice.name.lower()]} {choice.name.capitalize()}!\nI win!'
+        else:
+            text += f'\n{choice.name.capitalize()} {RULE_DICT[choice.name.lower()][bot_choice.name.lower()]} {bot_choice.name.capitalize()}!\nYou win!'
+        await ctx.send(text)
+
 
 def setup(bot):
     bot.add_cog(Funhouse(bot))
