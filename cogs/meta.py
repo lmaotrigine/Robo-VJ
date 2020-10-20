@@ -359,7 +359,7 @@ class Meta(commands.Cog):
             if coro:
                 return await eval(coro)
         greeting = random.choice(["Hello!", "Hallo!", "Hi!", "Nice to meet you", "Hey there!", "Beep boop!"])
-        owner = self.bot.get_user(bot.owner_id)
+        owner = self.bot.get_user(self.bot.owner_id)
         await ctx.send(f"{greeting} I'm a robot! {str(owner)} made me.")
 
 
@@ -402,15 +402,6 @@ class Meta(commands.Cog):
         Returns bot latency
         """
         await ctx.send(f"Pong! {round(self.bot.latency * 1000)}ms")
-
-
-    @commands.command()
-    async def support(self, ctx):
-        """Join the support server to report issues or get updates or just hang out"""
-        embed = discord.Embed(title="Click here to join the support server", colour=discord.Colour(0xFF0000),
-                            url="https://discord.gg/rqgRyF8")
-        embed.set_author(name=self.bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name, icon_url=self.bot.user.avatar_url)
-        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(Meta(bot))
