@@ -401,7 +401,7 @@ class Meta(commands.Cog):
         """
         Returns bot latency
         """
-        await ctx.send(f"Pong! {round(self.bot.latency * 1000)}ms")
+        await ctx.send(f"Pong! {(self.bot.latency * 1000):.2f}ms")
 
 def setup(bot):
     bot.add_cog(Meta(bot))
