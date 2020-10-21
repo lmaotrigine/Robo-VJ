@@ -57,7 +57,7 @@ class DPYHelp(commands.Cog, name='discord.py help'):
         # first line is version info
         inv_version = stream.readline().rstrip()
 
-        if inv_version != '#Sphinx inventory version 2':
+        if inv_version != '# Sphinx inventory version 2':
             raise RuntimeError('Invalid objects.inv file version.')
 
         # next line is "# Project: <name>"
