@@ -17,7 +17,7 @@ class _ContextDBAcquire:
         await self.ctx._acquire(self.timeout)
         return self.ctx.db
 
-    async def __aexit__(self):
+    async def __aexit__(self, *args):
         await self.ctx.release()
 
 class Context(commands.Context):
