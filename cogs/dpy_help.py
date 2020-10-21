@@ -177,7 +177,7 @@ class DPYHelp(commands.Cog, name='discord.py help'):
             text = await resp.text(encoding='utf-8')
 
             root = etree.fromstring(text, etree.HTMLParser())
-            nodes = root.findall(".//div[@id='questions']/ul[@class='simple']/li/ul/a")
+            nodes = root.findall(".//div[@id='questions']/ul[@class='simple']/li/ul//a")
             for node in nodes:
                 self.faq_entries[''.join(node.itertext()).strip()] = base_url + node.get('href').strip()
 
