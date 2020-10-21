@@ -153,6 +153,12 @@ class RoboVJ(commands.Bot):
         CREATE INDEX IF NOT EXISTS commands_used_idx ON commands (used);
         CREATE INDEX IF NOT EXISTS commands_command_idx ON commands (command);
         CREATE INDEX IF NOT EXISTS commands_failed_idx ON commands (failed);
+        CREATE TABLE IF NOT EXISTS rtfm (
+            id SERIAL PRIMARY KEY,
+            user_id BIGINT UNIQUE,
+            count INTEGER DEFAULT (1)
+        );
+        CREATE INDEX IF NOT EXISTS rtfm_user_id_idx ON rtfm (user_id);
         """)
 
     async def on_command_error(self, ctx, error):
