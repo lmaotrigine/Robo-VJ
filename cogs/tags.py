@@ -232,14 +232,14 @@ class Tags(commands.Cog):
                         INSERT INTO tags (name, content, owner_id, location_id)
                         VALUES ($1, $2, $3, $4)
                         RETURNING id
-                   )
-                   INSERT INTO tag_lookup (name, owner_id, location_id, tag_id)
-                   VALUES ($1, $3, $4, (SELECT id FROM tag_insert));
+                    )
+                    INSERT INTO tag_lookup (name, owner_id, location_id, tag_id)
+                    VALUES ($1, $3, $4, (SELECT id FROM tag_insert));
                 """
-        
+
         # since I'm checking for the exception type and acting on it, I need
         # to use the manual transaction blocks
-        
+
         async with ctx.acquire():
             tr = ctx.db.transaction()
             await tr.start()
@@ -254,7 +254,7 @@ class Tags(commands.Cog):
                 await ctx.send('Could not create tag.')
             else:
                 await tr.commit()
-                await ctx.send(f'Tag {name} successfully created.')
+                await ctx.send(f'Tag {name} successfully created.') 
 
     def is_tag_being_made(self, guild_id, name):
         try:
