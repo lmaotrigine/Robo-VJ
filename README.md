@@ -28,6 +28,7 @@ in the `psql` tool:
 ```sql
 CREATE ROLE robovj WITH LOGIN PASSWORD 'yourpw';
 CREATE DATABASE robovj OWNER robovj;
+CREATE EXTENSION pg_trgm;
 ```
 
 5. **Setup configuration**
