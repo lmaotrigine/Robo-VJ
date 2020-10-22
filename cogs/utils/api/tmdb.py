@@ -51,7 +51,7 @@ class PartialMovie(object):
         self.overview = overview
         self.poster = self._get_image_url(poster_path)
         self.credits = kwargs.get("credits")
-        ratings = kwargs.get("ratings") or Ratings()
+        self.ratings = kwargs.get("ratings") or Ratings()
 
 class Movie(PartialMovie):
     def __init__(self, *, genres, homepage, budget, imdb_id, release_date, revenue, vote_count, production_companies, status, spoken_languages, production_countries, **kwargs):
