@@ -74,13 +74,13 @@ class PartialTVShow(PartialMovie):
         self.first_air_date = _get_datetime(first_air_date)
 
 class TVShowEpisode(object):
-    def __init__(self, *, air_date, episode_number, name, overview, season_number, ratings, **_kwargs):
+    def __init__(self, *, air_date, episode_number, name, overview, season_number, **_kwargs):
         self.air_date = _get_datetime(air_date)
         self.episode_number = episode_number
         self.name = name
         self.overview = overview
         self.season_number = season_number
-        self.ratings = ratings
+        self.ratings = _kwargs.get("ratings") or Ratings()
 
 class TVShowSeason(TVShowEpisode):
     def __init__(self, *, episode_count, **kwargs):
