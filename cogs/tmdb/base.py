@@ -52,7 +52,7 @@ class TMDBBaseCog(commands.Cog):
     def cog_unload(self):
         self.bot.loop.create_task(self.client.http.session.close())
 
-    @commands.group(name='movie', aliases=['movies'], invoke_without_command=True)
+    @commands.group(name='film', aliases=['films', 'movie', 'movies'], invoke_without_command=True)
     async def movie(self, ctx, *, name):
         """Displays the details of the first movie found in search results."""
         movie = await self.client.fetch_movie_from_search(query=name)
