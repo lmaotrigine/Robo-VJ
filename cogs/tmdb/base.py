@@ -36,6 +36,14 @@ class TMDBBaseCog(commands.Cog):
                 name=f"{self.emotes['hero']}    Top Billed Cast", inline=False,    # len(embed.fields) % 2 == 0,
                 value=", ".join(c.name for c in instance.credits.cast[:7])
             )
+        if instance.ratings:
+            if instance.ratings.imdb:
+                embed.add_field(name="IMDb rating", value=(f"{instance.ratings.imdb} ({instance.ratings.imdb_votes} votes)" if instance.ratings.imdb_votes else instance.ratings.imdb), inline=True)
+            if instance.ratings.rtomatoes:
+                embed.add_field(name="Rotten Tomatoes", value=instance.ratings.rtomatoes, inline=True)
+            if instance.ratings.metascore:
+                embed.add_field(name="Metascore (Metacritic)", value=instance.ratings.metascore, inline=True)
+                
         embed.set_footer(
             text=f"{instance.votes} Votes | {instance.status}",
             icon_url="attachment://tmdb.png"
