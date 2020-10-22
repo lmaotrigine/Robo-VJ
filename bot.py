@@ -361,6 +361,7 @@ async def before_startup():
 
 # Load cogs
 bot.load_extension("jishaku")
+bot.load_extension("cogs.tmdb")
 for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
         bot.load_extension(f'cogs.{filename[:-3]}')

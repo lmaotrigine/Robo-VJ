@@ -77,7 +77,7 @@ class TVShowEpisode(object):
         self.air_date = _get_datetime(air_date)
         self.episode_number = episode_number
         self.name = name
-        slef.overview = overview
+        self.overview = overview
         self.season_number = season_number
 
 class TVShowSeason(TVShowEpisode):
@@ -101,7 +101,7 @@ class TVShow(Movie, PartialTVShow):
         self.type = kwargs.get("type")
 
 class TMDBHTTPClient(BaseAPIHTTPClient):
-    API_BASE_URL = "https://api.themoviedb.org/4"
+    API_BASE_URL = "https://api.themoviedb.org/3"
     BASE_EXCEPTION = TMDBAPIException
 
     def _get_headers(self):
