@@ -192,7 +192,8 @@ class TMDBClient(object):
         data = await self.http.fetch_movie_data(movie_id)
         imdb_id = await self.http.fetch_movie_imdb_id(movie_id)
         ratings = await self.fetch_ratings(imdb_id)
-        return Movie(ratings=ratings, **data, credits=Credits(**data.pop("credits")))
+        data.update({"ratings": ratings})
+        return Movie(**data, credits=Credits(**data.pop("credits")))
 
     async def search_movie(self, query) -> list:
         results = await self.http.search_movie(query)
@@ -209,7 +210,8 @@ class TMDBClient(object):
         data = await self.http.fetch_tvshow_data(tvshow_id)
         imdb_id = await self.http.fetch_tv_imdb_id(tvshow_id)
         ratings = await self.fetch_ratings(imdb_id)
-        return TVShow(ratings=ratings, **data, credits=Credits(**data.pop("credits")))
+        data.update({"ratings": ratings})
+        return TVShow(**data, credits=Credits(**data.pop("credits")))
 
     async def search_tvshow(self, query) -> list:
         results = await self.http.search_tvshow(query)
