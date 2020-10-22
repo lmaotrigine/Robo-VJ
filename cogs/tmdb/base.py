@@ -36,7 +36,7 @@ class TMDBBaseCog(commands.Cog):
                 name=f"{self.emotes['hero']}    Top Billed Cast", inline=False,    # len(embed.fields) % 2 == 0,
                 value=", ".join(c.name for c in instance.credits.cast[:7])
             )
-        if getattr(instance, 'ratings'):
+        if hasattr(instance, 'ratings'):
             if instance.ratings.imdb:
                 embed.add_field(name="IMDb rating", value=(f"{instance.ratings.imdb} ({instance.ratings.imdb_votes} votes)" if instance.ratings.imdb_votes else instance.ratings.imdb), inline=True)
             if instance.ratings.rtomatoes:
