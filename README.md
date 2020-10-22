@@ -42,7 +42,7 @@ postgresql = 'postgresql://user:password@host/database' # your postgresql info f
 # If your password contains non-ASCII characters, you will need to percent encode it.
 # This process is simple. To do this in python, replace the postgresql declaration in your config.py with these lines
 from urllib.parse import quote
-postgresql = f"postgresql://user:{quote('password'}@host/database"
+postgresql = f"postgresql://user:{quote('password'}}@host/database"
 ```
 
 6. **Directly running from terminal**
