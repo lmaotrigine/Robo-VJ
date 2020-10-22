@@ -18,7 +18,7 @@ class TMDBBaseCog(commands.Cog):
         icon = discord.File(f"assets/Emojis/{icon}.png", filename="icon.png")
         footer_icon = discord.File("assets/Emojis/tmdb.png", filename="tmdb.png")
         embed = discord.Embed(colour=discord.Colour.blurple())
-        embed.set_thumbnail(url=instance.poster or discord.Embed.Empty)
+        embed.set_image(url=instance.poster or discord.Embed.Empty)
         embed.description = instance.overview
         embed.set_author(name=instance.title, url=instance.homepage or discord.Embed.Empty, icon_url=f"attachment://icon.png")
         if instance.credits.director:
