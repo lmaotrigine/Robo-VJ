@@ -44,14 +44,14 @@ class PartialMovie(object):
     def _get_image_url(self, path, size=DEFAULT_SIZE):
         return self.IMAGE_BASE_URL.format(size=size, file_path=path)
 
-    def __init__(self, *, poster_path, adult, overview, original_title, ratings, **kwargs):
+    def __init__(self, *, poster_path, adult, overview, original_title, **kwargs):
         self.id = kwargs.pop("id")
         self.title = original_title
         self.nsfw = adult
         self.overview = overview
         self.poster = self._get_image_url(poster_path)
         self.credits = kwargs.get("credits")
-        self.ratings = ratings
+        ratings = kwargs.get("ratings")
 
 class Movie(PartialMovie):
     def __init__(self, *, genres, homepage, budget, imdb_id, release_date, revenue, vote_count, production_companies, status, spoken_languages, production_countries, **kwargs):
