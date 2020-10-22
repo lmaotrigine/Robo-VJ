@@ -51,6 +51,7 @@ class PartialMovie(object):
         self.overview = overview
         self.poster = self._get_image_url(poster_path)
         self.credits = kwargs.get("credits")
+        self.ratings = kwargs.get("ratings") or Ratings()
 
 class Movie(PartialMovie):
     def __init__(self, *, genres, homepage, budget, imdb_id, release_date, revenue, vote_count, production_companies, status, spoken_languages, production_countries, **kwargs):
@@ -73,12 +74,13 @@ class PartialTVShow(PartialMovie):
         self.first_air_date = _get_datetime(first_air_date)
 
 class TVShowEpisode(object):
-    def __init__(self, *, air_date, episode_number, name, overview, season_number, **_kwargs):
+    def __init__(self, *, air_date, episode_number, name, overview, season_number, ratings, **_kwargs):
         self.air_date = _get_datetime(air_date)
         self.episode_number = episode_number
         self.name = name
         self.overview = overview
         self.season_number = season_number
+        self.ratings = ratings
 
 class TVShowSeason(TVShowEpisode):
     def __init__(self, *, episode_count, **kwargs):
@@ -87,7 +89,7 @@ class TVShowSeason(TVShowEpisode):
 
 class TVShow(Movie, PartialTVShow):
     def __init__(self, *, created_by, in_production, last_air_date, last_episode_to_air, next_episode_to_air, number_of_episodes, number_of_seasons, seasons, status, **kwargs):
-        Movie.__init__(self, budget=None, imdb_id=None, release_date=None, revenue=None, status=status, spoken_languages=tuple(), production_countries=tuple(), **kwargs)
+        Movie.__init__(self, budget=None, imdb_id=kwargs.get('imdb_id'), release_date=None, revenue=None, status=status, spoken_languages=tuple(), production_countries=tuple(), **kwargs)
         PartialTVShow.__init__(self, **kwargs)
         self.creators = [c["name"] for c in created_by]
         self.in_production = in_production
@@ -138,13 +140,63 @@ class TMDBHTTPClient(BaseAPIHTTPClient):
     async def fetch_tvshow_credits(self, tvshow_id):
         return await self.request(f"/tv/{tvshow_id}/credits", method="GET")
 
+    async def fetch_tv_imdb_id(self, tvshow_id):
+        data = await self.request(f"/tv/{tvshow_id}/external_ids", method="GET")
+        return data.get("imdb_id")
+
+    async def fetch_movie_imdb_id(self, movie_id):
+        data = await self.request(f"/movie/{movie_id}/external_ids", method="GET")
+        return data.get("imdb_id")
+    
+
+class Ratings:
+    def __init__(self, *, imdb=None, imdb_votes=None, metascore=None, rtomatoes=None):
+        self.imdb = imdb
+        self.imdb_votes = imdb_votes
+        self.metascore = metascore
+        self.rtomatoes = rtomatoes
+
+    @classmethod
+    def from_data(cls, data):
+        ratings = data.get("Ratings")
+        self = cls.__new__(cls)
+        self.imdb = None
+        self.rtomatoes = None
+        self.metascore = None
+        self.imdb_votes = None
+        if not ratings:
+            return self
+        for rating in ratings:
+            if rating['Source'] == "Internet Movie Database":
+                self.imdb = rating['Value']
+            elif rating['Source'] == "Rotten Tomatoes":
+                self.rtomatoes = rating['Value']
+            elif rating['Source'] == "Metacritic":
+                self.metascore = rating["Value"]
+        self.imdb_votes = data.get("imdbVotes")
+        return self 
+
 class TMDBClient(object):
     def __init__(self, access_token=config.tmdb_access_token):
         self.access_token = access_token
         self.http = TMDBHTTPClient(self)
 
+    async def fetch_ratings(self, imdb_id):
+        if imdb_id is None:
+            return Ratings()
+        async with self.http.session.get("http://www.omdbapi.com", params={"apikey": config.omdb_api_key, "i": imdb_id}) as resp:
+            if resp.status != 200:
+                return Ratings()
+            data = await resp.json()
+            if not data['Response']:
+                return Ratings()
+            return Ratings.from_data(data)
+
     async def fetch_movie(self, movie_id) -> Movie:
         data = await self.http.fetch_movie_data(movie_id)
+        imdb_id = await self.http.fetch_movie_imdb_id(movie_id)
+        ratings = await self.fetch_ratings(imdb_id)
+        data.update({"ratings": ratings})
         return Movie(**data, credits=Credits(**data.pop("credits")))
 
     async def search_movie(self, query) -> list:
@@ -160,6 +212,9 @@ class TMDBClient(object):
 
     async def fetch_tvshow(self, tvshow_id) -> TVShow:
         data = await self.http.fetch_tvshow_data(tvshow_id)
+        imdb_id = await self.http.fetch_tv_imdb_id(tvshow_id)
+        ratings = await self.fetch_ratings(imdb_id)
+        data.update({"ratings": ratings})
         return TVShow(**data, credits=Credits(**data.pop("credits")))
 
     async def search_tvshow(self, query) -> list:
