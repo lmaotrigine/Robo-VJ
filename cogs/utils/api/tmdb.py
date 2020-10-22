@@ -160,6 +160,10 @@ class Ratings:
     def from_data(cls, data):
         ratings = data.get("Ratings")
         self = cls.__new__(cls)
+        self.imdb = None
+        self.rtomatoes = None
+        self.metascore = None
+        self.imdb_votes = None
         if not ratings:
             return self
         for rating in ratings:
