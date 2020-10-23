@@ -1,5 +1,5 @@
 
-__version__ = "5.2.0"
+__version__ = "5.3.0"
 __author__ = "Varun J"
 
 import aiohttp
@@ -175,8 +175,8 @@ class RoboVJ(commands.Bot):
         CREATE UNIQUE INDEX IF NOT EXISTS tags_uniq_idx ON tags (LOWER(name), location_id);
         CREATE TABLE IF NOT EXISTS tag_lookup (
             id SERIAL PRIMARY KEY,
-            name TEXT, --index
-            location_id BIGINT, --index
+            name TEXT,
+            location_id BIGINT,
             owner_id BIGINT,
             created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (now() at time zone 'utc'),
             tag_id INTEGER REFERENCES tags (id) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -184,6 +184,12 @@ class RoboVJ(commands.Bot):
         CREATE INDEX IF NOT EXISTS tag_lookup_name_trgm_idx ON tag_lookup USING GIN (name gin_trgm_ops);
         CREATE INDEX IF NOT EXISTS tag_lookup_name_lower_idx ON tag_lookup (LOWER(name));
         CREATE UNIQUE INDEX IF NOT EXISTS tag_lookup_uniq_idx ON tag_lookup (LOWER(name), location_id);
+        CREATE TABLE IF NOT EXISTS feeds (
+            id SERIAL PRIMARY KEY,
+            channel_id BIGINT,
+            role_id BIGINT,
+            name TEXT
+        );
         """)
 
     async def on_command_error(self, ctx, error):
