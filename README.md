@@ -1,5 +1,9 @@
 # Robo-VJ
-
+[![license](https://img.shields.io/github/license/darthshittious/Robo-VJ)](https://www.mozilla.org/en-US/MPL/2.0/)
+[![discord.py Version](https://img.shields.io/badge/discord.py-1.5.0-blue)](https://github.com/Rapptz/discord.py)
+[![python version](https://img.shields.io/badge/python-3.8-blue)](https://www.python.org/downloads/release/python-386/)
+[![PostgreSQL version](https://img.shields.io/badge/psql-12|13-blue)](https://www.postgresql.org/download/)
+[![Server Invite](https://discord.com/api/guilds/746769944774967440/embed.png)](https://discord.gg/rqgRyF8) \
 A personal bot that runs on Discord, originally designed for online quizzes.
 
 ## Running
@@ -62,7 +66,6 @@ sudo systemctl enable bot && sudo systemctl start bot
 ## [Additional information] Migrating between database instances
 
 To copy the remote database from source to target:
-  - If PostgreSQL not installed, follow instructions [here](https://www.postgresql.org/download/)
   - Quick setup: `$ pg_dump -C -h source_host -U user source_db | psql -h target_host -U user target_db`
   - Recommeded setup for large databases:
     - on source: `$ pg_dump -U user -O -d source_db -f source_db.sql`
