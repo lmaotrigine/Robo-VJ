@@ -23,7 +23,7 @@ class _ContextDBAcquire:
 class Context(commands.Context):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.pool = self.bot.db
+        self.pool = self.bot.pool
         self._db = None
 
     async def entry_to_code(self, entries):
@@ -193,7 +193,7 @@ class Context(commands.Context):
         # from source digging asyncpg source, releasing an already
         # released connection does nothing
         if self._db is not None:
-            await self.bot.db.release(self._db)
+            await self.bot.pool.release(self._db)
             self._db = None
 
         

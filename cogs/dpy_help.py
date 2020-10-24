@@ -1,5 +1,5 @@
 from discord.ext import commands
-from .utils import checks, fuzzy, cache, time
+from .utils import checks, db, fuzzy, cache, time
 import asyncio
 import discord
 import re
@@ -8,6 +8,11 @@ import io
 import os
 import lxml.etree as etree
 from collections import Counter
+
+class RTFM(db.Table):
+    id = db.PrimaryKeyColumn()
+    user_id = db.Column(db.Integer(big=True), unique=True, index=True)
+    count = db.Column(db.Integer, default=1)
 
 class SphinxObjectFileReader:
     # Inspired by Sphinx's InventoryFileReader

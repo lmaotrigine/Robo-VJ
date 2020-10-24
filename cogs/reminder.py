@@ -1,10 +1,18 @@
-from .utils import time, formats
+from .utils import db, time, formats
 from discord.ext import commands
 import discord
 import asyncio
 import asyncpg
 import datetime
 import textwrap
+
+class Reminders(db.Table):
+    id = db.PrimaryKeyColumn()
+
+    expires = db.Column(db.Datetime, index=True)
+    created = db.Column(db.Datetime, default="now() at time zone 'utc'")
+    event = db.Column(db.String)
+    extra = db.Column(db.JSON, default="'{}'::jsonb")
 
 class Timer:
     __slots__ = ('args', 'kwargs', 'event', 'id', 'created_at', 'expires')
@@ -66,13 +74,13 @@ class Reminder(commands.Cog):
 
     async def get_active_timer(self, *, connection=None, days=7):
         query = "SELECT * FROM reminders WHERE expires < (CURRENT_DATE + $1::interval) ORDER BY expires LIMIT 1;"
-        con = connection or self.bot.db
+        con = connection or self.bot.pool
 
         record = await con.fetchrow(query, datetime.timedelta(days=days))
         return Timer(record=record) if record else None
 
     async def wait_for_active_timers(self, *, connection=None, days=7):
-        async with self.bot.db.acquire() as con:
+        async with self.bot.pool.acquire() as con:
             timer = await self.get_active_timer(connection=con, days=days)
             if timer is not None:
                 self._have_data.set()
@@ -86,7 +94,7 @@ class Reminder(commands.Cog):
     async def call_timer(self, timer):
         # delete the timer
         query = "DELETE FROM reminders WHERE id = $1;"
-        await self.bot.db.execute(query, timer.id)
+        await self.bot.pool.execute(query, timer.id)
 
         # dispatch the event
         event_name = f'{timer.event}_timer_complete'
@@ -149,7 +157,7 @@ class Reminder(commands.Cog):
         try:
             connection = kwargs.pop('connection')
         except KeyError:
-            connection = self.bot.db
+            connection = self.bot.pool
 
         try:
             now = kwargs.pop('created')
@@ -198,7 +206,7 @@ class Reminder(commands.Cog):
         timer = await self.create_timer(when.dt, 'reminder', ctx.author.id,
                                                              ctx.channel.id,
                                                              when.arg,
-                                                             connection=self.bot.db,
+                                                             connection=self.bot.pool,
                                                              created=ctx.message.created_at,
                                                              message_id=ctx.message.id)
         delta = time.human_timedelta(when.dt, source=timer.created_at)
@@ -215,7 +223,7 @@ class Reminder(commands.Cog):
                    LIMIT 10;
                 """
 
-        records = await self.bot.db.fetch(query, str(ctx.author.id))
+        records = await self.bot.pool.fetch(query, str(ctx.author.id))
 
         if len(records) == 0:
             return await ctx.send('No currently running reminders.')
@@ -246,7 +254,7 @@ class Reminder(commands.Cog):
                    AND extra #>> '{args,0}' = $2;
                 """
         
-        status = await self.bot.db.execute(query, id, str(ctx.author.id))
+        status = await self.bot.pool.execute(query, id, str(ctx.author.id))
         if status == 'DELETE 0':
             return await ctx.send("Could not delete any reminders with that ID")
 
@@ -272,7 +280,7 @@ class Reminder(commands.Cog):
                 """
         
         author_id = str(ctx.author.id)
-        total = await self.bot.db.fetchrow(query, author_id)
+        total = await self.bot.pool.fetchrow(query, author_id)
         total = total[0]
         if total == 0:
             return await ctx.send("You do not have any reminders to delete.")

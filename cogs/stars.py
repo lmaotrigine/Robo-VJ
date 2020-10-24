@@ -1,6 +1,6 @@
   
 from discord.ext import commands, tasks, menus
-from .utils import checks, cache
+from .utils import checks, cache, db
 from .utils.formats import plural, human_join
 from .utils.paginator import SimplePages
 from collections import Counter, defaultdict
@@ -40,6 +40,34 @@ def MessageID(argument):
         return int(argument, base=10)
     except ValueError:
         raise StarError(f'"{argument}" is not a valid message ID. Use Developer Mode to get the Copy ID option.')
+
+class Starboard(db.Table):
+    id = db.Column(db.Integer(big=True), primary_key=True)
+
+    channel_id = db.Column(db.Integer(big=True))
+    threshold = db.Column(db.Integer, default=1, nullable=False)
+    locked = db.Column(db.Boolean, default=False)
+    max_age = db.Column(db.Interval, default="'7 days'::interval", nullable=False)
+
+class StarboardEntry(db.Table, table_name='starboard_entries'):
+    id = db.PrimaryKeyColumn()
+
+    bot_message_id = db.Column(db.Integer(big=True), index=True)
+    message_id = db.Column(db.Integer(big=True), index=True, unique=True, nullable=False)
+    channel_id = db.Column(db.Integer(big=True))
+    author_id = db.Column(db.Integer(big=True))
+    guild_id = db.Column(db.ForeignKey('starboard', 'id', sql_type=db.Integer(big=True)), index=True, nullable=False)
+
+class Starrers(db.Table):
+    id = db.PrimaryKeyColumn()
+    author_id = db.Column(db.Integer(big=True), nullable=False)
+    entry_id = db.Column(db.ForeignKey('starboard_entries', 'id'), index=True, nullable=False)
+
+    @classmethod
+    def create_table(cls, *, exists_ok=True):
+        statement = super().create_table(exists_ok=exists_ok)
+        sql = "CREATE UNIQUE INDEX IF NOT EXISTS starrers_uniq_idx ON starrers (author_id, entry_id);"
+        return statement + '\n' + sql
 
 class StarboardConfig:
     __slots__ = ('bot', 'id', 'channel_id', 'threshold', 'locked', 'needs_migration', 'max_age')
@@ -103,7 +131,7 @@ class Stars(commands.Cog):
 
     @cache.cache()
     async def get_starboard(self, guild_id, *, connection=None):
-        connection = connection or self.bot.db
+        connection = connection or self.bot.pool
         query = "SELECT * FROM starboard WHERE id = $1;"
         record = await connection.fetchrow(query, guild_id)
         return StarboardConfig(guild_id=guild_id, bot=self.bot, record=record)
@@ -219,7 +247,7 @@ class Stars(commands.Cog):
             return
 
         # the starboard channel got deleted, so let's clear it from the database
-        async with self.bot.db.acquire(timeout=300.0) as con:
+        async with self.bot.pool.acquire(timeout=300.0) as con:
             query = "DELETE FROM starboard WHERE id = $1;"
             await con.execute(query, channel.guild.id)
 
@@ -245,7 +273,7 @@ class Stars(commands.Cog):
 
         # at this point a message just got deleted in the starboard
         # so just delete it from the database
-        async with self.bot.db.acquire(timeout=300.0) as con:
+        async with self.bot.pool.acquire(timeout=300.0) as con:
             query = "DELETE FROM starboard_entries WHERE bot_message_id = $1;"
             await con.execute(query, payload.message_id)
 
@@ -260,7 +288,7 @@ class Stars(commands.Cog):
         if starboard.channel is None or starboard.channel.id != payload.channel_id:
             return
 
-        async with self.bot.db.acquire(timeout=300.0) as con:
+        async with self.bot.pool.acquire(timeout=300.0) as con:
             query = "DELETE FROM starboard_entries WHERE bot_,essage_id = ANY($1::BIGINT[]);"
             await con.execute(query, list(payload.message_ids))
 
@@ -270,7 +298,7 @@ class Stars(commands.Cog):
         if channel is None or not isinstance(channel, discord.TextChannel):
             return
 
-        async with self.bot.db.acquire(timeout=300.0) as con:
+        async with self.bot.pool.acquire(timeout=300.0) as con:
             starboard = await self.get_starboard(payload.guild_id)
             if starboard.channel is None:
                 return
@@ -293,7 +321,7 @@ class Stars(commands.Cog):
             self._locks[guild_id] = lock = asyncio.Lock(loop=self.bot.loop)
 
         async with lock:
-            async with self.bot.db.acquire(timeout=300.0) as con:
+            async with self.bot.pool.acquire(timeout=300.0) as con:
                 if verify:
                     config = self.bot.get_cog('Config')
                     if config:
@@ -427,7 +455,7 @@ class Stars(commands.Cog):
             self._locks[guild_id] = lock = asyncio.Lock(loop=self.bot.loop)
 
         async with lock:
-            async with self.bot.db.acquire(timeout=300.0) as con:
+            async with self.bot.pool.acquire(timeout=300.0) as con:
                 if verify:
                     config = self.bot.get_cog('Config')
                     if config:

@@ -299,14 +299,14 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
         self.bot.qchannels[ctx.guild.id] = channel.id
         await ctx.send(f"{channel.mention} is marked as the questions channel and only the server owner can wipe it.")
 
-        test = await self.bot.db.fetchrow(f"SELECT qchannel FROM servers WHERE guild_id = $1", ctx.guild.id)
-        connection = await self.bot.db.acquire()
+        test = await self.bot.pool.fetchrow(f"SELECT qchannel FROM servers WHERE guild_id = $1", ctx.guild.id)
+        connection = await self.bot.pool.acquire()
         async with connection.transaction():
             if test:
-                await self.bot.db.execute(f"UPDATE servers SET qchannel = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
+                await self.bot.pool.execute(f"UPDATE servers SET qchannel = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
             else:
-                await self.bot.db.execute(f"INSERT INTO servers (guild_id, qchannel) VALUES ($1, $2)", ctx.guild.id, channel.id)
-        await self.bot.db.release(connection)
+                await self.bot.pool.execute(f"INSERT INTO servers (guild_id, qchannel) VALUES ($1, $2)", ctx.guild.id, channel.id)
+        await self.bot.pool.release(connection)
 
     @commands.command()
     @commands.guild_only()
@@ -317,14 +317,14 @@ class OwnerOnly(commands.Cog, name="Server Owner Commands"):
         self.bot.pchannels[ctx.guild.id] = channel.id
         await ctx.send(f"{channel.mention} is now the channel where pounces will appear.")
 
-        test = await self.bot.db.fetchrow(f"SELECT pchannel FROM servers WHERE guild_id = $1", ctx.guild.id)
-        connection = await self.bot.db.acquire()
+        test = await self.bot.pool.fetchrow(f"SELECT pchannel FROM servers WHERE guild_id = $1", ctx.guild.id)
+        connection = await self.bot.pool.acquire()
         async with connection.transaction():
             if test:
-                await self.bot.db.execute(f"UPDATE servers SET pchannel = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
+                await self.bot.pool.execute(f"UPDATE servers SET pchannel = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
             else:
-                await self.bot.db.execute("INSERT INTO servers (guild_id, pchannel) VALUES ($1, $2)", ctx.guild.id, channel.id)
-        await self.bot.db.release(connection)
+                await self.bot.pool.execute("INSERT INTO servers (guild_id, pchannel) VALUES ($1, $2)", ctx.guild.id, channel.id)
+        await self.bot.pool.release(connection)
 
 def setup(bot):
     bot.add_cog(OwnerOnly(bot))

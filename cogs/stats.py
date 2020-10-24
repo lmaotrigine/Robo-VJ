@@ -1,7 +1,7 @@
 from discord.ext import commands, tasks, menus
 from collections import Counter, defaultdict
 
-from .utils import checks, time, formats
+from .utils import checks, time, db, formats
 
 import pkg_resources
 import logging
@@ -35,6 +35,17 @@ class GatewayHandler(logging.Handler):
 
     def emit(self, record):
         self.cog.add_record(record)
+
+class Commands(db.Table):
+    id = db.PrimaryKeyColumn()
+
+    guild_id = db.Column(db.Integer(big=True), index=True)
+    channel_id = db.Column(db.Integer(big=True))
+    author_id = db.Column(db.Integer(big=True), index=True)
+    used = db.Column(db.Datetime, index=True)
+    prefix = db.Column(db.String)
+    command = db.Column(db.String, index=True)
+    failed = db.Column(db.Boolean, index=True)
 
 _INVITE_REGEX = re.compile(r'(?:https?:\/\/)?discord(?:\.gg|\.com|app\.com\/invite)?\/[A-Za-z0-9]+')
 
@@ -71,7 +82,7 @@ class Stats(commands.Cog):
                 """
         
         if self._data_batch:
-            await self.bot.db.execute(query, self._data_batch)
+            await self.bot.pool.execute(query, self._data_batch)
             total = len(self._data_batch)
             if total > 1:
                 log.info('Registered %s commands to database.', total)
@@ -647,7 +658,7 @@ class Stats(commands.Cog):
         embed = discord.Embed(title='Bot Health Report', colour=HEALTHY)
 
         # Check the connection pool health.
-        pool = self.bot.db
+        pool = self.bot.pool
         total_waiting = len(pool._queue._getters)
         current_generation = pool._generation
 
