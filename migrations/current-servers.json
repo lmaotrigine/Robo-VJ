@@ -1,0 +1,94 @@
+{
+    "name": "servers",
+    "__meta__": "bot.Servers",
+    "columns": [
+        {
+            "column_type": {
+                "big": false,
+                "small": false,
+                "auto_increment": true,
+                "__meta__": "cogs.utils.db.Integer"
+            },
+            "index": false,
+            "primary_key": true,
+            "nullable": true,
+            "default": null,
+            "unique": false,
+            "name": "id",
+            "index_name": null
+        },
+        {
+            "column_type": {
+                "big": true,
+                "small": false,
+                "auto_increment": false,
+                "__meta__": "cogs.utils.db.Integer"
+            },
+            "index": false,
+            "primary_key": false,
+            "nullable": true,
+            "default": null,
+            "unique": false,
+            "name": "guild_id",
+            "index_name": null
+        },
+        {
+            "column_type": {
+                "big": true,
+                "small": false,
+                "auto_increment": false,
+                "__meta__": "cogs.utils.db.Integer"
+            },
+            "index": false,
+            "primary_key": false,
+            "nullable": true,
+            "default": null,
+            "unique": false,
+            "name": "qchannel",
+            "index_name": null
+        },
+        {
+            "column_type": {
+                "big": true,
+                "small": false,
+                "auto_increment": false,
+                "__meta__": "cogs.utils.db.Integer"
+            },
+            "index": false,
+            "primary_key": false,
+            "nullable": true,
+            "default": null,
+            "unique": false,
+            "name": "pchannel",
+            "index_name": null
+        },
+        {
+            "column_type": {
+                "sql_type": "TEXT",
+                "__meta__": "cogs.utils.db.Array"
+            },
+            "index": false,
+            "primary_key": false,
+            "nullable": true,
+            "default": null,
+            "unique": false,
+            "name": "prefixes",
+            "index_name": null
+        },
+        {
+            "column_type": {
+                "big": true,
+                "small": false,
+                "auto_increment": false,
+                "__meta__": "cogs.utils.db.Integer"
+            },
+            "index": false,
+            "primary_key": false,
+            "nullable": true,
+            "default": null,
+            "unique": false,
+            "name": "modlog",
+            "index_name": null
+        }
+    ]
+}

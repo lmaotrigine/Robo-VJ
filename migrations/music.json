@@ -1,0 +1,69 @@
+{
+    "table": {
+        "name": "music",
+        "__meta__": "cogs.music._Music",
+        "columns": [
+            {
+                "column_type": {
+                    "big": false,
+                    "small": false,
+                    "auto_increment": true,
+                    "__meta__": "cogs.utils.db.Integer"
+                },
+                "index": false,
+                "primary_key": true,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "name": "id",
+                "index_name": null
+            },
+            {
+                "column_type": {
+                    "big": true,
+                    "small": false,
+                    "auto_increment": false,
+                    "__meta__": "cogs.utils.db.Integer"
+                },
+                "index": false,
+                "primary_key": false,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "name": "guild_id",
+                "index_name": null
+            },
+            {
+                "column_type": {
+                    "big": true,
+                    "small": false,
+                    "auto_increment": false,
+                    "__meta__": "cogs.utils.db.Integer"
+                },
+                "index": false,
+                "primary_key": false,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "name": "voice_id",
+                "index_name": null
+            },
+            {
+                "column_type": {
+                    "big": true,
+                    "small": false,
+                    "auto_increment": false,
+                    "__meta__": "cogs.utils.db.Integer"
+                },
+                "index": false,
+                "primary_key": false,
+                "nullable": true,
+                "default": null,
+                "unique": false,
+                "name": "text_id",
+                "index_name": null
+            }
+        ]
+    },
+    "migrations": []
+}
