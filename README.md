@@ -1,6 +1,6 @@
 # Robo-VJ
 [![license](https://img.shields.io/github/license/darthshittious/Robo-VJ)](https://www.mozilla.org/en-US/MPL/2.0/)
-[![discord.py Version](https://img.shields.io/badge/discord.py-1.5.0-blue)](https://github.com/Rapptz/discord.py)
+[![discord.py Version](https://img.shields.io/badge/discord.py-1.5.1-blue)](https://github.com/Rapptz/discord.py)
 [![python version](https://img.shields.io/badge/python-3.8-blue)](https://www.python.org/downloads/release/python-386/)
 [![PostgreSQL version](https://img.shields.io/badge/psql-12|13-blue)](https://www.postgresql.org/download/)
 [![Server Invite](https://discord.com/api/guilds/746769944774967440/embed.png)](https://discord.gg/rqgRyF8) \
