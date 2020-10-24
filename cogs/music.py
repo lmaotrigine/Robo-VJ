@@ -4,7 +4,7 @@ import asyncpg
 from typing import Union
 from .utils import checks, db
 
-class _Music(db.Table, table_name='music'):
+class MusicTable(db.Table, table_name='music'):
     id = db.PrimaryKeyColumn()
     guild_id = db.Column(db.Integer(big=True))
     voice_id = db.Column(db.Integer(big=True))
