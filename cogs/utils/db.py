@@ -144,10 +144,10 @@ class Interval(SQLType):
         else:
             self.field=None
         
-        def to_sql(self):
-            if self.field:
-                return 'INTERVAL ' + self.field
-            return 'INTERVAL'
+    def to_sql(self):
+        if self.field:
+            return 'INTERVAL ' + self.field
+        return 'INTERVAL'
         
 class Numeric(SQLType):
     python = decimal.Decimal
