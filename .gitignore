@@ -16,6 +16,8 @@ venv/
 assets/
 config.py
 *.log
+
+migrations/
 #emacs
 [#]*[#]
 
