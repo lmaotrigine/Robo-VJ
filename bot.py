@@ -182,12 +182,12 @@ class RoboVJ(commands.Bot):
     async def set_guild_prefixes(self, guild, prefixes):
         if len(prefixes) == 0:
             self.prefixes[guild.id] = []
-            await self.db.execute("UPDATE servers SET prefixes = $1 WHERE guild_id = $2", [], guild.id)
+            await self.pool.execute("UPDATE servers SET prefixes = $1 WHERE guild_id = $2", [], guild.id)
         elif len(prefixes) > 10:
             raise RuntimeError('Cannot have more than 10 custom prefixes.')
         else:
             self.prefixes[guild.id] = sorted(set(prefixes), reverse=True)
-            await self.db.execute("UPDATE servers SET prefixes = $1 WHERE guild_id = $2", sorted(set(prefixes), reverse=True), guild.id)
+            await self.pool.execute("UPDATE servers SET prefixes = $1 WHERE guild_id = $2", sorted(set(prefixes), reverse=True), guild.id)
 
     async def on_ready(self):
         if not hasattr(self, 'uptime'):
