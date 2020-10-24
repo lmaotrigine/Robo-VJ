@@ -2,7 +2,8 @@ import discord
 from discord.ext import commands
 from ..utils.api.tmdb import TMDBClient
 
-class TMDBBaseCog(commands.Cog):
+class TMDBBaseCog(commands.Cog, name="Search"):
+    """Shows information from TMDB about a TV show or film."""
     def __init__(self, bot):
         self.bot = bot
         self.client = TMDBClient()
