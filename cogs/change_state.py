@@ -2,6 +2,7 @@
 # Also serves to check that all cogs have loaded successfully.
 import discord
 from discord.ext import commands, tasks
+from .utils.formats import plural
 
 class ChangeState(commands.Cog):
     def __init__(self, bot):
@@ -14,7 +15,7 @@ class ChangeState(commands.Cog):
     @tasks.loop(count=1)
     async def change(self):
         num_guilds = len(self.bot.guilds)
-        await self.bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=f"!help in {num_guilds} {'server' if num_guilds == 1 else 'servers'}",
+        await self.bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=f"!help in {plural(num_guilds):server}",
         type=discord.ActivityType.listening))
 
     @change.before_loop
@@ -29,13 +30,13 @@ class ChangeState(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         num_guilds = len(self.bot.guilds)
-        await self.bot.change_presence(status=discord.Status.dnd, activity=discord.Activity(name=f"!help in {num_guilds} {'server' if num_guilds == 1 else 'servers'}",
+        await self.bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=f"!help in {plural(num_guilds):server}",
         type=discord.ActivityType.listening))
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
         num_guilds = len(self.bot.guilds)
-        await self.bot.change_presence(status=discord.Status.dnd, activity=discord.Activity(name=f"!help in {num_guilds} {'server' if num_guilds == 1 else 'servers'}",
+        await self.bot.change_presence(status=discord.Status.online, activity=discord.Activity(name=f"!help in {num_guilds} {'server' if num_guilds == 1 else 'servers'}",
         type=discord.ActivityType.listening))
 
 def setup(bot):
