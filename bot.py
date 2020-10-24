@@ -62,6 +62,26 @@ class RoboVJ(commands.Bot):
         self.resumes = defaultdict(list)
         self.identifies = defaultdict(list)
 
+    def _clear_gateway_data(self):
+        one_week_ago = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+        for shard_id, dates in self.identifies.items():
+            to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
+            for index in reversed(to_remove):
+                del dates[index]
+
+        for shard_id, dates in self.resumes.items():
+            to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
+            for index in reversed(to_remove):
+                del dates[index]
+
+    async def on_socket_response(self, msg):
+        self._prev_events.append(msg)
+
+    async def before_identify_hook(self, shard_id, *, initial):
+        self._clear_gateway_data()
+        self.identifies[shard_id].append(datetime.datetime.utcnow())
+        await super().before_identify_hook(shard_id, initial=initial)
+
     async def init_db(self):    
         await self.db.execute("""CREATE TABLE IF NOT EXISTS servers (
             id SERIAL PRIMARY KEY,
@@ -263,6 +283,10 @@ class RoboVJ(commands.Bot):
             self.uptime = datetime.datetime.utcnow()
 
         print(f'Ready: {self.user} (ID: {self.user.id})')
+
+    async def on_resumed(self):
+        print("Bot has resumed...")
+        self.resumes[None].append(datetime.datetime.utcnow())
 
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=context.Context)

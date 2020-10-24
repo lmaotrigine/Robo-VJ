@@ -731,6 +731,102 @@ class Stats(commands.Cog):
         embed.description = '\n'.join(description)
         await ctx.send(embed=embed)
 
+    @commands.command(hidden=True, aliases=['cancel_task'])
+    @commands.is_owner()
+    async def debug_task(self, ctx, memory_id: hex_value):
+        """Debug a task by a memory location."""
+        task = object_at(memory_id)
+        if task is None or not isinstance(task, asyncio.Task):
+            return await ctx.send(f'Could not find Task object at {hex(memory_id)}.')
+
+        if ctx.invoked_with == 'cancel_task':
+            task.cancel()
+            return await ctx.send(f'Cancelled task object {task!r}.')
+
+        paginator = commands.Paginator(prefix='```py')
+        fp = io.StringIO()
+        frames = len(task.get_stack())
+        paginator.add_line(f'# Total Frames: {frames}')
+        task.print_stack(file=fp)
+
+        for line in fp.getvalue().splitlines():
+            paginator.add_line(line)
+
+        for page in paginator.pages:
+            await ctx.send(page)
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def gateway(self, ctx):
+        """Gateway related stats."""
+
+        yesterday = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+        identifies = {
+            shard_id: sum(1 for dt in dates if dt > yesterday)
+            for shard_id, dates in self.bot.identifies.items()
+        }
+        resumes = {
+            shard_id: sum(1 for dt in dates if dt > yesterday)
+            for shard_id, dates in self.bot.resumes.items()
+        }
+
+        total_identifies = sum(identifies.values())
+
+        builder = [
+            f'Total RESUMEs: {sum(resumes.values())}',
+            f'Total IDENTIFYs: {total_identifies}'
+        ]
+
+        shard_count = len(self.bot.shards)
+        if total_identifies > (shard_count * 10):
+            issues = 2 + (total_identifies // 10) - shard_count
+        else:
+            issues = 0
+
+        for shard_id, shard in self.bot.shards.items():
+            badge = None
+            # Shard WS closed
+            # Shard Task failure
+            # Shard Task complete (no failure)
+            if shard.is_closed():
+                badge = '<:offline:316856575501402112>'
+                issues += 1
+            elif shard._parent._task.done():
+                exc = shard._parent._task.exception()
+                if exc is not None:
+                    badge = '\N{FIRE}'
+                    issues += 1
+                else:
+                    badge = '\U0001f504'
+
+            if badge is None:
+                badge = '<:online:316856575413321728>'
+
+            stats = []
+            identify = identifies.get(shard_id, 0)
+            resume = resumes.get(shard_id, 0)
+            if resume != 0:
+                stats.append(f'R: {resume}')
+            if identify != 0:
+                stats.append(f'ID: {identify}')
+
+            if stats:
+                builder.append(f'Shard ID {shard_id}: {badge} ({", ".join(stats)})')
+            else:
+                builder.append(f'Shard ID {shard_id}: {badge}')
+
+        if issues == 0:
+            colour = 0x43B581
+        elif issues < len(self.bot.shards) // 4:
+            colour = 0xF09E47
+        else:
+            colour = 0xF04947
+
+        embed = discord.Embed(colour=colour, title='Gateway (last 24 hours)')
+        embed.description = '\n'.join(builder)
+        embed.set_footer(text=f'{issues} warnings')
+        await ctx.send(embed=embed)
+
     async def tabulate_query(self, ctx, query, *args):
         records = await ctx.db.fetch(query, *args)
 
