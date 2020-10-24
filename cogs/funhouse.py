@@ -96,7 +96,7 @@ class Funhouse(commands.Cog):
             else:
                 await ctx.send(embed=discord.Embed(title='Random Dog').set_image(url=url))
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.cooldown(1, 5.0, commands.BucketType.user)
     async def rpsls(self, ctx, choice=None):
         """It's very simple:
@@ -132,7 +132,7 @@ class Funhouse(commands.Cog):
             text += f'\n_**{choice.name.capitalize()}**_ {RULE_DICT[choice.name.lower()][bot_choice.name.lower()]} _**{bot_choice.name.capitalize()}**_!\nYou win!'
         await ctx.send(text)
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.cooldown(1, 5.0, commands.BucketType.user)
     async def rps(self, ctx, choice=None):
         """Straightforward Rock paper scissors"""
