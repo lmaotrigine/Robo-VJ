@@ -15,18 +15,50 @@ from dotenv import load_dotenv
 import sys
 from collections import Counter, deque, defaultdict
 from cogs.utils.config import Config
-from cogs.utils import context, time
+from cogs.utils import context, time, db
 import logging
 import traceback
 
-# Some custom greetings I had made for my friends.
-try:
-    from assets.hello import Greeter
-except ImportError:
-    Greeter = None
+
 
 log = logging.getLogger(__name__)
 load_dotenv()
+
+initial_extensions =  [
+    'cogs.tmdb',
+    'cogs.buttons',
+    'cogs.change_state',
+    'cogs.config',
+    'cogs.dpy_help',
+    'cogs.feeds',
+    'cogs.funhouse',
+    'cogs.me_only',
+    'cogs.meta',
+    'cogs.mod',
+    'cogs.music',
+    'cogs.my_quiz',
+    'cogs.poll',
+    'cogs.quiz',
+    'cogs.reminder',
+    'cogs.stars',
+    'cogs.stats',
+    'cogs.tags',
+    'cogs.utilities',
+    'jishaku'
+]
+
+class Servers(db.Table):
+    id = db.PrimaryKeyColumn()
+    guild_id = db.Column(db.Integer(big=True))
+    qchannel = db.Column(db.Integer(big=True))
+    pchannel = db.Column(db.Integer(big=True))
+    prefixes = db.Column(db.Array(db.String))
+    modlog = db.Column(db.Integer(big=True))
+
+class NamedServers(db.Table, table_name='named_servers'):
+    id = db.PrimaryKeyColumn()
+    guild_id = db.Column(db.Integer(big=True))
+    name = db.Column(db.String)
 
 def _prefix_callable(bot, msg):
     user_id = bot.user.id
@@ -38,21 +70,30 @@ def _prefix_callable(bot, msg):
         base.extend(bot.prefixes.get(msg.guild.id, ['?', '!']))
     return base
 
-async def create_db_pool():
-    async def init(con):
-        await con.set_type_codec('jsonb', schema='pg_catalog', encoder=json.dumps, decoder=json.loads, format='text')
-    try:
-        bot.db = await asyncpg.create_pool(config.postgresql, init=init)
-    except KeyboardInterrupt:
-        await bot.db.close()
-
-# initialise bot
 class RoboVJ(commands.Bot):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self):
+        super().__init__(command_prefix=_prefix_callable, status=discord.Status.online, activity=discord.Activity(
+                        name=f"!help", type=discord.ActivityType.listening), owner_id=411166117084528640,
+                        #help_command=EmbedHelpCommand(dm_help=None),
+                        help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
+                        case_insensitive=True, intents=discord.Intents.all())
+
+        self.version = __version__
+        self.prefixes = {}
+        self.qchannels = {}
+        self.pchannels = {}
+        self.modlogs = {}
         self.blacklist = Config('blacklist.json')
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
         self._auto_spam_count = Counter()
+
+        for extension in initial_extensions:
+            try:
+                self.load_extension(extension)
+            except Exception as e:
+                print(f'Failed to load extension {extension}.', file=sys.stderr)
+                traceback.print_exc()
+                
         self.session = aiohttp.ClientSession(loop=self.loop)
 
         self._prev_events = deque(maxlen=10)
@@ -81,136 +122,6 @@ class RoboVJ(commands.Bot):
         self._clear_gateway_data()
         self.identifies[shard_id].append(datetime.datetime.utcnow())
         await super().before_identify_hook(shard_id, initial=initial)
-
-    async def init_db(self):    
-        await self.db.execute("""CREATE TABLE IF NOT EXISTS servers (
-            id SERIAL PRIMARY KEY,
-            guild_id BIGINT,
-            prefixes TEXT ARRAY,
-            qchannel BIGINT,
-            pchannel BIGINT,
-            modlog BIGINT
-        );
-        CREATE TABLE IF NOT EXISTS guild_mod_config (
-            id BIGINT PRIMARY KEY,
-            raid_mode SMALLINT,
-            broadcast_channel BIGINT,
-            mention_count SMALLINT,
-            safe_mention_channel_ids BIGINT ARRAY,
-            mute_role_id BIGINT,
-            muted_members BIGINT ARRAY
-        );
-        CREATE TABLE IF NOT EXISTS named_servers (
-            id SERIAL PRIMARY KEY,
-            guild_id BIGINT,
-            name TEXT
-        );
-        CREATE TABLE IF NOT EXISTS warns (
-            user_id BIGINT,
-            guild_id BIGINT,
-            num INTEGER
-        );
-        CREATE TABLE IF NOT EXISTS reminders (
-            id SERIAL PRIMARY KEY,
-            expires TIMESTAMP WITHOUT TIME ZONE,
-            created TIMESTAMP WITHOUT TIME ZONE DEFAULT (now() at time zone 'utc'),
-            event TEXT,
-            extra JSONB DEFAULT ('{}'::JSONB)
-        );
-        CREATE TABLE IF NOT EXISTS starboard (
-            id BIGINT PRIMARY KEY,
-            channel_id BIGINT,
-            threshold INTEGER DEFAULT (1) NOT NULL,
-            locked BOOLEAN DEFAULT FALSE,
-            max_age INTERVAL DEFAULT ('7 days'::INTERVAL) NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS starboard_entries (
-            id SERIAL PRIMARY KEY,
-            bot_message_id BIGINT,
-            message_id BIGINT UNIQUE NOT NULL,
-            channel_id BIGINT,
-            author_id BIGINT,
-            guild_id BIGINT REFERENCES starboard (id) ON DELETE CASCADE ON UPDATE NO ACTION NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS starrers (
-            id SERIAL PRIMARY KEY,
-            author_id BIGINT NOT NULL,
-            entry_id INTEGER REFERENCES starboard_entries (id) ON DELETE CASCADE ON UPDATE NO ACTION NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS starboard_entries_bot_message_id_idx ON starboard_entries (bot_message_id);
-        CREATE INDEX IF NOT EXISTS starboard_entries_message_id_idx ON starboard_entries (message_id);
-        CREATE INDEX IF NOT EXISTS starboard_entries_guild_id_idx ON starboard_entries (guild_id);
-        CREATE INDEX IF NOT EXISTS starrers_entry_id_idx ON starrers (entry_id);
-        CREATE UNIQUE INDEX IF NOT EXISTS starrers_uniq_idx ON starrers (author_id, entry_id);
-        CREATE TABLE IF NOT EXISTS plonks (
-            id SERIAL PRIMARY KEY,
-            guild_id BIGINT,
-            entity_id BIGINT UNIQUE
-        );
-        CREATE INDEX IF NOT EXISTS plonks_guild_id_idx ON plonks (guild_id);
-        CREATE INDEX IF NOT EXISTS plonks_entity_id_idx ON plonks (entity_id);
-        CREATE TABLE IF NOT EXISTS command_config (
-            id SERIAL PRIMARY KEY,
-            guild_id BIGINT,
-            channel_id BIGINT,
-            name TEXT,
-            whitelist BOOLEAN
-        );
-        CREATE INDEX IF NOT EXISTS command_config_guild_id_idx ON command_config (guild_id);
-        CREATE UNIQUE INDEX IF NOT EXISTS command_config_uniq_idx ON command_config (channel_id, name, whitelist);
-        CREATE TABLE IF NOT EXISTS commands (
-            id SERIAL PRIMARY KEY,
-            guild_id BIGINT,
-            channel_id BIGINT,
-            author_id BIGINT,
-            used TIMESTAMP,
-            prefix TEXT,
-            command TEXT,
-            failed BOOLEAN
-        );
-        CREATE INDEX IF NOT EXISTS commands_guild_id_idx ON commands (guild_id);
-        CREATE INDEX IF NOT EXISTS commands_author_id_idx ON commands (author_id);
-        CREATE INDEX IF NOT EXISTS commands_used_idx ON commands (used);
-        CREATE INDEX IF NOT EXISTS commands_command_idx ON commands (command);
-        CREATE INDEX IF NOT EXISTS commands_failed_idx ON commands (failed);
-        CREATE TABLE IF NOT EXISTS rtfm (
-            id SERIAL PRIMARY KEY,
-            user_id BIGINT UNIQUE,
-            count INTEGER DEFAULT (1)
-        );
-        CREATE INDEX IF NOT EXISTS rtfm_user_id_idx ON rtfm (user_id);
-        CREATE TABLE IF NOT EXISTS tags (
-            id SERIAL PRIMARY KEY,
-            name TEXT,
-            content TEXT,
-            owner_id BIGINT,
-            uses INTEGER DEFAULT (0),
-            location_id BIGINT,
-            created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (now() at time zone 'utc')
-        );
-        CREATE INDEX IF NOT EXISTS tags_name_idx ON tags (name);
-        CREATE INDEX IF NOT EXISTS tags_location_id_idx ON tags (location_id);
-        CREATE INDEX IF NOT EXISTS tags_name_trgm_idx ON tags USING GIN (name gin_trgm_ops);
-        CREATE INDEX IF NOT EXISTS tags_name_lower_idx ON tags (LOWER(name));
-        CREATE UNIQUE INDEX IF NOT EXISTS tags_uniq_idx ON tags (LOWER(name), location_id);
-        CREATE TABLE IF NOT EXISTS tag_lookup (
-            id SERIAL PRIMARY KEY,
-            name TEXT,
-            location_id BIGINT,
-            owner_id BIGINT,
-            created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT (now() at time zone 'utc'),
-            tag_id INTEGER REFERENCES tags (id) ON DELETE CASCADE ON UPDATE NO ACTION
-        );
-        CREATE INDEX IF NOT EXISTS tag_lookup_name_trgm_idx ON tag_lookup USING GIN (name gin_trgm_ops);
-        CREATE INDEX IF NOT EXISTS tag_lookup_name_lower_idx ON tag_lookup (LOWER(name));
-        CREATE UNIQUE INDEX IF NOT EXISTS tag_lookup_uniq_idx ON tag_lookup (LOWER(name), location_id);
-        CREATE TABLE IF NOT EXISTS feeds (
-            id SERIAL PRIMARY KEY,
-            channel_id BIGINT,
-            role_id BIGINT,
-            name TEXT
-        );
-        """)
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.NoPrivateMessage):
@@ -288,6 +199,41 @@ class RoboVJ(commands.Bot):
         print("Bot has resumed...")
         self.resumes[None].append(datetime.datetime.utcnow())
 
+    async def on_guild_join(self, guild):
+        owner = self.get_user(self.owner_id)
+        if guild.id in self.blacklist:
+                await guild.leave()
+        test = await self.pool.fetchrow("SELECT * FROM servers WHERE guild_id = $1", guild.id)
+        if not test:
+            async with self.pool.acquire() as con:
+                await con.execute("INSERT INTO servers (guild_id) VALUES ($1)", guild.id)
+                await con.execute("INSERT INTO named_servers (guild_id, name) VALUES ($1, $2)", guild.id, guild.name)
+            await self.set_guild_prefixes(guild, ['!', '?'])
+
+        pfx = self.get_raw_guild_prefixes(guild.id)[0]
+        if guild.system_channel:
+            send_here = guild.system_channel
+        else:
+            for channel in guild.text_channels:
+                if channel.overwrites_for(guild.default_role).read_messages:
+                    send_here = channel
+                    break
+        embed = discord.Embed(title="Thanks for adding me to your server! :blush:", colour=discord.Colour.blurple())
+        embed.description = f"""Robo VJ was originally made to keep scores during online quizzes, but has since evolved to support moderation commands and some fun here and there.
+        For a full list of commands, use `{pfx}help`.
+        
+        Be mindful of hierarchy while using commands that involve assigning or removing roles, or editing nicknames. It is advisable to give the bot the highest role in the server if you are unfamiliar with Discord hierarchy and permission flow.
+        
+        Some easter egg commands are not included in the help page. Others like the `utils` group have been deliberately hidden because they are reserved for the bot owner.
+        
+        If you have any questions, or need help with the bot, or want to report bugs or request features, [click here](https://discord.gg/rqgRyF8) to join the support server."""
+        embed.set_footer(text=f"Made by {owner}", icon_url=owner.avatar_url)
+        await send_here.send(embed=embed)
+
+    async def on_guild_update(self, before, after):
+        if before.name != after.name:
+            await self.pool.execute("UPDATE named_servers SET name = $1 WHERE guild_id = $2", after.name, after.id)
+
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=context.Context)
 
@@ -341,7 +287,26 @@ class RoboVJ(commands.Bot):
         await super().close()
         await self.session.close()
 
+    @tasks.loop(count=1)
+    async def startup(self):
+        #await bot.init_db()
+        #await self.wait_until_ready()
+        self.owner = self.get_user(self.owner_id)
+        data = await self.pool.fetch("SELECT * FROM servers")
+        for record in data:
+            self.prefixes[record['guild_id']] = record['prefixes']
+            self.qchannels[record['guild_id']] = record['qchannel']
+            self.pchannels[record['guild_id']] = record['pchannel']
+            self.modlogs[record['guild_id']] = record['modlog']
+
+        print('Data loaded')
+
+    @startup.before_loop
+    async def before_startup(self):
+        await self.wait_until_ready()
+
     def run(self):
+        self.startup.start()
         try:
             super().run(config.token, reconnect=True)
         finally:
@@ -357,88 +322,3 @@ class RoboVJ(commands.Bot):
     @property
     def config(self):
         return __import__('config')
-
-    
-
-bot = RoboVJ(command_prefix=_prefix_callable, status=discord.Status.online, activity=discord.Activity(
-    name=f"!help", type=discord.ActivityType.listening), owner_id=411166117084528640,
-    #help_command=EmbedHelpCommand(dm_help=None),
-    help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
-    case_insensitive=True, intents=discord.Intents.all())
-
-bot.version = __version__
-bot.prefixes = {}
-bot.qchannels = {}
-bot.pchannels = {}
-bot.modlogs = {}
-
-@tasks.loop(count=1)
-async def startup():
-    await bot.init_db()
-    bot.owner = bot.get_user(bot.owner_id)
-    data = await bot.db.fetch("SELECT * FROM servers")
-    for record in data:
-        bot.prefixes[record['guild_id']] = record['prefixes']
-        bot.qchannels[record['guild_id']] = record['qchannel']
-        bot.pchannels[record['guild_id']] = record['pchannel']
-        bot.modlogs[record['guild_id']] = record['modlog']
-
-    print('Data loaded')
-
-@startup.before_loop
-async def before_startup():
-    await bot.wait_until_ready()
-
-# Load cogs
-bot.load_extension("jishaku")
-bot.load_extension("cogs.tmdb")
-for filename in os.listdir('./cogs'):
-    if filename.endswith('.py'):
-        bot.load_extension(f'cogs.{filename[:-3]}')
-
-
-# update prefixes on joining a server
-@bot.event
-async def on_guild_join(guild):
-    if guild.id in bot.blacklist:
-            await guild.leave()
-    test = await bot.db.fetchrow("SELECT * FROM servers WHERE guild_id = $1", guild.id)
-    if not test:
-        async with bot.db.acquire() as con:
-            await con.execute("INSERT INTO servers (guild_id) VALUES ($1)", guild.id)
-            await con.execute("INSERT INTO named_servers (guild_id, name) VALUES ($1, $2)", guild.id, guild.name)
-        await bot.set_guild_prefixes(guild, ['!', '?'])
-
-    pfx = bot.get_raw_guild_prefixes(guild.id)[0]
-    if guild.system_channel:
-        send_here = guild.system_channel
-    else:
-        for channel in guild.text_channels:
-            if channel.overwrites_for(guild.default_role).read_messages:
-                send_here = channel
-                break
-    embed = discord.Embed(title="Thanks for adding me to your server! :blush:", colour=discord.Colour.blurple())
-    embed.description = f"""Robo VJ was originally made to keep scores during online quizzes, but has since evolved to support moderation commands and some fun here and there.
-For a full list of commands, use `{pfx}help`.
-
-Be mindful of hierarchy while using commands that involve assigning or removing roles, or editing nicknames. It is advisable to give the bot the highest role in the server if you are unfamiliar with Discord hierarchy and permission flow.
-
-Some easter egg commands are not included in the help page. Others like the `utils` group have been deliberately hidden because they are reserved for the bot owner.
-
-If you have any questions, or need help with the bot, or want to report bugs or request features, [click here](https://discord.gg/rqgRyF8) to join the support server."""
-    embed.set_footer(text=f"Made by {bot.owner}", icon_url=bot.owner.avatar_url)
-    await send_here.send(embed=embed)
-
-@bot.event
-async def on_guild_update(before, after):
-    if before.name != after.name:
-        await bot.db.execute("UPDATE named_servers SET name = $1 WHERE guild_id = $2", after.name, after.id)
-
-
-
-# Get things rolling
-
-startup.start()
-bot.loop.run_until_complete(create_db_pool())
-bot.run()
-startup.cancel()

@@ -2,13 +2,22 @@ from discord.ext import commands, tasks
 import discord
 import asyncpg
 from typing import Union
-from .utils import checks
+from .utils import checks, db
+
+class _Music(db.Table, table_name='music'):
+    id = db.PrimaryKeyColumn()
+    guild_id = db.Column(db.Integer(big=True))
+    voice_id = db.Column(db.Integer(big=True))
+    text_id = db.Column(db.Integer(big=True))
 
 class Music(commands.Cog):
     """For maintaining dedicated channels for music commands, or for general voice rooms"""
     def __init__(self, bot):
         self.bot = bot
         self.startup.start()
+
+    def cog_unload(self):
+        self.startup.cancel()
 
     def is_in_voice(self, state):
         return state.channel is not None and state.channel.id in self.mapping[state.channel.guild.id].keys()
@@ -18,8 +27,7 @@ class Music(commands.Cog):
 
     @tasks.loop(count=1)
     async def startup(self):
-        await self.bot.db.execute("CREATE TABLE IF NOT EXISTS music (id SERIAL PRIMARY KEY, guild_id BIGINT, voice_id BIGINT, text_id BIGINT)")
-        records = await self.bot.db.fetch("SELECT * FROM music")
+        records = await self.bot.pool.fetch("SELECT * FROM music")
         self.mapping = {}
         for record in records:
             current = self.mapping.get(record['guild_id'], {})
@@ -62,16 +70,16 @@ class Music(commands.Cog):
         """Map a voice and text channel in your server. Use the channel IDs for best results."""
         if not (ctx.guild.get_channel(voice.id) and ctx.guild.get_channel(text.id)):
             return await ctx.send("Please enter channels belonging to this guild.")
-        connection = await self.bot.db.acquire()
+        connection = await self.bot.pool.acquire()
         async with connection.transaction():
-            if await self.bot.db.fetchrow("SELECT * FROM music WHERE guild_id = $1 and voice_id = $2", ctx.guild.id, voice.id):
-                await self.bot.db.execute("UPDATE music SET text_id = $1 WHERE voice_id = $2 AND guild_id = $3", text.id, voice.id, ctx.guild.id)
-            elif await self.bot.db.fetchrow("SELECT * FROM music WHERE guild_id = $1 and text_id = $2", ctx.guild.id, text.id):
-                await self.bot.db.execute("UPDATE music SET voice_id = $1 WHERE text_id = $2 AND guild_id = $3", voice.id, text.id, ctx.guild.id)
+            if await self.bot.pool.fetchrow("SELECT * FROM music WHERE guild_id = $1 and voice_id = $2", ctx.guild.id, voice.id):
+                await self.bot.pool.execute("UPDATE music SET text_id = $1 WHERE voice_id = $2 AND guild_id = $3", text.id, voice.id, ctx.guild.id)
+            elif await self.bot.pool.fetchrow("SELECT * FROM music WHERE guild_id = $1 and text_id = $2", ctx.guild.id, text.id):
+                await self.bot.pool.execute("UPDATE music SET voice_id = $1 WHERE text_id = $2 AND guild_id = $3", voice.id, text.id, ctx.guild.id)
             else:
-                await self.bot.db.execute("INSERT INTO music (guild_id, voice_id, text_id) VALUES ($1, $2, $3)", ctx.guild.id, voice.id, text.id)
+                await self.bot.pool.execute("INSERT INTO music (guild_id, voice_id, text_id) VALUES ($1, $2, $3)", ctx.guild.id, voice.id, text.id)
         
-        await self.bot.db.release(connection)
+        await self.bot.pool.release(connection)
         current = self.mapping.get(ctx.guild.id, {})
         current.update({voice.id: text.id})
         self.mapping[ctx.guild.id] = current
@@ -84,20 +92,20 @@ class Music(commands.Cog):
         """Removes a mapping associated with a specific channel. Mention only one channel."""
         if not ctx.guild.get_channel(channel.id):
             return await ctx.send("Please enter channels belonging to this guild.")
-        connection = await self.bot.db.acquire()
+        connection = await self.bot.pool.acquire()
         async with connection.transaction():
-            if await self.bot.db.fetchrow("SELECT * FROM music WHERE guild_id = $1 and text_id = $2", ctx.guild.id, channel.id):
-                await self.bot.db.execute("DELETE FROM music WHERE guild_id = $1 and text_id = $2", ctx.guild.id, channel.id)
+            if await self.bot.pool.fetchrow("SELECT * FROM music WHERE guild_id = $1 and text_id = $2", ctx.guild.id, channel.id):
+                await self.bot.pool.execute("DELETE FROM music WHERE guild_id = $1 and text_id = $2", ctx.guild.id, channel.id)
                 await ctx.send("Mapping deleted.")
-            elif await self.bot.db.fetchrow("SELECT * FROM music WHERE guild_id = $1 and voice_id = $2", ctx.guild.id, channel.id):
-                await self.bot.db.execute("DELETE FROM music WHERE guild_id = $1 and voice_id = $2", ctx.guild.id, channel.id)
+            elif await self.bot.pool.fetchrow("SELECT * FROM music WHERE guild_id = $1 and voice_id = $2", ctx.guild.id, channel.id):
+                await self.bot.pool.execute("DELETE FROM music WHERE guild_id = $1 and voice_id = $2", ctx.guild.id, channel.id)
                 await ctx.send("Mapping deleted.")
             else:
                 await ctx.send("No mapping associated with this channel found.")
-            if not await self.bot.db.fetchrow("SELECT * FROM music WHERE guild_id = $1", ctx.guild.id):
+            if not await self.bot.pool.fetchrow("SELECT * FROM music WHERE guild_id = $1", ctx.guild.id):
                 self.mapping.pop(ctx.guild.id)
                 return
-        await self.bot.db.release(connection)
+        await self.bot.pool.release(connection)
         current = self.mapping.get(ctx.guild.id, {})
         if isinstance(channel, discord.TextChannel):
             for v, t in current.items():

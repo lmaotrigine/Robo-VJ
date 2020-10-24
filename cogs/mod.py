@@ -16,7 +16,7 @@ import logging
 import asyncpg
 import io
 from datetime import timezone
-from .utils import checks, time, cache
+from .utils import checks, db, time, cache
 from collections import Counter, defaultdict
 from inspect import cleandoc
 
@@ -35,6 +35,17 @@ class RaidMode(enum.Enum):
 
     def __str__(self):
         return self.name
+
+## Tables
+
+class GuildConfig(db.Table, table_name='guild_mod_config'):
+    id = db.Column(db.Integer(big=True), primary_key=True)
+    raid_mode = db.Column(db.Integer(small=True))
+    broadcast_channel = db.Column(db.Integer(big=True))
+    mention_count = db.Column(db.Integer(small=True))
+    safe_mention_channel_ids = db.Column(db.Array(db.Integer(big=True)))
+    mute_role_id = db.Column(db.Integer(big=True))
+    muted_members = db.Column(db.Array(db.Integer(big=True)))
 
 ## Configuration
 
@@ -310,7 +321,7 @@ class Moderation(commands.Cog):
             })
             self.get_guild_config.invalidate(self, guild_id)
 
-        await self.bot.db.execute(query, final_data)
+        await self.bot.pool.execute(query, final_data)
         self._data_batch.clear()
 
     @tasks.loop(seconds=15.0)
@@ -342,7 +353,7 @@ class Moderation(commands.Cog):
     @cache.cache()
     async def get_guild_config(self, guild_id):
         query = """SELECT * FROM guild_mod_config WHERE id = $1;"""
-        async with self.bot.db.acquire(timeout=300.0) as con:
+        async with self.bot.pool.acquire(timeout=300.0) as con:
             record = await con.fetchrow(query, guild_id)
             if record is not None:
                 return await ModConfig.from_record(record, self.bot)
@@ -498,14 +509,14 @@ class Moderation(commands.Cog):
             return
 
         query = """UPDATE guild_mod_config SET (mute_role_id, muted_members) = (NULL, '{}'::bigint[]) WHERE id=$1;"""
-        await self.bot.db.execute(query, guild_id)
+        await self.bot.pool.execute(query, guild_id)
         self.get_guild_config.invalidate(self, guild_id)
 
     @commands.group(name='modlog', invoke_without_command=True)
     @commands.guild_only()
     @checks.is_mod()
     async def modlog(self, ctx):
-        channel_id = await self.bot.db.fetchval("SELECT modlog FROM servers WHERE guild_id = $1", ctx.guild.id)
+        channel_id = await self.bot.pool.fetchval("SELECT modlog FROM servers WHERE guild_id = $1", ctx.guild.id)
         channel = ctx.guild.get_channel(channel_id)
         if channel_id is None or channel is None:
             return await ctx.send("No channel set up for logging modlogs in this server.")
@@ -611,7 +622,7 @@ class Moderation(commands.Cog):
                         broadcast_channel = NULL;
                 """
 
-        await self.bot.db.execute(query, guild_id, RaidMode.off.value)
+        await self.bot.pool.execute(query, guild_id, RaidMode.off.value)
         self._spam_check.pop(guild_id, None)
         self.get_guild_config.invalidate(self, guild_id)
 
@@ -1424,7 +1435,7 @@ class Moderation(commands.Cog):
                        mute_role_id = EXCLUDED.mute_role_id,
                        muted_members = EXCLUDED.muted_members
                 """
-        await self.bot.db.execute(query, guild.id, role.id, list(members))
+        await self.bot.pool.execute(query, guild.id, role.id, list(members))
         self.get_guild_config.invalidate(self, guild.id)
 
     @staticmethod
@@ -1779,7 +1790,7 @@ class Moderation(commands.Cog):
                 return await ctx.send('Aborting.')
 
         query = """UPDATE guild_mod_config SET (mute_role_id, muted_members) = (NULL, '{}'::bigint[]) WHERE id=$1;"""
-        await self.bot.db.execute(query, guild_id)
+        await self.bot.pool.execute(query, guild_id)
         self.get_guild_config.invalidate(self, guild_id)
         await ctx.send('Successfully unbound mute role.')
 
@@ -1953,14 +1964,14 @@ class Moderation(commands.Cog):
         """Issues a warning to a user. Current status can be accessed by warnstats"""
         if not user:
             return await ctx.send("You must specify a user")
-        current = await self.bot.db.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
-        async with self.bot.db.acquire() as conn:
+        current = await self.bot.pool.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
+        async with self.bot.pool.acquire() as conn:
             if not current:
                 current = 1
-                await self.bot.db.execute("INSERT INTO warns (guild_id, user_id, num) VALUES ($1, $2, $3)", ctx.guild.id, user.id, current)
+                await self.bot.pool.execute("INSERT INTO warns (guild_id, user_id, num) VALUES ($1, $2, $3)", ctx.guild.id, user.id, current)
             else:
                 current += 1
-                await self.bot.db.execute("UPDATE warns SET num = $1 WHERE guild_id = $2 and user_id = $3", current, ctx.guild.id, user.id)
+                await self.bot.pool.execute("UPDATE warns SET num = $1 WHERE guild_id = $2 and user_id = $3", current, ctx.guild.id, user.id)
                 if current >=5:
                     await user.ban(reason="Autoban: 5 warns.")
                     channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
@@ -1976,7 +1987,7 @@ class Moderation(commands.Cog):
                         embed.add_field(name='Reason', value="Accumulated 5 warns", inline=False)
                         embed.add_field(name='Responsible Moderator', value=str(ctx.guild.me), inline=False)
                         await channel.send(embed=embed)
-                    await self.bot.db.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
+                    await self.bot.pool.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
                     return await ctx.send(f"{user.mention} has been autobanned because they have 5 or more warns.")
         await ctx.send(f"{user.mention} has been warned. Total warnings: {current}")
         channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
@@ -1994,7 +2005,7 @@ class Moderation(commands.Cog):
         """To check how many warns you have. If you are an admin, you can specify a user."""
         if not ctx.author.guild_permissions.administrator or not user:
             user = ctx.author
-        current = await self.bot.db.fetchval("SELECT num FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
+        current = await self.bot.pool.fetchval("SELECT num FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
         if current is None:
             current = 0
         await ctx.send(f"Currently, {user.mention} has {current} {'warning' if current == 1 else 'warnings'}.")
@@ -2006,15 +2017,15 @@ class Moderation(commands.Cog):
         """Removes one warning from a user"""
         if not user:
             return await ctx.send("You must specify a user")
-        current = await self.bot.db.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
-        async with self.bot.db.acquire() as conn:
+        current = await self.bot.pool.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
+        async with self.bot.pool.acquire() as conn:
             if not current:
                 return await ctx.send(f"{user.mention} has no outstanding warnings")
             else:
                 current -= 1
-                await self.bot.db.execute("UPDATE warns SET num = $1 WHERE guild_id = $2 and user_id = $3", current, ctx.guild.id, user.id)
+                await self.bot.pool.execute("UPDATE warns SET num = $1 WHERE guild_id = $2 and user_id = $3", current, ctx.guild.id, user.id)
                 if current == 0:
-                    await self.bot.db.execute("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
+                    await self.bot.pool.execute("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
         await ctx.send(f"{user.mention} has been pardoned for one warning. Total warns: {current}")
         channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
         if channel:
@@ -2031,11 +2042,11 @@ class Moderation(commands.Cog):
         """Removes all warnings for the user"""
         if not user:
             return await ctx.send("You must specify a member")
-        current = await self.bot.db.fetchrow("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
+        current = await self.bot.pool.fetchrow("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
         if not current:
             return await ctx.send(f"{user.mention} has no outstanding warnings")
-        async with self.bot.db.acquire() as conn:
-            await self.bot.db.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
+        async with self.bot.pool.acquire() as conn:
+            await self.bot.pool.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
         await ctx.send(f"Removed all warnings for {user.mention}")
         channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
         if channel:

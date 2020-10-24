@@ -1,4 +1,4 @@
-from .utils import checks, formats, cache
+from .utils import checks, formats, cache, db
 from .utils.paginator import SimplePages
 
 from discord.ext import commands, menus
@@ -65,6 +65,51 @@ def can_use_box():
 # The tag data is heavily duplicated (denormalized) and heavily indexed to speed up
 # retrieval at the expense of making inserts a little bit slower. This is a fine trade-off
 # because tags are retrieved much more often than created.
+
+class TagsTable(db.Table, table_name='tags'):
+    id = db.PrimaryKeyColumn()
+
+    # we will create more indexes manually
+    name = db.Column(db.String, index=True)
+
+    content = db.Column(db.String)
+    owner_id = db.Column(db.Integer(big=True))
+    uses = db.Column(db.Integer, default=0)
+    location_id = db.Column(db.Integer(big=True), index=True)
+    created_at = db.Column(db.Datetime, default="now() at time zone 'utc'")
+
+    @classmethod
+    def create_table(cls, *, exists_ok=True):
+        statement = super().create_table(exists_ok=exists_ok)
+
+        # create the indexes
+        sql = "CREATE INDEX IF NOT EXISTS tags_name_trgm_idx ON tags USING GIN (name gin_trgm_ops);\n" \
+              "CREATE INDEX IF NOT EXISTS tags_name_lower_idx ON tags (LOWER(name));\n" \
+              "CREATE UNIQUE INDEX IF NOT EXISTS tags_uniq_idx ON tags (LOWER(name), location_id);"
+
+        return statement + '\n' + sql
+
+class TagLookup(db.Table, table_name='tag_lookup'):
+    id = db.PrimaryKeyColumn()
+
+    # we will create more indexes manually
+    name = db.Column(db.String, index=True)
+    location_id = db.Column(db.Integer(big=True), index=True)
+
+    owner_id = db.Column(db.Integer(big=True))
+    created_at = db.Column(db.Datetime, default="now() at time zone 'utc'")
+    tag_id = db.Column(db.ForeignKey('tags', 'id'))
+
+    @classmethod
+    def create_table(cls, *, exists_ok=True):
+        statement = super().create_table(exists_ok=exists_ok)
+
+        # create the indexes
+        sql = "CREATE INDEX IF NOT EXISTS tag_lookup_name_trgm_idx ON tag_lookup USING GIN (name gin_trgm_ops);\n" \
+              "CREATE INDEX IF NOT EXISTS tag_lookup_name_lower_idx ON tag_lookup (LOWER(name));\n" \
+              "CREATE UNIQUE INDEX IF NOT EXISTS tag_lookup_uniq_idx ON tag_lookup (LOWER(name), location_id);"
+
+        return statement + '\n' + sql
 
 class TagName(commands.clean_content):
     def __init__(self, *, lower=False):
@@ -168,7 +213,7 @@ class Tags(commands.Cog):
         Server specific tags will override the generic tags.
         """
 
-        con = connection or self.bot.db
+        con = connection or self.bot.pool
         if guild is None:
             query = """SELECT name, content FROM tags WHERE location_id IS NULL;"""
             return await con.fetch(query)
@@ -179,7 +224,7 @@ class Tags(commands.Cog):
     async def get_random_tag(self, guild, *, connection=None):
         """Returns a random tag."""
 
-        con = connection or self.bot.db
+        con = connection or self.bot.pool
         pred = 'location_id IS NULL' if guild is None else 'location_id = $1'
         query = f"""SELECT name, content
                     FROM tags
@@ -204,7 +249,7 @@ class Tags(commands.Cog):
             names = '\n'.join(r['name'] for r in rows)
             raise RuntimeError(f'Tag not found. Did you mean...\n{names}')
 
-        con = connection or self.bot.db
+        con = connection or self.bot.pool
 
         query = """SELECT tags.name, tags.content
                    FROM tag_lookup

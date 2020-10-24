@@ -1,8 +1,14 @@
 import discord
 from discord.ext import commands
-from .utils import cache, checks, time
+from .utils import cache, checks, db, time
 
 PUB_QUIZ_ID = 718378271800033318
+
+class Feeds(db.Table):
+    id = db.PrimaryKeyColumn()
+    channel_id = db.Column(db.Integer(big=True))
+    role_id = db.Column(db.Integer(big=True))
+    name = db.Column(db.String)
 
 class Feeds(commands.Cog):
 
@@ -11,7 +17,7 @@ class Feeds(commands.Cog):
 
     @cache.cache()
     async def get_feeds(self, channel_id, *, connection=None):
-        con = connection or self.bot.db
+        con = connection or self.bot.pool
         query = 'SELECT name, role_id FROM feeds WHERE channel_id = $1;'
         feeds = await con.fetch(query, channel_id)
         return {f['name']: f['role_id'] for f in feeds}

@@ -233,9 +233,9 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
         is_multistatement = query.count(';') > 1
         if is_multistatement:
             # fetch does not support multiple statements
-            strategy = self.bot.db.execute
+            strategy = self.bot.pool.execute
         else:
-            strategy = self.bot.db.fetch
+            strategy = self.bot.pool.fetch
 
         try:
             start = time.perf_counter()

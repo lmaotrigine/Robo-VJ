@@ -1,5 +1,5 @@
 from discord.ext import commands, menus
-from .utils import checks, cache
+from .utils import checks, cache, db
 from .utils.paginator import SimplePages
 
 from collections import defaultdict
@@ -37,6 +37,29 @@ class ChannelOrMember(commands.Converter):
             return await commands.TextChannelConverter().convert(ctx, argument)
         except commands.BadArgument:
             return await commands.MemberConverter().convert(ctx, argument)
+
+class Plonks(db.Table):
+    id = db.PrimaryKeyColumn()
+    guild_id = db.Column(db.Integer(big=True), index=True)
+
+    # this can either be a channel_id or an author_id
+    entity_id = db.Column(db.Integer(big=True), index=True, unique=True)
+
+class CommandConfig(db.Table, table_name='command_config'):
+    id = db.PrimaryKeyColumn()
+
+    guild_id = db.Column(db.Integer(big=True), index=True)
+    channel_id = db.Column(db.Integer(big=True))
+
+    name = db.Column(db.String)
+    whitelist = db.Column(db.Boolean)
+
+    @classmethod
+    def create_table(cls, *, exists_ok=True):
+        statement = super().create_table(exists_ok=exists_ok)
+        # create the unique index
+        sql = "CREATE UNIQUE INDEX IF NOT EXISTS command_config_uniq_idx ON command_config (channel_id, name, whitelist);"
+        return statement + '\n' + sql
 
 class CommandName(commands.Converter):
     async def convert(self, ctx, argument):
