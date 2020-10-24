@@ -49,19 +49,13 @@ from urllib.parse import quote
 postgresql = f"postgresql://user:{quote('password')}@host/database"
 ```
 
-6. **Directly running from terminal**
+6. **Configuration of database**
 
-Simply run `bot.py` from your venv. To configure `bot.service` and use systemd, see below.
+To configure the PostgreSQL database for use by the bot, go to the directory where `launcher.py` is located, and run the script by doing `python3.8 launcher.py db init`
 
-7. **Configuring systemd to run the bot on reboot**
+7. **Running the bot**
 
-Open `bot.service` and edit the path to your python environment, working directory, and path to the `bot.py` as needed and then run the following: 
-```sh
-sudo cp bot.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable bot && sudo systemctl start bot
-```
-
+You can use the provided `bot.service` file to use systemd to launch the bot after every reboot.
 
 ## [Additional information] Migrating between database instances
 
