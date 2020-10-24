@@ -194,12 +194,15 @@ class Reminder(commands.Cog):
     @commands.group(aliases=['timer', 'remind'], usage='<when>', invoke_without_command=True)
     async def reminder(self, ctx, *, when: time.UserFriendlyTime(commands.clean_content, default='\u2026')):
         """Reminds you of something after a certain amount of time.
+
         The input can be any direct date (e.g. YYYY-MM-DD) or a human
         readable offset. Examples:
+        
         - "next thursday at 3pm do something funny"
         - "do the dishes tomorrow"
         - "in 3 days do the thing"
         - "2d unmute someone"
+        
         Times are in UTC.
         """
 
@@ -290,6 +293,7 @@ class Reminder(commands.Cog):
             return await ctx.send('Aborting')
 
         query = """DELETE FROM reminders WHERE event = 'reminder' AND extra #>> '{args,0}' = $1;"""
+        await ctx.db.execute(query, author_id)
         await ctx.send(f'Successfully deleted {formats.plural(total):reminder}.')
 
     @commands.Cog.listener()
