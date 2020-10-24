@@ -11,7 +11,7 @@ class Feeds(db.Table):
     name = db.Column(db.String)
 
 class Feeds(commands.Cog):
-
+    """Allows easy publication and subscription to channel feeds."""
     def __init__(self, bot):
         self.bot = bot
 
