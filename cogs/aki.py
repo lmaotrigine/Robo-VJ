@@ -8,7 +8,7 @@ from .utils.context import Context
 from collections import defaultdict
 
 class AkiConfig(db.Table, table_name='aki_config'):
-    user_id = db.Column(db.Integer(big=True), index=True, unique=True, primary_key=True)
+    user_id = db.Column(db.Integer(big=True), index=True, primary_key=True)
     language = db.Column(db.String(length=2, fixed=True), default='en')
     no_nsfw = db.Column(db.Boolean, default=False)
 
