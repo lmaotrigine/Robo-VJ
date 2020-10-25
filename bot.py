@@ -84,7 +84,7 @@ class RoboVJ(commands.Bot):
         self.qchannels = {}
         self.pchannels = {}
         self.modlogs = {}
-        self.blacklist = Config('blacklist.json')
+        self.blocklist = Config('blocklist.json')
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
         self._auto_spam_count = Counter()
 
@@ -141,12 +141,12 @@ class RoboVJ(commands.Bot):
             print("Ignoring exception in command {}:".format(ctx.command), file=sys.stderr)
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
-    async def add_to_blacklist(self, object_id):
-        await self.blacklist.put(object_id, True)
+    async def add_to_blocklist(self, object_id):
+        await self.blocklist.put(object_id, True)
 
-    async def remove_from_blacklist(self, object_id):
+    async def remove_from_blocklist(self, object_id):
         try:
-            await self.blacklist.remove(object_id)
+            await self.blocklist.remove(object_id)
         except KeyError:
             pass
 
@@ -202,7 +202,7 @@ class RoboVJ(commands.Bot):
 
     async def on_guild_join(self, guild):
         owner = self.get_user(self.owner_id)
-        if guild.id in self.blacklist:
+        if guild.id in self.blocklist:
                 await guild.leave()
         test = await self.pool.fetchrow("SELECT * FROM servers WHERE guild_id = $1", guild.id)
         if not test:
@@ -241,10 +241,10 @@ class RoboVJ(commands.Bot):
         if ctx.command is None:
             return
 
-        if ctx.author.id in self.blacklist:
+        if ctx.author.id in self.blocklist:
             return
 
-        if ctx.guild is not None and ctx.guild.id in self.blacklist:
+        if ctx.guild is not None and ctx.guild.id in self.blocklist:
             return
 
         bucket = self.spam_control.get_bucket(message)
@@ -254,7 +254,7 @@ class RoboVJ(commands.Bot):
         if retry_after and author_id != self.owner_id:
             self._auto_spam_count[author_id] += 1
             if self._auto_spam_count[author_id] >= 5:
-                await self.add_to_blacklist(author_id)
+                await self.add_to_blocklist(author_id)
                 del self._auto_spam_count[author_id]
                 await self.log_spammer(ctx, message, retry_after, autoblock=True)
             else:

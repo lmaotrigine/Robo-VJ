@@ -261,7 +261,7 @@ class Stats(commands.Cog):
         await ctx.send(embed=embed)
 
     def censor_object(self, obj):
-        if not isinstance(obj, str) and obj.id in self.bot.blacklist:
+        if not isinstance(obj, str) and obj.id in self.bot.blocklist:
             return '[censored]'
         return censor_invite(obj)
 
