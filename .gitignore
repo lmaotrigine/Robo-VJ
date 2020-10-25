@@ -10,6 +10,7 @@ readonly/*
 .vs/
 # venv
 venv/
+venv-win/
 
 #config
 .env
