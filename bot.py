@@ -26,6 +26,7 @@ load_dotenv()
 
 initial_extensions =  [
     'cogs.tmdb',
+    'cogs.aki',
     'cogs.buttons',
     'cogs.change_state',
     'cogs.config',
