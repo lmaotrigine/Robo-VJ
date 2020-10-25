@@ -40,17 +40,17 @@ class _Akinator(commands.Cog, name='Akinator'):
         self.bot = bot
         self.in_play = defaultdict(set)
 
-    def get_q_embed(self, question: str, num: int):
+    def get_q_embed(self, ctx, question: str, num: int):
         embed = discord.Embed(title=f"Question {num + 1}: {question}")
         embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar_url)
-        embed.set_footer(text='(y)es  |  (n)o  |  (i)dk  |  (p)robably  |  (pn)probably not  |  (b)ack')
+        embed.set_footer(text=f'[{ctx.author}] | (y)es | (n)o | (i)dk | (p)robably | (pn)probably not | (b)ack')
         return embed
 
-    def get_guess_embed(self, num_guesses: int, guess: dict):
+    def get_guess_embed(self, ctx, num_guesses: int, guess: dict):
         embed = discord.Embed(title=guess['name'], description=guess['description'])
         embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar_url)
         embed.set_image(url=guess['absolute_picture_path'])
-        embed.set_footer(text=f'[Guess {num_guesses} / 3] Did I get it right? (y|n)')
+        embed.set_footer(text=f'{ctx.author} | [Guess {num_guesses} / 3] Did I get it right? (y|n)')
         return embed
 
     @commands.group(name='aki')
@@ -90,7 +90,7 @@ class _Akinator(commands.Cog, name='Akinator'):
             if aki.progression > 80 or (num_guesses > 0 and aki.step >= 25):
                 await aki.win()
                 num_guesses += 1
-                await ctx.send(embed=self.get_guess_embed(num_guesses, aki.first_guess))
+                await ctx.send(embed=self.get_guess_embed(ctx, num_guesses, aki.first_guess))
                 try:
                     msg = await self.bot.wait_for('message', check=win_check, timeout=60.0)
                 except asyncio.TimeoutError:
@@ -110,7 +110,7 @@ class _Akinator(commands.Cog, name='Akinator'):
                         q = await aki.start()
                         q_num += 1
         
-            await ctx.send(embed=self.get_q_embed(q, q_num))
+            await ctx.send(embed=self.get_q_embed(ctx, q, q_num))
             try:
                 msg = await self.bot.wait_for('message', check=guess_check, timeout=60.0)
             except asyncio.TimeoutError:
