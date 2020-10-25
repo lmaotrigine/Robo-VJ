@@ -12,5 +12,6 @@ lru_dict
 pygit2
 lxml
 click
+akinator.py[async]
 
 jishaku @ git+https://github.com/darthshittious/jishaku
