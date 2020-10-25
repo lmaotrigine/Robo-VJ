@@ -155,7 +155,7 @@ class Ratings:
         self.imdb_votes = imdb_votes
         self.metascore = metascore
         self.rtomatoes = rtomatoes
-        self.runtime = runtime  # TODO Add this to the reapective film/tv show classes
+        self.runtime = runtime  # TODO Add this to the respective film/tv show classes
 
     @classmethod
     def from_data(cls, data):
