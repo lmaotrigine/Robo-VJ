@@ -150,20 +150,23 @@ class TMDBHTTPClient(BaseAPIHTTPClient):
     
 
 class Ratings:
-    def __init__(self, *, imdb=None, imdb_votes=None, metascore=None, rtomatoes=None):
+    def __init__(self, *, imdb=None, imdb_votes=None, runtime=None, metascore=None, rtomatoes=None):
         self.imdb = imdb
         self.imdb_votes = imdb_votes
         self.metascore = metascore
         self.rtomatoes = rtomatoes
+        self.runtime = runtime  # TODO Add this to the reapective film/tv show classes
 
     @classmethod
     def from_data(cls, data):
+        runtime = data.get("Runtime")
         ratings = data.get("Ratings")
         self = cls.__new__(cls)
         self.imdb = None
         self.rtomatoes = None
         self.metascore = None
         self.imdb_votes = None
+        self.runtime = runtime
         if not ratings:
             return self
         for rating in ratings:

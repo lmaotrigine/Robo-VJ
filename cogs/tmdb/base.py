@@ -30,6 +30,9 @@ class TMDBBaseCog(commands.Cog, name="Search"):
             embed.add_field(name=f"{self.emotes['film_reel']}    Screenplay", value=instance.credits.screenplay.name)
         if instance.genres:
             embed.add_field(name=f"{self.emotes['two_hearts']}    Genres", value=", ".join(instance.genres))
+        if hasattr(instance, "ratings") and instance.ratings.runtime:
+            # TODO Add this attribute to instance directly
+            embed.add_field(name=f"{self.emotes['film_reel']}    Runtime", value=instance.ratings.runtime)
         if instance.release_date:
             embed.timestamp = instance.release_date
         if instance.credits.cast:
