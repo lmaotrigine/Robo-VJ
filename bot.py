@@ -33,6 +33,7 @@ initial_extensions =  [
     'cogs.dpy_help',
     'cogs.feeds',
     'cogs.funhouse',
+    'cogs.github',
     'cogs.me_only',
     'cogs.meta',
     'cogs.mod',
