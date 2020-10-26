@@ -9,6 +9,8 @@ import yarl
 
 TOKEN_REGEX = re.compile(r'[a-zA-z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}')
 ROBO_VJ_GUILD = 746769944774967440
+SUPPORT_CHANNEL = 746770608104144946
+TEST_CHANNEL = 746771342774370354
 
 def validate_token(token):
     try:
@@ -69,6 +71,7 @@ class Github(commands.Cog):
                 self._req_lock.release()
 
     async def create_gist(self, content, *, description=None, filename=None, public=True):
+        print('here')
         headers = {
             'Accept': 'application/vnd.github.v3+json',
         }
@@ -87,6 +90,7 @@ class Github(commands.Cog):
             data['description'] = description
 
         js = await self.github_request('POST', 'gists', data=data, headers=headers)
+        print('posted')
         return js['html_url']
 
     async def redirect_attachments(self, message):
@@ -121,6 +125,9 @@ class Github(commands.Cog):
 
         if message.author.bot:
             return
+
+        if message.channel.id in (SUPPORT_CHANNEL, TEST_CHANNEL) and len(message.attachments) == 1:
+            return await self.redirect_attachments(message)
 
         m = self.issue.search(message.content)
         if m is not None:
