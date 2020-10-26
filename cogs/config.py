@@ -177,7 +177,7 @@ class Config(commands.Cog):
 
     @cache.cache(strategy=cache.Strategy.lru, maxsize=1024, ignore_kwargs=True)
     async def is_plonked(self, guild_id, member_id, channel_id=None, *, connection=None, check_bypass=True):
-        if member_id in self.bot.blacklist or guild_id in self.bot.blacklist:
+        if member_id in self.bot.blocklist or guild_id in self.bot.blocklist:
             return True
 
         if check_bypass:
@@ -505,13 +505,13 @@ class Config(commands.Cog):
     @_global.command(name='block')
     async def global_block(self, ctx, object_id: int):
         """Blocks a user or guild globally."""
-        await self.bot.add_to_blacklist(object_id)
+        await self.bot.add_to_blocklist(object_id)
         await ctx.send(ctx.tick(True))
 
     @_global.command(name='unblock')
     async def global_unblock(self, ctx, object_id: int):
         """Unblocks a user or guild globally."""
-        await self.bot.remove_from_blacklist(object_id)
+        await self.bot.remove_from_blocklist(object_id)
         await ctx.send(ctx.tick(True))
 
 def setup(bot):
