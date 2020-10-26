@@ -6,6 +6,7 @@ import akinator
 from .utils import db
 from .utils.context import Context
 from collections import defaultdict
+from bot import RoboVJ
 
 class AkiConfig(db.Table, table_name='aki_config'):
     user_id = db.Column(db.Integer(big=True), index=True, primary_key=True)
@@ -36,7 +37,7 @@ class _Akinator(commands.Cog, name='Akinator'):
     """Fairly simple Akinator implementation. This has not been tested extensively and may be unstable?
     
     Idk just report bugs if you find them."""
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: RoboVJ):
         self.bot = bot
         self.in_play = defaultdict(set)
 
@@ -172,5 +173,5 @@ class _Akinator(commands.Cog, name='Akinator'):
                 await ctx.db.execute(query, ctx.author.id, True)
                 return await ctx.send(f"NSFW mode is OFF for {ctx.author}. Aki will not ask you questions about things that are NSFW.")
     
-def setup(bot: commands.Bot):
+def setup(bot: RoboVJ):
     bot.add_cog(_Akinator(bot))
