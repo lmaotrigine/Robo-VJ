@@ -71,7 +71,6 @@ class Github(commands.Cog):
                 self._req_lock.release()
 
     async def create_gist(self, content, *, description=None, filename=None, public=True):
-        print('here')
         headers = {
             'Accept': 'application/vnd.github.v3+json',
         }
@@ -90,7 +89,6 @@ class Github(commands.Cog):
             data['description'] = description
 
         js = await self.github_request('POST', 'gists', data=data, headers=headers)
-        print('posted')
         return js['html_url']
 
     async def redirect_attachments(self, message):
