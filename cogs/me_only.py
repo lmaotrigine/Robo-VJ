@@ -392,7 +392,7 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
 
         while True:
             try:
-                respone = await self.bot.wait_for('message', check=check, timeout=60.0)
+                response = await self.bot.wait_for('message', check=check, timeout=60.0)
             except asyncio.TimeoutError:
                 await ctx.send('Exiting REPL session.')
                 self.sessions.remove(ctx.channel.id)
