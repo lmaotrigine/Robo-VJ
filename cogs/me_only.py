@@ -448,7 +448,7 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
                     if len(fmt) > 2000:
                         await ctx.send('Content too large to be printed.')
                     else:
-                        await ctx.send('fmt')
+                        await ctx.send(fmt)
             except discord.Forbidden:
                 pass
             except discord.HTTPException as e:
