@@ -24,7 +24,7 @@ import traceback
 log = logging.getLogger(__name__)
 load_dotenv()
 
-initial_extensions =  [
+initial_extensions =  {
     'cogs.tmdb',
     'cogs.aki',
     'cogs.buttons',
@@ -47,7 +47,7 @@ initial_extensions =  [
     'cogs.tags',
     'cogs.utilities',
     'jishaku'
-]
+}
 
 class Servers(db.Table):
     id = db.PrimaryKeyColumn()
