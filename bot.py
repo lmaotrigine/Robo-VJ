@@ -213,13 +213,6 @@ class RoboVJ(commands.Bot):
             await self.set_guild_prefixes(guild, ['!', '?'])
 
         pfx = self.get_raw_guild_prefixes(guild.id)[0]
-        if guild.system_channel:
-            send_here = guild.system_channel
-        else:
-            for channel in guild.text_channels:
-                if channel.overwrites_for(guild.default_role).read_messages:
-                    send_here = channel
-                    break
         embed = discord.Embed(title="Thanks for adding me to your server! :blush:", colour=discord.Colour.blurple())
         embed.description = f"""Robo VJ was originally made to keep scores during online quizzes, but has since evolved to support moderation commands and some fun here and there.
         For a full list of commands, use `{pfx}help`.
@@ -230,7 +223,8 @@ class RoboVJ(commands.Bot):
         
         If you have any questions, or need help with the bot, or want to report bugs or request features, [click here](https://discord.gg/rqgRyF8) to join the support server."""
         embed.set_footer(text=f"Made by {owner}", icon_url=owner.avatar_url)
-        await send_here.send(embed=embed)
+        if guild.system_channel is not None:
+            await guild.system_channel.send(embed=embed)
 
     async def on_guild_update(self, before, after):
         if before.name != after.name:
