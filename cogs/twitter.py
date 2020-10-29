@@ -183,7 +183,7 @@ class Twitter(commands.Cog):
         A delay of up to 2 minutes is possible due to Twitter rate limits.
         """
         handle = handle.lower().strip('@')
-        query = "SELECT EXISTS (SELECT FROM twitter WHERE channel_id = $1 AND handle = $2;"
+        query = "SELECT EXISTS (SELECT FROM twitter WHERE channel_id = $1 AND handle = $2);"
         following = await ctx.db.fetchval(query, ctx.channel.id, handle)
         if following:
             return await ctx.send("\N{NO ENTRY} This channel is already following that Twitter handle.")
