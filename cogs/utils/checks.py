@@ -68,3 +68,13 @@ def is_in_guilds(*guild_ids):
             return False
         return guild.id in guild_ids
     return commands.check(predicate)
+
+def is_guild_owner():
+    async def predicate(ctx):
+        if await ctx.bot.is_owner(ctx.author):
+            return True
+        guild = ctx.guild
+        if guild is None:
+            return True
+        return ctx.author == guild.owner
+    return commands.check(predicate)

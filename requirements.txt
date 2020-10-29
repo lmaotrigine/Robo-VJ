@@ -13,5 +13,7 @@ pygit2
 lxml
 click
 akinator.py[async]
+tweepy
+pyowm
 
 jishaku @ git+https://github.com/darthshittious/jishaku

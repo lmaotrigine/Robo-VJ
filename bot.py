@@ -1,5 +1,5 @@
 
-__version__ = "6.3.0"
+__version__ = "6.5.0"
 __author__ = "Varun J"
 
 import aiohttp
@@ -18,7 +18,8 @@ from cogs.utils.config import Config
 from cogs.utils import context, time, db
 import logging
 import traceback
-
+import pyowm
+import tweepy
 
 
 log = logging.getLogger(__name__)
@@ -45,6 +46,7 @@ initial_extensions =  {
     'cogs.stars',
     'cogs.stats',
     'cogs.tags',
+    'cogs.twitter',
     'cogs.utilities',
     'jishaku'
 }
@@ -88,6 +90,19 @@ class RoboVJ(commands.Bot):
         self.blocklist = Config('blocklist.json')
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
         self._auto_spam_count = Counter()
+        
+        # external clients
+        ## OpenWeatherMap
+        try:
+            self.owm_client = pyowm.OWM(config.owm_api_key)
+            self.weather_manager = self.owm_client.weather_manager()
+        except AssertionError as e:
+            print(f"Failed to initialise OpenWeatherMap client: {e}")
+
+        ## Twitter
+        self.twitter_auth = tweepy.OAuthHandler(config.twitter_api_key, config.twitter_api_key_secret)
+        self.twitter_auth.set_access_token(config.twitter_access_token, config.twitter_access_token_secret)
+        self.twitter_api = tweepy.API(self.twitter_auth)
 
         for extension in initial_extensions:
             try:
