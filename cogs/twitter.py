@@ -96,7 +96,7 @@ class TwitterStreamListener(tweepy.StreamListener):
     async def send_embed(channel, embed):
         try:
             await channel.send(embed=embed)
-        except discord.Forbidden:
+        except (discord.Forbidden, discord.NotFound):
             pass
 
     def on_error(self, status_code):
@@ -223,6 +223,12 @@ class Twitter(commands.Cog):
             return await ctx.send("No handles are being followed in this channel.")
         await ctx.send(embed=discord.Embed(title='Handles followed', description='\n'.join(f'[@{record["handle"]}](https://twitter.com/{handle})' for record in records), colour=0x00ACED))
         
+    @commands.Cog.listener()
+    async def on_guild_channel_delete(self, channel):
+        if isinstance(channel, discord.TextChannel):
+            async with self.bot.pool.acquire() as con:
+                await con.execute("DELETE FROM twitter WHERE channel_id = $1", channel.id)
+
     def process_tweet_text(self, text, entities):
         mentions = {}
         for mention in entities["user_mentions"]:
