@@ -15,5 +15,7 @@ click
 akinator.py[async]
 tweepy
 pyowm
+treys
+pydealer
 
 jishaku @ git+https://github.com/darthshittious/jishaku
