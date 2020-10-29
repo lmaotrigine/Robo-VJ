@@ -256,7 +256,7 @@ class Twitter(commands.Cog):
                         try:
                             partial = functools.partial(self.bot.twitter_api.get_user, record['handle'])
                             user = await self.bot.loop.run_in_executor(None, partial)
-                            feeds[record['channel_id']] = feeds.get(record['channel_id'], [])
+                            feeds[record['channel_id']] = feeds.get(record['channel_id'], []) + [user.id_str]
                         except tweepy.TweepError as e:
                             if e.api_code in (50, 63):
                                 # User not found (50) or suspended (63)
