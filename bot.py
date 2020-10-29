@@ -28,6 +28,7 @@ load_dotenv()
 initial_extensions =  {
     'cogs.tmdb',
     'cogs.aki',
+    'cogs.admin',
     'cogs.buttons',
     'cogs.change_state',
     'cogs.config',
@@ -35,7 +36,6 @@ initial_extensions =  {
     'cogs.feeds',
     'cogs.funhouse',
     'cogs.github',
-    'cogs.me_only',
     'cogs.meta',
     'cogs.mod',
     'cogs.music',
