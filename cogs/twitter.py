@@ -128,7 +128,7 @@ class Twitter(commands.Cog):
                     if friend.protected:
                         self.blocklisted_handles.append(friend.screen_name.lower())
         except tweepy.TweepError as e:
-            log.exception(f"Failed to initialize Twitter cog blacklist: {e}")
+            log.exception(f"Failed to initialize Twitter cog blocklist: {e}")
         self.stream_listener = TwitterStreamListener(bot)
         self.task = self.bot.loop.create_task(self.start_twitter_feeds(), name = "Start Twitter Stream")
 
@@ -195,7 +195,7 @@ class Twitter(commands.Cog):
         
         query = "INSERT INTO twitter (channel_id, handle) VALUES ($1, $2);"
         await ctx.db.execute(query, ctx.channel.id, handle)
-        await message.edit(embed=discord.Embed(description=f"Added the Twitter handle, [`{handle}`](https://twiiter.com/{handle}), to this text channel"))
+        await message.edit(embed=discord.Embed(description=f"Added the Twitter handle, [`@{handle}`](https://twitter.com/{handle}), to this text channel"))
 
     @twitter.command(name='remove', aliases=['delete', 'removehandle', 'handleremove', 'deletehandle', 'handledelete'])
     @checks.is_guild_owner()
