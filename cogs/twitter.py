@@ -221,7 +221,7 @@ class Twitter(commands.Cog):
         records = await ctx.db.fetch(query, ctx.channel.id)
         if records is None:
             return await ctx.send("No handles are being followed in this channel.")
-        await ctx.send(embed=discord.Embed(title='Handles followed', description='\n'.join(f'[@{record["handle"]}](https://twitter.com/{handle})' for record in records), colour=0x00ACED))
+        await ctx.send(embed=discord.Embed(title='Handles followed', description='\n'.join(f'[@{record["handle"]}](https://twitter.com/{record["handle"]})' for record in records), colour=0x00ACED))
         
     @commands.Cog.listener()
     async def on_guild_channel_delete(self, channel):
