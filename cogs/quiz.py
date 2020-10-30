@@ -412,7 +412,7 @@ class Quiz(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @commands.cooldown(1, 2, commands.BucketType.member)
-    @commands.check_any(checks.is_qm(), checks.is_admin())
+    @commands.check_any(is_qm(), checks.is_admin())
     async def purgeroles(self, ctx, *entities):
         """Purges all roles of a member, or all members of a role.
 
