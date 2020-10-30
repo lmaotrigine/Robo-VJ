@@ -1018,8 +1018,8 @@ class Moderation(commands.Cog):
         In order for this to work, the bot must have Ban Member permissions.
         To use this command you must have Ban Members permissions.
         """
-        e = discord.Embed(title=f'[UNBAN] {member}', colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
-        e.add_field(name='Member ID', value=member.id)
+        e = discord.Embed(title=f'[UNBAN] {member.user}', colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
+        e.add_field(name='Member ID', value=member.user.id)
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
         
@@ -1538,7 +1538,7 @@ class Moderation(commands.Cog):
             await ctx.send('\N{THUMBS UP SIGN}')
         else:
             await ctx.send(f'Unmuted [{total - failed}/{total}]')
-        e = discord.Embed(title=f'[UNMUTE] {", ".join([member for member in members])}', colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
+        e = discord.Embed(title=f'[UNMUTE] {", ".join([str(member) for member in members])}', colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
         e.add_field(name='Member IDs', value='\n'.join([member.id for member in members]))
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Reason', value=reason, inline=False)
