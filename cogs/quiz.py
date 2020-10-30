@@ -260,7 +260,7 @@ class Quiz(commands.Cog):
         while len(medals) < len(lb):
             medals.append('\N{SPORTS MEDAL}')
 
-        all_teams = [('', list(teams)) for _, teams in groupby(lb, lambda i: i[1])][:3]
+        all_teams = [['', list(teams)] for _, teams in groupby(lb, lambda i: i[1])][:3]
 
         for i in range(len(all_teams)):
             all_teams[i][0] = medals[i]
