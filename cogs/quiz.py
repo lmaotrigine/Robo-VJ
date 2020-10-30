@@ -52,7 +52,7 @@ class Quiz(commands.Cog):
 
     async def _prepare_channels(self):
         async with self.bot.pool.acquire() as con:
-            records = con.fetch("SELECT id, qchannel, pchannel FROM quiz_config;")
+            records = await con.fetch("SELECT id, qchannel, pchannel FROM quiz_config;")
             for record in records:
                 self.qchannels[record['id']] = record['qchannel']
                 self.pchannels[record['id']] = record['pchannel']
