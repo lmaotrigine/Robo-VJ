@@ -289,6 +289,9 @@ class RoboVJ(commands.Bot):
         #await bot.init_db()
         #await self.wait_until_ready()
         self.owner = self.get_user(self.owner_id)
+        records = self.pool.fetch("SELECT id, prefixes FROM guild_prefixes;")
+        for record in records:
+            self.prefixes[record['id']] = record['prefixes']
 
     @startup.before_loop
     async def before_startup(self):
