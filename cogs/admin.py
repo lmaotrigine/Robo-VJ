@@ -82,7 +82,7 @@ class GlobalChannel(commands.Converter):
                     raise commands.BadArgument(f'Could not find a channel by ID {argument!r}.')
                 return channel
 
-class MeOnly(commands.Cog, name="Bot owner specific"):
+class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.AUTOAPPROVE = {}
@@ -598,4 +598,4 @@ class MeOnly(commands.Cog, name="Bot owner specific"):
         await ctx.send(f'Status: {ctx.tick(success)} Time: {(end - start) * 1000:.2f}ms')
 
 def setup(bot):
-    bot.add_cog(MeOnly(bot))
+    bot.add_cog(Admin(bot))
