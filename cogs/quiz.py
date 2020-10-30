@@ -216,7 +216,7 @@ class Quiz(commands.Cog):
                 self.score_dict[ctx.guild.id][ctx.guild.get_member(int(id))] = self.score_dict[ctx.guild.id].get(ctx.guild.get_member(id), 0) + float(points)
             elif self.mode_dict[ctx.guild.id] == 'TEAMS':
                 self.score_dict[ctx.guild.id][ctx.guild.get_role(int(id))] = self.score_dict[ctx.guild.id].get(ctx.guild.get_role(id), 0) + float(points)
-            await ctx.send(random.choice(["Gotcha :+1:", "Roger That!", "Aye Aye, Cap'n!", "Done and done.", "\N{OK HAND SIGN}"]))
+        await ctx.send(random.choice(["Gotcha :+1:", "Roger That!", "Aye Aye, Cap'n!", "Done and done.", "\N{OK HAND SIGN}"]))
 
     @points.error
     async def points_error(self, ctx, error):
@@ -260,7 +260,7 @@ class Quiz(commands.Cog):
         while len(medals) < len(lb):
             medals.append('\N{SPORTS MEDAL}')
 
-        all_teams = [['', list(teams)] for _, teams in groupby(lb, lambda i: i[1])][:3]
+        all_teams = [['', list(teams)] for _, teams in groupby(lb, lambda i: i[1])]
 
         for i in range(len(all_teams)):
             all_teams[i][0] = medals[i]
