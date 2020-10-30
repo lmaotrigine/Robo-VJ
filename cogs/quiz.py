@@ -277,8 +277,8 @@ class Quiz(commands.Cog):
                 medal = item[0]
                 for team, score in item[1]:
                     rest_value.append(f'{medal} {team.mention}: `{score}`')
-            embed.add_field(name='Top scorers', value='\n'.join(top_value))
-            embed.add_field(name='Other participants', value='\n'.join(rest_value))
+            embed.add_field(name='\u200b', value='\n'.join(top_value))
+            embed.add_field(name='\u200b', value='\n'.join(rest_value))
         else:
             value = []
             for item in all_teams:
