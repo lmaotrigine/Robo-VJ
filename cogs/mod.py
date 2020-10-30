@@ -1501,7 +1501,7 @@ class Moderation(commands.Cog):
         else:
             await ctx.send(f'Muted [{total - failed}/{total}]')
         e = discord.Embed(title=f'[MUTE] {", ".join([str(member) for member in members])}', colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
-        e.add_field(name='Member ID', value=member.id)
+        e.add_field(name='Member IDs', value=', '.join(str(member.id) for member in members))
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Reason', value=reason, inline=False)
         modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
@@ -1539,7 +1539,7 @@ class Moderation(commands.Cog):
         else:
             await ctx.send(f'Unmuted [{total - failed}/{total}]')
         e = discord.Embed(title=f'[UNMUTE] {", ".join([str(member) for member in members])}', colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
-        e.add_field(name='Member IDs', value='\n'.join([member.id for member in members]))
+        e.add_field(name='Member IDs', value=', '.join([str(member.id) for member in members]))
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Reason', value=reason, inline=False)
         modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
