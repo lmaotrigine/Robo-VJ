@@ -13,6 +13,7 @@ import codecs
 import pathlib
 import random
 from .utils.help import PaginatedHelpCommand
+from .utils import checks
 import psutil
 import pygit2
 
