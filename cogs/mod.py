@@ -46,6 +46,7 @@ class GuildConfig(db.Table, table_name='guild_mod_config'):
     safe_mention_channel_ids = db.Column(db.Array(db.Integer(big=True)))
     mute_role_id = db.Column(db.Integer(big=True))
     muted_members = db.Column(db.Array(db.Integer(big=True)))
+    modlog = db.Column(db.Integer(big=True))
 
 ## Configuration
 
@@ -266,6 +267,8 @@ class Moderation(commands.Cog):
         self._disable_lock = asyncio.Lock(loop=bot.loop)
         self.batch_updates.add_exception_type(asyncpg.PostgresConnectionError)
         self.batch_updates.start()
+        self.modlogs = {}
+        self.task = self.bot.loop.create_task(self._prepare_modlogs())
 
         # (guild_id, channel_id): List[str]
         # A batch list of message content for message
@@ -279,6 +282,13 @@ class Moderation(commands.Cog):
     def cog_unload(self):
         self.batch_updates.stop()
         self.bulk_send_messages.stop()
+        self.task.cancel()
+
+    async def _prepare_modlogs(self):
+        async with self.bot.pool.acquire() as con:
+            data = await con.fetch("SELECT id, modlog FROM guild_mod_config;")
+            for record in data:
+                self.modlogs[record['id']] = record['modlog']
     
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
@@ -515,29 +525,29 @@ class Moderation(commands.Cog):
     @commands.group(name='modlog', invoke_without_command=True)
     @commands.guild_only()
     @checks.is_mod()
-    async def modlog(self, ctx):
-        channel_id = await self.bot.pool.fetchval("SELECT modlog FROM servers WHERE guild_id = $1", ctx.guild.id)
+    async def _modlog(self, ctx):
+        channel_id = await self.bot.pool.fetchval("SELECT modlog FROM guild_mod_config WHERE id = $1", ctx.guild.id)
         channel = ctx.guild.get_channel(channel_id)
         if channel_id is None or channel is None:
             return await ctx.send("No channel set up for logging modlogs in this server.")
-        await ctx.send(f"Modration events are logged to {channel.mention}")
+        await ctx.send(f"Moderation events are logged to {channel.mention}")
 
-    @modlog.command(name='assign')
+    @_modlog.command(name='assign')
     @commands.guild_only()
     @checks.is_admin()
     async def modlog_assign(self, ctx, channel: discord.TextChannel):
         if channel.guild != ctx.guild:
             return await ctx.send("Channel does not belong to this server.")
-        await ctx.db.execute("UPDATE servers SET modlog = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
-        self.bot.modlogs[ctx.guild.id] = channel.id
+        await ctx.db.execute("INSERT INTO guild_mod_config (id, modlog) VALUES ($2, $1) ON CONFLICT (id) DO UPDATE guild_mod_config SET modlog = $1 WHERE id = $2", channel.id, ctx.guild.id)
+        self.modlogs[ctx.guild.id] = channel.id
         await ctx.send(ctx.tick(True))
 
-    @modlog.command(name='remove', aliases=['delete'])
+    @_modlog.command(name='remove', aliases=['delete'])
     @commands.guild_only()
     @checks.is_admin()
     async def modlog_remove(self, ctx):
-        await ctx.db.execute("UPDATE servers SET modlog = NULL WHERE guild_id = $1", ctx.guild.id)
-        self.bot.modlogs.pop(ctx.guild.id)
+        await ctx.db.execute("INSERT INTO guild_mod_config (id, modlog) VALUES ($2, $1) ON CONFLICT (id) DO UPDATE guild_mod_config SET modlog = $1 WHERE id = $2", None, ctx.guild.id)
+        self.modlogs.pop(ctx.guild.id)
         await ctx.send(ctx.tick(True))
 
     @commands.command(aliases=['newmembers'])
@@ -738,7 +748,7 @@ class Moderation(commands.Cog):
         e.add_field(name='Member ID', value=member.id)
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Reason', value=reason, inline=False)
-        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
         if modlog_channel:
             await modlog_channel.send(embed=e)
 
@@ -994,7 +1004,7 @@ class Moderation(commands.Cog):
         e.add_field(name='Member ID', value=member.id)
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Reason', value=reason, inline=False)
-        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
         if modlog_channel:
             await modlog_channel.send(embed=e)
 
@@ -1011,7 +1021,7 @@ class Moderation(commands.Cog):
         e = discord.Embed(title=f'[UNBAN] {member}', colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
         e.add_field(name='Member ID', value=member.id)
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
-        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
         
         if reason is None:
             reason = f'Action done by {ctx.author} (ID: {ctx.author.id})'
@@ -1069,7 +1079,7 @@ class Moderation(commands.Cog):
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Duration', value=time.human_timedelta(duration.dt, source=timer.created_at))
         e.add_field(name='Reason', value=reason, inline=False)
-        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
         if modlog_channel:
             await modlog_channel.send(embed=e)
 
@@ -1494,7 +1504,7 @@ class Moderation(commands.Cog):
         e.add_field(name='Member ID', value=member.id)
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Reason', value=reason, inline=False)
-        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
         if modlog_channel:
             await modlog_channel.send(embed=e)
 
@@ -1532,7 +1542,7 @@ class Moderation(commands.Cog):
         e.add_field(name='Member IDs', value='\n'.join([member.id for member in members]))
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Reason', value=reason, inline=False)
-        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
         if modlog_channel:
             await modlog_channel.send(embed=e)
 
@@ -1568,7 +1578,7 @@ class Moderation(commands.Cog):
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Duration', value=delta)
         e.add_field(name='Reason', value=reason, inline=False)
-        modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
         if modlog_channel:
             await modlog_channel.send(embed=e)
 
@@ -1871,7 +1881,7 @@ class Moderation(commands.Cog):
             e.add_field(name='Member ID', value=member.id)
             e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
             e.add_field(name='Channel', value=ctx.channel.mention)
-            modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+            modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
             if modlog_channel:
                 await modlog_channel.send(embed=e)
 
@@ -1912,7 +1922,7 @@ class Moderation(commands.Cog):
             e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
             e.add_field(name='Channel', value=ctx.channel.mention)
             e.add_field(name='Duration', value=time.human_timedelta(duration.dt, source=timer.created_at))
-            modlog_channel = ctx.guild.get_channel(self.bot.modlogs.get(ctx.guild.id))
+            modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
             if modlog_channel:
                 await modlog_channel.send(embed=e)
             
@@ -1974,7 +1984,7 @@ class Moderation(commands.Cog):
                 await self.bot.pool.execute("UPDATE warns SET num = $1 WHERE guild_id = $2 and user_id = $3", current, ctx.guild.id, user.id)
                 if current >=5:
                     await user.ban(reason="Autoban: 5 warns.")
-                    channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
+                    channel = self.bot.get_channel(self.modlogs.get(ctx.guild.id))
                     if channel:
                         warn_embed = discord.Embed(title="WARN", colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
                         warn_embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
@@ -1990,7 +2000,7 @@ class Moderation(commands.Cog):
                     await self.bot.pool.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
                     return await ctx.send(f"{user.mention} has been autobanned because they have 5 or more warns.")
         await ctx.send(f"{user.mention} has been warned. Total warnings: {current}")
-        channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        channel = self.bot.get_channel(self.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="WARN", colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
@@ -2027,7 +2037,7 @@ class Moderation(commands.Cog):
                 if current == 0:
                     await self.bot.pool.execute("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
         await ctx.send(f"{user.mention} has been pardoned for one warning. Total warns: {current}")
-        channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        channel = self.bot.get_channel(self.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="UNWARN", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
@@ -2048,12 +2058,54 @@ class Moderation(commands.Cog):
         async with self.bot.pool.acquire() as conn:
             await self.bot.pool.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
         await ctx.send(f"Removed all warnings for {user.mention}")
-        channel = self.bot.get_channel(self.bot.modlogs.get(ctx.guild.id))
+        channel = self.bot.get_channel(self.modlogs.get(ctx.guild.id))
         if channel:
             embed = discord.Embed(title="CLEAR ALL WARNINGS", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
             embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
             embed.add_field(name='Responsible Moderator', value=str(ctx.author))
             await channel.send(embed=embed)
+
+    @commands.command()
+    @commands.guild_only()
+    @checks.is_admin()
+    async def prune(self, ctx, days:int, *roles):
+        """
+        Kick all members who haven't logged on in a certain nember of days, with optional roles.
+        If a member has any roles that are not provided, they won't be kicked.
+        The estimate provided does not take these roles into consideration.
+        """
+        if roles:
+            rolelist = []
+            for arg in roles:
+                try:
+                    role = await commands.RoleConverter().convert(ctx, arg)
+                except commands.BadArgument:
+                    return await ctx.send(f"Invalid role: {arg}")
+                else:
+                    rolelist.append(role)
+            roles = rolelist
+        estimate = await ctx.guild.estimate_pruned_members(days=days)
+        msg = await ctx.send(f"After this operation, approximately {estimate} members will be pruned.\nReact with \U00002705 to confirm wiping question channel.\nReact with \U0000274c to cancel.")
+        await msg.add_reaction('\U00002705')
+        await msg.add_reaction('\U0000274c')
+        def check(reaction, user):
+            return user == ctx.author and str(reaction.emoji) in ['\U00002705', '\U0000274c'] and reaction.message == msg
+        try:
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=30.0, check=check)
+        except asyncio.TimeoutError:
+            await ctx.send("Timeout! Cancelling operation...", delete_after=20.0)
+            await msg.delete()
+            await ctx.message.delete()
+        else:
+            if str(reaction.emoji) == '\U0000274c':
+                await ctx.send("Cancelling...", delete_after=20.0)
+                await msg.delete()
+                await ctx.message.delete()
+            elif str(reaction.emoji) == '\U00002705':
+                await msg.delete()
+                await ctx.message.delete()
+                count = await ctx.guild.prune_members(days=days, roles=roles)
+                await ctx.send(f"Operation complete. {count} members were pruned.")
 
 def setup(bot):
     bot.add_cog(Moderation(bot))

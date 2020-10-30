@@ -10,27 +10,75 @@ from discord.ext import commands, tasks
 from prettytable import PrettyTable
 import asyncio
 from typing import Union
+from .utils import checks, db
 
-class GameState(commands.Cog):
-    """Keeps track of state variables during quizzes"""
-    dm_pounces = {}
-    mode_dict = {}
-    score_dict = {}
-    pounce_dict = {}
-    pounce_open = {}
-    in_play = {}
-    buzz_dict = {}
-    def __init__(self, bot):
-        self.bot = bot
+class QuizConfig(db.Table, table_name='quiz_config'):
+    id = db.Column(db.Integer(big=True), primary_key=True)
+    qchannel = db.Column(db.Integer(big=True))
+    pchannel = db.Column(db.Integer(big=True))
 
+def is_qm():
+    async def predicate(ctx):
+        if await ctx.bot.is_owner(ctx.author):
+            return True
+        role = discord.utils.get(ctx.author.roles, name='QM')  # TODO: Add this to database?
+        if role is None:
+            return False
+        return True
+    return commands.check(predicate)
 
-class Quiz(GameState):
+class Quiz(commands.Cog):
     """Keep scores during a quiz. Requires a role named QM for the quizmaster.
     It is advised to keep the bot in a higher role than everyone else (may be lower than QM and other bots)"""
-    def __init__(self, bot):
-        super().__init__(bot)
 
-    # commands
+    team_regex = re.compile(r"<@&([0-9]+)>")
+    member_regex = re.compile(r"<@!?([0-9]+)>")
+    points_regex = re.compile(r"(\d*\.?\d*)\s<@[!&]?([0-9]+)>")
+    
+    def __init__(self, bot):
+        self.bot = bot
+        self.dm_pounces = {}
+        self.mode_dict = {}
+        self.score_dict = {}
+        self.pounce_dict = {}
+        self.pounce_open = {}
+        self.in_play = {}
+        self.buzz_dict = {}
+        self.qchannels = {}
+        self.pchannels = {}
+        self.task = self.bot.loop.create_task(self._prepare_channels())
+
+    async def _prepare_channels(self):
+        async with self.bot.pool.acquire() as con:
+            records = con.fetch("SELECT id, qchannel, pchannel FROM quiz_config;")
+            for record in records:
+                self.qchannels[record['id']] = record['qchannel']
+                self.pchannel[record['id']] = record['pchannel']
+    
+    def cog_unload(self):
+        self.task.cancel()
+
+    @commands.command()
+    @commands.guild_only()
+    @checks.is_guild_owner()
+    async def qchannel(self, ctx, channel: discord.TextChannel=None):
+        channel = channel or ctx.channel
+        self.qchannels[ctx.guild.id] = channel.id
+        query = "INSERT INTO quiz_config (id, qchannel) VALUES ($2, $1) ON CONFLICT (id) DO UPDATE SET qchannel = $1 WHERE id = $2;"
+        await ctx.db.execute(query, channel.id, ctx.guild.id)
+        await ctx.send(f"{channel.mention} is marked as the questions channel.")
+
+    @commands.command()
+    @commands.guild_only()
+    @checks.is_guild_owner()
+    async def pchannel(self, ctx, channel: discord.TextChannel=None):
+        channel = channel or ctx.channel
+        self.pchannels[ctx.guild.id] = channel.id
+        query = "INSERT INTO quiz_config (id, pchannel) VALUES ($2, $1) ON CONFLICT (id) DO UPDATE SET pchannel = $1 WHERE id = $2;"
+        await ctx.db.execute(query, channel.id, ctx.guild.id)
+        await ctx.send(f"{channel.mention} is now the channel where pounces will appear.")
+
+        
     @commands.command(aliases=['score'])
     @commands.guild_only()
     async def scores(self, ctx):
@@ -57,8 +105,6 @@ class Quiz(GameState):
         if len(msg) == 0:
             msg += "No scores yet."
         await ctx.send(msg.rstrip())
-
-
 
     @commands.command()
     @commands.guild_only()
@@ -109,7 +155,7 @@ class Quiz(GameState):
 
         self.pounce_dict[ctx.guild.id][ctx.channel] = answer
         try:
-            await self.bot.get_channel(self.bot.pchannels[ctx.guild.id]).send(f"{ctx.channel.mention}: {answer}") # send to pounce channel
+            await self.bot.get_channel(self.pchannels[ctx.guild.id]).send(f"{ctx.channel.mention}: {answer}") # send to pounce channel
         except:
             if self.dm_pounces.get(ctx.guild.id, 'on') == 'on':
                 role = discord.utils.get(ctx.guild.roles, name="QM")            #if no pounce channel, DM QM(s)
@@ -133,10 +179,9 @@ class Quiz(GameState):
                 await ctx.message.add_reaction("🚨")
                 if self.mode_dict[ctx.guild.id] == 'TEAMS':
                     team = [role for role in ctx.author.roles if role.name.lower().startswith("team")][0]
-                    await self.bot.get_channel(self.bot.qchannels[ctx.guild.id]).send(f"{team.mention} has buzzed!")
+                    await self.bot.get_channel(self.qchannels[ctx.guild.id]).send(f"{team.mention} has buzzed!")
                 elif self.mode_dict[ctx.guild.id] == 'SOLO':
-                    await self.bot.get_channel(self.bot.qchannels[ctx.guild.id]).send(f"{ctx.author.mention} has buzzed!")
-
+                    await self.bot.get_channel(self.qchannels[ctx.guild.id]).send(f"{ctx.author.mention} has buzzed!")
 
     @commands.command()
     @commands.guild_only()
@@ -150,29 +195,15 @@ class Quiz(GameState):
             await msg.add_reaction("🇩")
             await msg.add_reaction("🇾")
 
-    # error handling
-
-
-
-class QMOnly(GameState, name="QM Commands"):
-    """Commands only QM can use"""
-    team_regex = re.compile("<@&([0-9]+)>")
-    member_regex = re.compile("<@!?([0-9]+)>")
-    points_regex = re.compile("(\d*\.?\d*)\s<@[!&]?([0-9]+)>")
-    def __init__(self, bot):
-        super().__init__(bot)
-
-    
-
     @commands.command(usage="points [<points> <team | member>...]")
     @commands.guild_only()
+    @is_qm()
     async def points(self, ctx, *, args):
         """
         Award points by mentioning a team role or member
         e.g points 10 @team-01 10 @team-02 20 @team-03 etc
         """
-        if not "QM" in [role.name for role in ctx.author.roles]:
-            return await ctx.send("Only QM is Gwad")
+            
         if not self.in_play.get(ctx.guild.id, False):
             return await ctx.send(random.choice([f"QM please start a `{ctx.prefix}newquiz <solo|teams>` to begin.",
                 f"Please run a `{ctx.prefix}newquiz <solo|teams>` first."]))
@@ -192,26 +223,25 @@ class QMOnly(GameState, name="QM Commands"):
     @points.error
     async def points_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
-            pass
+            if ctx.guild is not None:
+                return await ctx.send("Only QM is Gwad")
         else:
             await ctx.send("Mismatch between teams and points entered. Please try again.")
 
     @commands.command()
     @commands.guild_only()
+    @is_qm()
     async def reset(self, ctx):
         """Resets the buzzers during buzzer round."""
         if self.in_play[ctx.guild.id]:
-            if not "QM" in [role.name for role in ctx.author.roles]:
-                return
             self.buzz_dict[ctx.guild.id] = False
             await ctx.message.add_reaction("👍")
 
     @commands.command()
     @commands.guild_only()
+    @is_qm()
     async def pounces(self, ctx):
         """Displays pounces till the moment of invoking. Does not close pounce"""
-        if not "QM" in [role.name for role in ctx.author.roles]:
-            return
         msg = ""
         for team, pounce in self.pounce_dict[ctx.guild.id].items():
             msg += f"{team.name} : {pounce}\n"
@@ -219,10 +249,9 @@ class QMOnly(GameState, name="QM Commands"):
 
     @commands.command()
     @commands.guild_only()
+    @is_qm()
     async def podium(self, ctx):
         """Displays current standings in the current channel (Honestly not so different from lb, I'm just lazy)"""
-        if not "QM" in [role.name for role in ctx.author.roles]:
-            return
         lb = [(team, score) for score, team in sorted([(score, team) for team, score in self.score_dict[ctx.guild.id].items()], reverse=True)]
         idx = 0
         pod = []
@@ -243,10 +272,9 @@ class QMOnly(GameState, name="QM Commands"):
 
     @commands.command()
     @commands.guild_only()
+    @is_qm()
     async def announcewin(self, ctx):
         """Displays the final scores in the questions channel and ends the quiz"""
-        if not "QM" in [role.name for role in ctx.author.roles]:
-            return
         lb = [(team, score) for score, team in sorted([(score, team) for team, score in self.score_dict[ctx.guild.id].items()], reverse=True)]
         idx = 0
         pod = []
@@ -270,9 +298,9 @@ class QMOnly(GameState, name="QM Commands"):
         self.pounce_open[ctx.guild.id] = False
         self.in_play[ctx.guild.id] = False
         try:
-            react_to = await self.bot.get_channel(self.bot.qchannels[ctx.guild.id]).send(msg.rstrip())
+            react_to = await self.bot.get_channel(self.qchannels[ctx.guild.id]).send(msg.rstrip())
         except KeyError:
-            if not ctx.guild.system_channel is None:
+            if ctx.guild.system_channel is not None:
                 react_to = await ctx.guild.system_channel.send(msg.rstrip())
             else:
                 react_to = await ctx.send(msg.rstrip())
@@ -288,12 +316,13 @@ class QMOnly(GameState, name="QM Commands"):
 
     @commands.command()
     @commands.guild_only()
+    @is_qm()
     async def close(self, ctx):
         """Closes pounce for a question."""
         if not "QM" in [role.name for role in ctx.author.roles]:
             return
         self.pounce_open[ctx.guild.id] = False
-        if ctx.channel.id == self.bot.pchannels.get(ctx.guild.id):
+        if ctx.channel.id == self.pchannels.get(ctx.guild.id):
             msg = "Pounce closed. Final pounces:\n\n"
             for team, pounce in self.pounce_dict[ctx.guild.id].items():
                 msg += f"{team.name} : {pounce}\n"
@@ -305,10 +334,9 @@ class QMOnly(GameState, name="QM Commands"):
 
     @commands.command()
     @commands.guild_only()
+    @is_qm()
     async def open(self, ctx):
         """Open pounces for a question. This must be done if you are using the bot to track pounces."""
-        if not "QM" in [role.name for role in ctx.author.roles]:
-            return
         self.pounce_open[ctx.guild.id] = True
         await ctx.message.delete()
         await ctx.send("Pounces open now.")
@@ -316,14 +344,13 @@ class QMOnly(GameState, name="QM Commands"):
 
     @commands.command()
     @commands.guild_only()
+    @is_qm()
     async def DMpounces(self, ctx, toggle=None):
         """Toggle whether pounces are sent to the QMs via DM.
         If there is a dedicated guild channel, then that is used instead, regardless of this setting."""
-        if "QM" not in [role.name for role in ctx.author.roles]:
-            return
         if toggle:
             if toggle.lower() not in ["on", "off"]:
-                await ctx.send("Please enter a valid option `on` or `off`")
+                await ctx.send("Please enter a valid option (`on` or `off`)")
                 return
             self.dm_pounces[ctx.guild.id] = toggle
             await ctx.send(f"Pounce DMs to QMs has been turned {toggle}.")
@@ -332,13 +359,11 @@ class QMOnly(GameState, name="QM Commands"):
 
     @commands.command()
     @commands.guild_only()
+    @is_qm()
     async def newquiz(self, ctx, mode=None):
         """
         Start a new quiz
         """
-        if "QM" not in [role.name for role in ctx.author.roles]:
-            await ctx.send(f"Ask {ctx.guild.owner.mention} to make you QM")
-            return
         if not mode or mode.upper() not in ['SOLO', 'TEAMS']:
             return await ctx.send(f"Please enter whether the quiz is solo or teams\ne.g. `{ctx.prefix}newquiz solo`")
         self.mode_dict[ctx.guild.id] = mode.upper()
@@ -352,12 +377,15 @@ class QMOnly(GameState, name="QM Commands"):
         elif mode.upper() =="SOLO":
             await ctx.send("Users gathered. Scores reset.")
 
+    @newquiz.error
+    async def newquiz_error(self, ctx, error):
+        if isinstance(error, commands.CheckFailure):
+            return await ctx.send(f"Ask {ctx.guild.owner.mention} to make you QM.", allowed_mentions=discord.AllowedMentions(users=False))
+
     @commands.command(hidden=True, aliases=['in_play', 'safety', 'safe', 'state'])
     @commands.is_owner()
     async def game_state(self, ctx):
         """Shows current state of play across all servers."""
-        if ctx.author.id != self.bot.owner_id:
-            return
         stateinfo = PrettyTable()
         stateinfo.field_names = ['Guild', 'Owner', 'in_play']
         for guild in self.bot.guilds:
@@ -371,10 +399,9 @@ class QMOnly(GameState, name="QM Commands"):
 
     @commands.command()
     @commands.guild_only()
+    @is_qm()
     async def endquiz(self, ctx):
         """Ends quiz and resets scores and that's about it. No bells and whistles"""
-        if not "QM" in [role.name for role in ctx.author.roles]:
-            return
         self.score_dict.pop(ctx.guild.id)
         self.mode_dict.pop(ctx.guild.id)
         self.pounce_dict.pop(ctx.guild.id)
@@ -382,6 +409,49 @@ class QMOnly(GameState, name="QM Commands"):
         self.in_play[ctx.guild.id] = False
         await ctx.send("Quiz conluded. Scores reset.")
 
+    @commands.command()
+    @commands.guild_only()
+    @commands.cooldown(1, 2, commands.BucketType.member)
+    @commands.check_any(checks.is_qm(), checks.is_admin())
+    async def purgeroles(self, ctx, *entities):
+        """Purges all roles of a member, or all members of a role.
+
+        You need to be QM or an admin to use this.
+        You cannot remove roles that are higher or equal to your top role.
+        
+        If both members and roles are passed, the members lose all roles lower
+        than your top role, and all members of the role specified are removed.
+
+        You cannot specify a role with more than 10 members, or more than 10 entities
+        in a single invocation due to rate limits.
+
+        For more granular control, you should conider adding and removing roles manually.
+        """
+        members = set()
+        roles = set()
+        if len(entities) > 10:
+            return await ctx.send("Too many arguments. Split these up and try again.")
+        for entity in entities:
+            try:
+                members.add(await commands.MemberConverter().convert(ctx, entity))
+            except commands.BadArgument:
+                try:
+                    roles.add(await commands.RoleConverter().convert(ctx, entity))
+                except commands.BadArgument:
+                    await ctx.send(f"Unable to find role or member matching '{entity}'")
+        
+        for role in roles:
+            if role >= ctx.author.top_role:
+                continue
+            if len(role.members) > 10:
+                await ctx.send(f'{role} has more than 10 members. Skipping...')
+                continue
+            for member in role.members:
+                await member.remove_roles(role)
+
+        for member in members:
+            _roles = [role for role in member.roles if role < ctx.author.top_role]
+            await member.remove_roles(*_roles)
+
 def setup(bot):
     bot.add_cog(Quiz(bot))
-    bot.add_cog(QMOnly(bot))

@@ -1,5 +1,5 @@
 
-__version__ = "6.5.0"
+__version__ = "7.0.0"
 __author__ = "Varun J"
 
 import aiohttp
@@ -47,21 +47,12 @@ initial_extensions =  {
     'cogs.stats',
     'cogs.tags',
     'cogs.twitter',
-    'cogs.utilities',
     'jishaku'
 }
 
-class Servers(db.Table):
-    id = db.PrimaryKeyColumn()
-    guild_id = db.Column(db.Integer(big=True))
-    qchannel = db.Column(db.Integer(big=True))
-    pchannel = db.Column(db.Integer(big=True))
+class GuildPrefixes(db.Table, table_name='guild_prefixes'):
+    id = db.Column(db.Integer(big=True), primary_key=True)
     prefixes = db.Column(db.Array(db.String))
-    modlog = db.Column(db.Integer(big=True))
-
-class NamedServers(db.Table, table_name='named_servers'):
-    id = db.PrimaryKeyColumn()
-    guild_id = db.Column(db.Integer(big=True))
     name = db.Column(db.String)
 
 def _prefix_callable(bot, msg):
@@ -84,9 +75,6 @@ class RoboVJ(commands.Bot):
 
         self.version = __version__
         self.prefixes = {}
-        self.qchannels = {}
-        self.pchannels = {}
-        self.modlogs = {}
         self.blocklist = Config('blocklist.json')
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
         self._auto_spam_count = Counter()
@@ -199,12 +187,12 @@ class RoboVJ(commands.Bot):
     async def set_guild_prefixes(self, guild, prefixes):
         if len(prefixes) == 0:
             self.prefixes[guild.id] = []
-            await self.pool.execute("UPDATE servers SET prefixes = $1 WHERE guild_id = $2", [], guild.id)
+            await self.pool.execute("UPDATE guild_prefixes SET prefixes = $1 WHERE id = $2", [], guild.id)
         elif len(prefixes) > 10:
             raise RuntimeError('Cannot have more than 10 custom prefixes.')
         else:
             self.prefixes[guild.id] = sorted(set(prefixes), reverse=True)
-            await self.pool.execute("UPDATE servers SET prefixes = $1 WHERE guild_id = $2", sorted(set(prefixes), reverse=True), guild.id)
+            await self.pool.execute("UPDATE guild_prefixes SET prefixes = $1 WHERE id = $2", sorted(set(prefixes), reverse=True), guild.id)
 
     async def on_ready(self):
         if not hasattr(self, 'uptime'):
@@ -220,11 +208,9 @@ class RoboVJ(commands.Bot):
         owner = self.get_user(self.owner_id)
         if guild.id in self.blocklist:
                 await guild.leave()
-        test = await self.pool.fetchrow("SELECT * FROM servers WHERE guild_id = $1", guild.id)
-        if not test:
-            async with self.pool.acquire() as con:
-                await con.execute("INSERT INTO servers (guild_id) VALUES ($1)", guild.id)
-                await con.execute("INSERT INTO named_servers (guild_id, name) VALUES ($1, $2)", guild.id, guild.name)
+        async with self.pool.acquire() as con:
+            await con.execute("INSERT INTO guild_prefixes (id, name) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING;", guild.id, guild.name)
+        if guild.id not in self.prefixes.keys():
             await self.set_guild_prefixes(guild, ['!', '?'])
 
         pfx = self.get_raw_guild_prefixes(guild.id)[0]
@@ -243,7 +229,7 @@ class RoboVJ(commands.Bot):
 
     async def on_guild_update(self, before, after):
         if before.name != after.name:
-            await self.pool.execute("UPDATE named_servers SET name = $1 WHERE guild_id = $2", after.name, after.id)
+            await self.pool.execute("UPDATE guild_prefixes SET name = $1 WHERE id = $2", after.name, after.id)
 
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=context.Context)
@@ -303,14 +289,6 @@ class RoboVJ(commands.Bot):
         #await bot.init_db()
         #await self.wait_until_ready()
         self.owner = self.get_user(self.owner_id)
-        data = await self.pool.fetch("SELECT * FROM servers")
-        for record in data:
-            self.prefixes[record['guild_id']] = record['prefixes']
-            self.qchannels[record['guild_id']] = record['qchannel']
-            self.pchannels[record['guild_id']] = record['pchannel']
-            self.modlogs[record['guild_id']] = record['modlog']
-
-        print('Data loaded')
 
     @startup.before_loop
     async def before_startup(self):
