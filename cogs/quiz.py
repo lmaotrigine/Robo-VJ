@@ -1,6 +1,7 @@
 """
 Discord bot cog to keep score during a quiz
 """
+import datetime
 import io
 import random
 import asyncio
@@ -11,6 +12,7 @@ from prettytable import PrettyTable
 import asyncio
 from typing import Union
 from .utils import checks, db
+from itertools import groupby
 
 class QuizConfig(db.Table, table_name='quiz_config'):
     id = db.Column(db.Integer(big=True), primary_key=True)
@@ -53,7 +55,7 @@ class Quiz(commands.Cog):
             records = con.fetch("SELECT id, qchannel, pchannel FROM quiz_config;")
             for record in records:
                 self.qchannels[record['id']] = record['qchannel']
-                self.pchannel[record['id']] = record['pchannel']
+                self.pchannels[record['id']] = record['pchannel']
     
     def cog_unload(self):
         self.task.cancel()
@@ -85,26 +87,21 @@ class Quiz(commands.Cog):
         """
         Returns current scores
         """
-        msg = ""
-        for item in sorted([(key, val) for key, val in self.score_dict.get(ctx.guild.id, {}).items()], key=lambda x: (x[0].name, x[1])):
-            msg += f"{item[0]} : {item[1]}"
-            if item[1] < 0:
-                msg += " :cry:"
-            msg += "\n"
-        if len(msg) == 0:
-            msg += "No scores yet."
-        await ctx.send(msg.rstrip())
+        embed = discord.Embed(title='Current Scores', colour=discord.Colour.blurple())
+        embed.description = '\n'.join(f'{team.mention}: `{score}`' for team, score in sorted(self.score_dict.get(ctx.guild.id, {}).items(), key=lambda i: i[0].name))
+        if len(self.score_dict.get(ctx.guild.id, {}).keys()) == 0:
+            return await ctx.send('No scores yet.')
+        await ctx.send(embed=embed, allowed_mentions=discord.AllowedMentions(users=False, roles=False))
 
     @commands.command()
     @commands.guild_only()
     async def lb(self, ctx):
-        """Returns current leaderboard"""
-        msg = ""
-        for score, team in sorted([(score, team) for team, score in self.score_dict.get(ctx.guild.id, {}).items()], reverse=True):
-            msg += f"{team} : {score}\n"
-        if len(msg) == 0:
-            msg += "No scores yet."
-        await ctx.send(msg.rstrip())
+        """Returns current leaderboard."""
+        embed = discord.Embed(title='Current Leaderboard', colour=discord.Colour.blurple())
+        embed.description = '\n'.join(f'{team.mention}: `{score}`' for team, score in sorted(self.score_dict.get(ctx.guild.id, {}).items(), key=lambda i: i[1], reverse=True))
+        if len(self.score_dict.get(ctx.guild.id, {}).keys()) == 0:
+            return await ctx.send('No scores yet.')
+        await ctx.send(embed=embed, allowed_mentions=discord.AllowedMentions(users=False, roles=False))
 
     @commands.command()
     @commands.guild_only()
@@ -126,7 +123,8 @@ class Quiz(commands.Cog):
     @commands.guild_only()
     async def pounce(self, ctx, *, answer=None):
         """Pounce on a question. Pounces appear either in a designated channel (if available) or sent to the QM(s) via DM.
-        This functionality is designed only for cases where each entity (team/member) has a dedicated text channel."""
+        This functionality is designed only for cases where each entity (team/member) has a dedicated text channel.
+        """
         if ctx.author.top_role == discord.utils.get(ctx.guild.roles, name="Approved") or ctx.author.top_role == ctx.guild.default_role:
             return
         try:
@@ -155,10 +153,10 @@ class Quiz(commands.Cog):
 
         self.pounce_dict[ctx.guild.id][ctx.channel] = answer
         try:
-            await self.bot.get_channel(self.pchannels[ctx.guild.id]).send(f"{ctx.channel.mention}: {answer}") # send to pounce channel
+            await self.bot.get_channel(self.pchannels[ctx.guild.id]).send(f"{ctx.channel.mention}: {answer}")  # send to pounce channel
         except:
             if self.dm_pounces.get(ctx.guild.id, 'on') == 'on':
-                role = discord.utils.get(ctx.guild.roles, name="QM")            #if no pounce channel, DM QM(s)
+                role = discord.utils.get(ctx.guild.roles, name="QM")  #if no pounce channel, DM QM(s)
                 for member in role.members:
                     await member.send(f"{ctx.channel.mention}: {answer}", delete_after=21600.0)
         finally:
@@ -218,7 +216,7 @@ class Quiz(commands.Cog):
                 self.score_dict[ctx.guild.id][ctx.guild.get_member(int(id))] = self.score_dict[ctx.guild.id].get(ctx.guild.get_member(id), 0) + float(points)
             elif self.mode_dict[ctx.guild.id] == 'TEAMS':
                 self.score_dict[ctx.guild.id][ctx.guild.get_role(int(id))] = self.score_dict[ctx.guild.id].get(ctx.guild.get_role(id), 0) + float(points)
-            await ctx.send(random.choice(["Gotcha :+1:", "Roger That!", "Aye Aye, Cap'n!", "Done and done."]))
+            await ctx.send(random.choice(["Gotcha :+1:", "Roger That!", "Aye Aye, Cap'n!", "Done and done.", "\N{OK HAND SIGN}"]))
 
     @points.error
     async def points_error(self, ctx, error):
@@ -242,112 +240,98 @@ class Quiz(commands.Cog):
     @is_qm()
     async def pounces(self, ctx):
         """Displays pounces till the moment of invoking. Does not close pounce"""
-        msg = ""
-        for team, pounce in self.pounce_dict[ctx.guild.id].items():
-            msg += f"{team.name} : {pounce}\n"
-        await ctx.send(msg.rstrip())
-
-    @commands.command()
-    @commands.guild_only()
-    @is_qm()
-    async def podium(self, ctx):
-        """Displays current standings in the current channel (Honestly not so different from lb, I'm just lazy)"""
-        lb = [(team, score) for score, team in sorted([(score, team) for team, score in self.score_dict[ctx.guild.id].items()], reverse=True)]
-        idx = 0
-        pod = []
-        while idx < 3:
-            if len(lb) < 2:
-                break
-            if lb[0][1] == lb[1][1]:
-                idx -= 1
-            pod.append(lb.pop(0))
-            idx += 1
-        msg = "Final podium:\n\n"
-        for (team, score) in pod:
-            msg += f"{team.mention} : {score}\n"
-        msg += "\n"
-        for team, score in lb:
-            msg += f"{team.mention} : {score}\n"
-        await ctx.send(msg.rstrip())
+        if not self.in_play.get(ctx.guild.id, False):
+            return
+        embed = discord.Embed(title='Pounces so far', description='\n'.join(f"{team.name} : {answer}" for team, answer in self.pounce_dict.get(ctx.guild.id, {}).items()))
+        embed.timestamp=datetime.datetime.utcnow()
+        embed.colour = discord.Colour.green() if self.pounce_open.get(ctx.guild.id, False) else discord.Colour.red()
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.guild_only()
     @is_qm()
     async def announcewin(self, ctx):
         """Displays the final scores in the questions channel and ends the quiz"""
-        lb = [(team, score) for score, team in sorted([(score, team) for team, score in self.score_dict[ctx.guild.id].items()], reverse=True)]
-        idx = 0
-        pod = []
-        while idx < 3:
-            if len(lb) < 2:
-                break
-            if lb[0][1] == lb[1][1]:
-                idx -= 1
-            pod.append(lb.pop(0))
-            idx += 1
-        msg = "Final standings\n\n"
-        pod_idx = 0
-        for (team, score) in pod:
-            msg += f"{team.mention} : {score}\n"
-        msg += "\n"
-        for team, score in lb:
-            msg += f"{team.mention} : {score}\n"
+
+        lb = sorted(self.score_dict.get(ctx.guild.id, {}).items(), key=lambda i: i[1], reverse=True)
+        embed = discord.Embed(title="Final Scores", colour=discord.Colour.blurple())
+
+        medals = ['\N{FIRST PLACE MEDAL}', '\N{SECOND PLACE MEDAL}', '\N{THIRD PLACE MEDAL}']
+        while len(medals) < len(lb):
+            medals.append('\N{SPORTS MEDAL}')
+
+        all_teams = [('', list(teams)) for _, teams in groupby(lb, lambda i: i[1])][:3]
+
+        for i in range(len(all_teams)):
+            all_teams[i][0] = medals[i]
+
+        if len(all_teams) > 3:
+            top, rest = all_teams[:3], all_teams[3:]
+            top_value = []
+            for item in top:
+                medal = item[0]
+                for team , score in item[1]:
+                    top_value.append(f'{medal} {team.mention}: `{score}`')
+            rest_value = []
+            for item in rest:
+                medal = item[0]
+                for team, score in item[1]:
+                    rest_value.append(f'{medal} {team.mention}: `{score}`')
+            embed.add_field(name='Top scorers', value='\n'.join(top_value))
+            embed.add_field(name='Other participants', value='\n'.join(rest_value))
+        else:
+            value = []
+            for item in all_teams:
+                medal = item[0]
+                for team, score in item[1]:
+                    value.append(f'{medal} {team.mention}: `{score}`')
+            embed.description = '\n'.join(value)
+
+        embed.set_footer(text='Thank you!')
         self.score_dict.pop(ctx.guild.id)
         self.mode_dict.pop(ctx.guild.id)
         self.pounce_dict.pop(ctx.guild.id)
         self.pounce_open[ctx.guild.id] = False
         self.in_play[ctx.guild.id] = False
         try:
-            react_to = await self.bot.get_channel(self.qchannels[ctx.guild.id]).send(msg.rstrip())
+            await self.bot.get_channel(self.qchannels[ctx.guild.id]).send(embed=embed, allowed_mentions=discord.AllowedMentions(users=False, roles=False))
         except KeyError:
             if ctx.guild.system_channel is not None:
-                react_to = await ctx.guild.system_channel.send(msg.rstrip())
+                await ctx.guild.system_channel.send(embed=embed, allowed_mentions=discord.AllowedMentions(users=False, roles=False))
             else:
-                react_to = await ctx.send(msg.rstrip())
-
-        await react_to.add_reaction("🇹")
-        await react_to.add_reaction("🇭")
-        await react_to.add_reaction("🇦")
-        await react_to.add_reaction("🇳")
-        await react_to.add_reaction("🇰")
-        await react_to.add_reaction("🇾")
-        await react_to.add_reaction("🇴")
-        await react_to.add_reaction("🇺")
+                await ctx.send(embed=embed, allowed_mentions=discord.AllowedMentions(users=False, roles=False))
 
     @commands.command()
     @commands.guild_only()
     @is_qm()
     async def close(self, ctx):
         """Closes pounce for a question."""
-        if not "QM" in [role.name for role in ctx.author.roles]:
-            return
         self.pounce_open[ctx.guild.id] = False
         if ctx.channel.id == self.pchannels.get(ctx.guild.id):
-            msg = "Pounce closed. Final pounces:\n\n"
-            for team, pounce in self.pounce_dict[ctx.guild.id].items():
-                msg += f"{team.name} : {pounce}\n"
-            await ctx.send(msg.rstrip())
+            embed = discord.Embed(title='Pounce closed. Final pounces:', colour=0xFF0000)
+            embed.description = '\n'.join(f'{team.mention}: {pounce}' for team, pounce in self.pounce_dict[ctx.guild.id].items())
+            await ctx.send(embed=embed)
         else:
             await ctx.message.delete()
-            await ctx.send("Pounce closed.")
-        #self.pounce_dict[ctx.guild.id] = dict()
+            await ctx.send(embed=discord.Embed(title="Pounce closed.", colour=0xFF0000))
 
     @commands.command()
     @commands.guild_only()
     @is_qm()
     async def open(self, ctx):
-        """Open pounces for a question. This must be done if you are using the bot to track pounces."""
+        """Open pounces for a question."""
         self.pounce_open[ctx.guild.id] = True
-        await ctx.message.delete()
-        await ctx.send("Pounces open now.")
         self.pounce_dict[ctx.guild.id] = dict()
-
+        await ctx.message.delete()
+        await ctx.send(embed=discord.Embed(title="Pounces open now.", colour=discord.Colour.green()))
+        
     @commands.command()
     @commands.guild_only()
     @is_qm()
     async def DMpounces(self, ctx, toggle=None):
         """Toggle whether pounces are sent to the QMs via DM.
-        If there is a dedicated guild channel, then that is used instead, regardless of this setting."""
+        If there is a dedicated guild channel, then that is used instead, regardless of this setting.
+        """
         if toggle:
             if toggle.lower() not in ["on", "off"]:
                 await ctx.send("Please enter a valid option (`on` or `off`)")
@@ -395,7 +379,7 @@ class Quiz(commands.Cog):
             fp = io.BytesIO(res.encode('utf-8'))
             await ctx.send("Too many results...", file=discord.File(fp, 'results.txt'))
         else:
-            await ctx.send(f"```{stateinfo}```")
+            await ctx.send(res)
 
     @commands.command()
     @commands.guild_only()
@@ -452,6 +436,7 @@ class Quiz(commands.Cog):
         for member in members:
             _roles = [role for role in member.roles if role < ctx.author.top_role]
             await member.remove_roles(*_roles)
+        await ctx.send('\N{OK HAND SIGN}')
 
 def setup(bot):
     bot.add_cog(Quiz(bot))
