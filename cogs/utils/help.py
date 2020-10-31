@@ -289,6 +289,8 @@ class PaginatedHelpCommand(commands.HelpCommand):
             embed_like.description = f'{command.description}\n\n{command.help}'
         else:
             embed_like.description = command.help or 'No help found...'
+        if len(embed_like.description) > 2048:
+            embed_like.description = f'{embed_like.description[:2044]}...'
 
     async def send_command_help(self, command):
         # No pagination necessary for a single command.
