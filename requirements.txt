@@ -18,5 +18,7 @@ pyowm
 treys
 pydealer
 d20
+pygost
+cryptography
 
 jishaku @ git+https://github.com/darthshittious/jishaku
