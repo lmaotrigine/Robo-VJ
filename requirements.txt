@@ -17,5 +17,6 @@ tweepy
 pyowm
 treys
 pydealer
+d20
 
 jishaku @ git+https://github.com/darthshittious/jishaku
