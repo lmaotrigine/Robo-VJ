@@ -30,10 +30,12 @@ def is_qm():
         except AttributeError:  # For some reason the author may be a User
             member = ctx.guild.get_member(ctx.author.id)
             if member is None:
+                if ctx.guild.chunked:  # RIP
+                    return False
                 member = await ctx.guild.fetch_member(ctx.author.id)
             try:
                 return discord.utils.get(member.roles, name='QM') is not None
-            except AttributeError:  # RIP
+            except discord.NotFound:  # RIP x2
                 return False
     return commands.check(predicate)
 
