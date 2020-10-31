@@ -21,12 +21,20 @@ class QuizConfig(db.Table, table_name='quiz_config'):
 
 def is_qm():
     async def predicate(ctx):
+        if ctx.guild is None:
+            return False
         if await ctx.bot.is_owner(ctx.author):
             return True
-        role = discord.utils.get(ctx.author.roles, name='QM')  # TODO: Add this to database?
-        if role is None:
-            return False
-        return True
+        try:
+            return discord.utils.get(ctx.author.roles, name='QM') is not None  # TODO: Add this to database?
+        except AttributeError:  # For some reason the author may be a User
+            member = ctx.guild.get_member(ctx.author.id)
+            if member is None:
+                member = await ctx.guild.fetch_member(ctx.author.id)
+            try:
+                return discord.utils.get(member.roles, name='QM') is not None
+            except AttributeError:  # RIP
+                return False
     return commands.check(predicate)
 
 class Quiz(commands.Cog):
