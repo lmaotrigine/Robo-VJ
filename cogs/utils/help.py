@@ -286,11 +286,17 @@ class PaginatedHelpCommand(commands.HelpCommand):
     def common_command_formatting(self, embed_like, command):
         embed_like.title = self.get_command_signature(command)
         if command.description:
-            embed_like.description = f'{command.description}\n\n{command.help}'
+            desc = f'{command.description}\n\n{command.help}'
         else:
-            embed_like.description = command.help or 'No help found...'
-        if len(embed_like.description) > 2048:
-            embed_like.description = f'{embed_like.description[:2044]}...'
+            desc = command.help or 'No help found...'
+        paginator = commands.Paginator(prefix='', suffix='', max_size=2048)
+        for line in desc.split('\n'):
+            paginator.add_line(line)
+        embed_like.description = paginator.pages[0]
+        try:
+            embed_like.set_footer(text=paginator.pages[1])
+        except IndexError:
+            pass
 
     async def send_command_help(self, command):
         # No pagination necessary for a single command.
