@@ -275,13 +275,10 @@ class Admin(commands.Cog):
         if ctx.author.id != 411166117084528640:
             return
         if len(args) == 0:
-            changelog == ""
+            changelog = "\u200b"
         else:
-            changelog = "```\n"
-            for arg in args:
-                changelog += f"  -  {arg}\n"
-            changelog += "```"
-        embed = discord.Embed(title=f"v{self.bot.version} has been released.", colour = (0xFF0000), description="\n", timestamp=datetime.datetime.utcnow())
+            changelog = "\n".join(f"{idx}. {change}" for idx, change in enumerate(args, 1))
+        embed = discord.Embed(title=f"v{self.bot.version} has been released.", colour = discord.Colour.blurple(), timestamp=datetime.datetime.utcnow())
         embed.add_field(name="Changelog", value=changelog, inline=False)
         await ctx.message.delete()
         await ctx.send(embed=embed)
