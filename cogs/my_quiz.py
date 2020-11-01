@@ -394,7 +394,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         embed.description = f"**{self.rule_head}**{(chr(10)*2).join(self.rules)}"
         embed.add_field(name=self.honour_head, value=self.honour, inline=False)
         embed.add_field(name=self.privacy_head, value=self.privacy, inline=False)
-        embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
         embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
         
         await ctx.send(embed=embed)
