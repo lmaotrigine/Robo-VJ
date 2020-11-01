@@ -4,6 +4,8 @@ import datetime
 import asyncio
 import sys
 import traceback
+import json
+import os
 from .utils import checks
 
 GUILD_ID = 718378271800033318
@@ -46,6 +48,22 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         self.bot = bot
         self.reg_open = False
         self.max_per_team = None
+        self.AUTOAPPROVE = {}
+        if not os.path.isdir('assets'):
+            os.mkdir('assets')
+        try:
+            with open('assets/autoapprove_messages.json', 'r') as file:
+                self.messages = json.load(file)
+        except:
+            open('assets/autoapprove_messages.json', 'w').close()
+            self.messages = {}
+        
+        try:
+            with open("assets/server_rules.txt", "r") as file:
+                self.title, self.rule_head, self.rules, self.honour_head, self.honour, self.privacy_head, self.privacy = file.read().split('$')
+            self.rules = self.rules.split('\n\n')
+        except:
+            pass
         
     def is_in_bounce(self, state):
         return state.channel is not None and state.channel.id == BOUNCE_VOICE_ID
@@ -59,6 +77,19 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
             if message.channel == message.guild.get_channel(INTRO_ID):
                 if not message.author.guild_permissions.manage_guild:
                     await message.channel.set_permissions(message.author, send_messages=False)
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        if str(payload.emoji) == "✅" and payload.guild_id and payload.user_id != self.bot.user.id:
+            guild = self.bot.get_guild(payload.guild_id)
+            member = guild.get_member(payload.user_id)
+            if self.messages.get(str(payload.guild_id)) == payload.message_id:
+                if not member._roles.has(APPROVED_ROLE):
+                    await member.add_roles(guild.get_role(APPROVED_ROLE))               
+                channel = self.bot.get_channel(payload.channel_id)
+                message = await channel.fetch_message(payload.message_id)
+                await message.remove_reaction('✅', member)
+
 
     def cog_check(self, ctx):
         return ctx.guild and ctx.guild.id == GUILD_ID
@@ -297,9 +328,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         teams = [ctx.guild.get_role(team) for team in TEAMS]
         teams.append(ctx.guild.get_role(SPECTATOR_ROLE))
         teams.append(ctx.guild.get_role(QM_ROLE))
-        for team in teams:
-            await (bot.get_command("purgeroles"))(ctx, team)
-            await asyncio.sleep(1)
+        await bot.get_command('purgeroles')(ctx, *teams)
         await ctx.send("Cleanup complete.")
 
     @commands.command(hidden=True)
@@ -340,8 +369,79 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
         await ctx.guild.system_channel.send(embed=embed)
 
-    
+    @commands.command(hidden=True)
+    @commands.guild_only()
+    @commands.is_owner()
+    async def autoapprove(self, ctx):
+        if not discord.utils.get(ctx.guild.roles, name="Approved"):
+            await ctx.send("Create role named 'Approved' and try again.")
+            return
+        Text= "To gain access to the rest of this server, click on :white_check_mark: below\n\n"
+        Text += "By doing so, you agree to abide by these rules."
+        await ctx.message.delete()
+        message = await ctx.send(embed=discord.Embed(title='Confirmation', description=Text, colour = 0xFF0000))
+        await message.add_reaction('✅')
+        self.messages[str(ctx.guild.id)] = message.id
+        with open('assets/autoapprove_messages.json', 'w') as file:
+            json.dump(self.messages, file, indent=2)
 
+    @commands.command(hidden=True)
+    @commands.guild_only()
+    @commands.is_owner()
+    async def embedrules(self, ctx):
+        await ctx.message.delete()
+        embed = discord.Embed(title=self.title, colour=discord.Colour.blurple())
+        embed.add_field(name=self.rule_head, value='\n\n'.join(self.rules))
+        embed.add_field(name=self.honour_head, value=self.honour)
+        embed.add_field(name=self.privacy_head, value=self.privacy)
+        embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        
+        msg = await ctx.send(embed=embed)
+
+    @commands.command(name='rules', aliases=['rule'], hidden=True)
+    @commands.guild_only()
+    @checks.is_mod()
+    @checks.is_in_guilds(GUILD_ID)
+    async def _rules(self, ctx, num=None):
+        embed = discord.Embed(colour=discord.Colour.blurple())
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        if num is None:
+            embed.title = self.rule_head
+            embed.description = self.rules
+            return await ctx.send(embed=embed)
+        for rule in self.rules:
+            idx, _, text = rule.partition('. ')
+            if idx.strip() == num:
+                embed.title = f"Rule {idx}"
+                embed.description = text
+                return await ctx.send(embed=embed)
+        await ctx.send('Invalid rule number.')
+
+    @commands.command(name='privacypolicy', aliases=['privacy', 'privacy_policy'], hidden=True)
+    @commands.guild_only()
+    @checks.is_mod()
+    @checks.is_in_guilds(GUILD_ID)
+    async def _privacy(self, ctx):
+        embed = discord.Embed(colour=discord.Colour.blurple())
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        embed.title = self.privacy_head
+        embed.description = self.privacy
+        await ctx.send(embed=embed)
+
+    @commands.command(name='honourcode', aliases=['honour', 'honour_code'], hidden=True)
+    @commands.guild_only()
+    @checks.is_mod()
+    @checks.is_in_guilds(GUILD_ID)
+    async def _honour(self, ctx):
+        embed = discord.Embed(colour=discord.Colour.blurple())
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        embed.title = self.honour_head
+        embed.description = self.honour
+        await ctx.send(embed=embed)
 
 def setup(bot):
     bot.add_cog(PubQuiz(bot))
