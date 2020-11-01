@@ -293,11 +293,15 @@ class PaginatedHelpCommand(commands.HelpCommand):
         for line in desc.split('\n'):
             paginator.add_line(line)
         embed_like.description = paginator.pages[0]
-        try:
-            embed_like.set_footer(text=paginator.pages[1])
-        except IndexError:
-            pass
-
+        if isinstance(embed_like, discord.Embed):
+            try:
+                embed_like.set_footer(text=paginator.pages[1])
+            except IndexError:
+                pass
+        else:
+            if len(desc) > 2048:
+                embed_like.description = embed_like.description[:-3] + '...'
+                
     async def send_command_help(self, command):
         # No pagination necessary for a single command.
         embed = discord.Embed(colour=discord.Colour.blurple())
