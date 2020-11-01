@@ -391,9 +391,9 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
     async def embedrules(self, ctx):
         await ctx.message.delete()
         embed = discord.Embed(title=self.title, colour=discord.Colour.blurple())
-        embed.description = f"**{self.rule_head}**\n\n{(chr(10)*2).join(self.rules)}"
-        embed.add_field(name=self.honour_head, value=self.honour)
-        embed.add_field(name=self.privacy_head, value=self.privacy)
+        embed.description = f"**{self.rule_head}**{(chr(10)*2).join(self.rules)}"
+        embed.add_field(name=self.honour_head, value=self.honour, inline=False)
+        embed.add_field(name=self.privacy_head, value=self.privacy, inline=False)
         embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
         embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
         
@@ -409,7 +409,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
         if num is None:
             embed.title = self.rule_head
-            embed.description = self.rules
+            embed.description = '\n\n'.join(self.rules)
             return await ctx.send(embed=embed)
         for rule in self.rules:
             idx, _, text = rule.partition('. ')
