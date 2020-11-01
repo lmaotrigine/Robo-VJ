@@ -391,13 +391,13 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
     async def embedrules(self, ctx):
         await ctx.message.delete()
         embed = discord.Embed(title=self.title, colour=discord.Colour.blurple())
-        embed.add_field(name=self.rule_head, value='\n\n'.join(self.rules))
+        embed.description = f"**{self.rule_head}**\n\n{(chr(10)*2).join(self.rules)}"
         embed.add_field(name=self.honour_head, value=self.honour)
         embed.add_field(name=self.privacy_head, value=self.privacy)
         embed.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
         embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
         
-        msg = await ctx.send(embed=embed)
+        await ctx.send(embed=embed)
 
     @commands.command(name='rules', aliases=['rule'], hidden=True)
     @commands.guild_only()
