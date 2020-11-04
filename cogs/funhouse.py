@@ -313,12 +313,11 @@ class Funhouse(commands.Cog):
         async with self.bot.session.get(url, params=params) as resp:
             if resp.status != 200:
                 return await ctx.send("Could not complete request. Try again later.")
-            fp = io.BytesIO(await resp.read())
-        f = discord.File(fp, filename='gay_image.png')
-        e = discord.Embed(colour=user.colour)
-        e.set_image(url='attachment://gay_image.png')
-        e.set_author(name=str(user), icon_url=user.avatar_url)
-        await ctx.send(embed=e, file=f)
+            url = resp.url
+        embed = discord.Embed(colour=user.colour)
+        embed.set_image(url=url)
+        embed.set_author(name=str(user), icon_url=user.avatar_url)
+        await ctx.send(embed=embed)
         
 def setup(bot):
     bot.add_cog(Funhouse(bot))

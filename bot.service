@@ -1,8 +1,8 @@
 # Edit WorkingDirectory, User, Group and ExecStart to match your machine's username, group, python installation, working directory, and path to launcher.py
 
 [Unit]
-Description=Bot
-After=multi-user.target
+Description=Discord Bot
+After=network-online.target
 [Service]
 WorkingDirectory=/home/mordor/Robo-VJ 
 User=mordor
@@ -10,7 +10,6 @@ Group=mordor
 ExecStart=/home/mordor/venv/bin/python /home/mordor/Robo-VJ/launcher.py
 Type=simple
 Restart=always
-RestartSec=20
 
 [Install]
 WantedBy=multi-user.target
