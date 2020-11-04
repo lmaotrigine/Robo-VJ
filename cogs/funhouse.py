@@ -303,6 +303,22 @@ class Funhouse(commands.Cog):
             adv = d20.AdvType.ADV if re.search(r'(^|\s+)adv(\s+|$)', rollstr) is not None else d20.AdvType.DIS
             rollstr = re.sub(r'(adv|dis)(\s+|$)', '', rollstr)
         return rollstr, adv
+
+    @commands.command(hidden=True)
+    async def gay(self, ctx, *, user: discord.User=None):
+        """Returns your avatar with a rainbow overlay."""
+        url = f"https://some-random-api.ml/canvas/gay"
+        user = user or ctx.author
+        params = {'avatar': str(user.avatar_url_as(format='png'))}
+        async with self.bot.session.get(url, params=params) as resp:
+            if resp.status != 200:
+                return await ctx.send("Could not complete request. Try again later.")
+            fp = io.BytesIO(await resp.read())
+        f = discord.File(fp, filename='gay_image.png')
+        e = discord.Embed(colour=user.colour)
+        e.set_image(url='attachment://gay_image.png')
+        e.set_author(name=str(user), icon_url=user.avatar_url)
+        await ctx.send(embed=e, file=f)
         
 def setup(bot):
     bot.add_cog(Funhouse(bot))
