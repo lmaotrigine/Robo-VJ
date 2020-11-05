@@ -318,6 +318,15 @@ class Funhouse(commands.Cog):
         embed.set_image(url=url)
         embed.set_author(name=str(user), icon_url=user.avatar_url)
         await ctx.send(embed=embed)
-        
+    @commands.command(hidden=True)
+    async def panda(self, ctx):
+        """Gives you a random panda."""
+        async with ctx.session.get("https://some-random-api.ml/animal/panda") as resp:
+            if resp.status != 200:
+                return await ctx.send("Could not find panda :(")
+            js = await resp.json()
+
+        await ctx.send(embed=discord.Embed(title="Random panda").set_image(url=js["image"]))
+
 def setup(bot):
     bot.add_cog(Funhouse(bot))
