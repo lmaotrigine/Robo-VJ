@@ -110,13 +110,13 @@ If there isn't a response after 12 hours, we will close the ticket automatically
         if message.guild is None or message.channel.category != self.category:
             return
         
-        if message.content.strip() == '$close':
+        if message.content.split()[0].lower() == '$close':
             user = self._get_member(message.channel.id)
             await message.add_reaction('\N{WHITE HEAVY CHECK MARK}')
             await self.close_ticket(message)
             self.open.pop(user.id)
 
-        if message.content.strip() in ('msgclose',):
+        if message.content.strip().lower() in ('msgclose',):
             await self.prompt_close(message)
 
     @commands.command(hidden=True)
