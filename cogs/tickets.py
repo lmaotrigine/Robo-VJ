@@ -50,7 +50,7 @@ class Tickets(commands.Cog):
             f'Ticket ID: {_id}\nKeep a not of this ID for 7 days, if you wish to clarify anything later.')
 
         await chnl.send(f'{user.mention}, <@&{MOD_ROLE_ID}>', embed=embed)
-        self.open[member.id] = chnl.id
+        self.open[user.id] = chnl.id
     
     async def close_ticket(self, message):
         channel = message.channel
