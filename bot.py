@@ -1,5 +1,5 @@
 
-__version__ = "7.3.9"
+__version__ = "7.4.0"
 __author__ = "Varun J"
 
 import aiohttp
@@ -47,6 +47,7 @@ initial_extensions =  {
     'cogs.stars',
     'cogs.stats',
     'cogs.tags',
+    'cogs.tickets',
     'cogs.twitter',
     'jishaku'
 }
