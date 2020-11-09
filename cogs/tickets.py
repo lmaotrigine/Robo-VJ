@@ -128,6 +128,8 @@ class Tickets(commands.Cog):
             return
         if str(payload.emoji) != '\U0001f39f\U0000fe0f':
             return
+        if payload.member.bot:
+            return
         channel = self.guild.get_channel(payload.channel_id)
         message = await channel.fetch_message(payload.message_id)
         await message.remove_reaction(payload.emoji, payload.member)
