@@ -26,3 +26,6 @@ migrations/
 *.sql
 
 restart_from_channel.txt
+
+# scripts
+push.sh
