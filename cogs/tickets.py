@@ -70,7 +70,7 @@ class Tickets(commands.Cog):
         channel = message.channel
         msg = """>>> If there isn't anything else we can help you with, please close the ticket with `$close`.
         
-        If there isn't a response after 12 hours, we will close the ticket automatically."""
+If there isn't a response after 12 hours, we will close the ticket automatically."""
         reminder = self.bot.get_cog('Reminder')
         if reminder is None:
             return await channel.send('A fatal error occurred. Could not find reminder cog.')
