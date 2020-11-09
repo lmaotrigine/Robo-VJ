@@ -68,9 +68,9 @@ class Tickets(commands.Cog):
 
     async def prompt_close(self, message):
         channel = message.channel
-        msg = """> If there isn't anything else we can help you with, please close the ticket with `$close`.
-        >
-        > If there isn't a response after 12 hours, we will close the ticket automatically."""
+        msg = """>>> If there isn't anything else we can help you with, please close the ticket with `$close`.
+        
+        If there isn't a response after 12 hours, we will close the ticket automatically."""
         reminder = self.bot.get_cog('Reminder')
         if reminder is None:
             return await channel.send('A fatal error occurred. Could not find reminder cog.')
@@ -88,6 +88,8 @@ class Tickets(commands.Cog):
         channel_id, member_id = timer.args
         await self.bot.wait_until_ready()
         channel = self.guild.get_channel(channel_id)
+        if channel is None:
+            return
         msg = await channel.send('Ticket has been inactive for 12 hours. Closing...')
         await self.close_ticket(msg)
 
@@ -96,7 +98,12 @@ class Tickets(commands.Cog):
         channel_id, member_id = timer.args
         await self.bot.wait_until_ready()
         channel = self.guild.get_channel(channel_id)
-        await channel.delete()
+        if channel is None:
+            return
+        try:
+            await channel.delete()
+        except discord.HTTPException:
+            pass
 
     @commands.Cog.listener()
     async def on_message(self, message):
