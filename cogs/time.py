@@ -81,7 +81,7 @@ class Time(commands.Cog):
     async def timezone(self, ctx, *, timezone: TimezoneConverter=None):
         """This will return the time in a specified timezone."""
         if not timezone:
-            timezone = random.choice(pytz.all_timezones)
+            timezone = await TimezoneConverter().convert(ctx, random.choice(pytz.all_timezones))
         embed = discord.Embed(title=f'Current time in {timezone}', description=f'```\n{self._curr_tz_time(timezone, ret_datetime=False)}\n```')
         embed.set_footer(text=f'Requested by: {ctx.author}')
         embed.timestamp = datetime.utcnow()
