@@ -1,5 +1,5 @@
 
-__version__ = "7.6.0"
+__version__ = "7.6.2"
 __author__ = "Varun J"
 
 import aiohttp
