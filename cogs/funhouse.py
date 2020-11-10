@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 import googletrans
 import io
+from typing import Optional
 import random
 import re
 import d20
@@ -318,6 +319,7 @@ class Funhouse(commands.Cog):
         embed.set_image(url=url)
         embed.set_author(name=str(user), icon_url=user.avatar_url)
         await ctx.send(embed=embed)
+
     @commands.command(hidden=True)
     async def panda(self, ctx):
         """Gives you a random panda."""
@@ -327,6 +329,31 @@ class Funhouse(commands.Cog):
             js = await resp.json()
 
         await ctx.send(embed=discord.Embed(title="Random panda").set_image(url=js["image"]))
+
+    async def do_ocr(self, url: str) -> Optional[str]:
+        async with self.bot.session.get('https://api.tsu.sh/google/ocr', params={'q': url}) as resp:
+            data = await resp.json()
+        ocr_text = data.get('text')
+        ocr_text = ocr_text if len(ocr_text) < 4000 else str(await self.bot.mb_client.post(ocr_text))
+        return ocr_text
+
+    @commands.command(hidden=True)
+    async def ocr(self, ctx, *, image_url: str=None):
+        if not image_url and not ctx.message.attachments:
+            return await ctx.send('URL or attachment required.')
+        image_url = image_url or ctx.message.attachments[0].url
+        data = await self.do_ocr(image_url) or 'No text returned.'
+        await ctx.send(embed=discord.Embed(description=data, colour=0xEC9FED))
+
+    @commands.command(hidden=True)
+    async def ocrt(self, ctx, *, image_url: str=None):
+        if not image_url and not ctx.message.attachments:
+            return await ctx.send('URL or attachment required.')
+        image_url = image_url or ctx.message.attachments[0].url
+        data = await self.do_ocr(image_url)
+        if data:
+            return await self.translate(ctx, message=data)
+        return await ctx.send('No text returned.')
 
 def setup(bot):
     bot.add_cog(Funhouse(bot))

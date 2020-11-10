@@ -1,5 +1,5 @@
 
-__version__ = "7.5.0"
+__version__ = "7.6.0"
 __author__ = "Varun J"
 
 import aiohttp
@@ -20,7 +20,7 @@ import logging
 import traceback
 import pyowm
 import tweepy
-
+from mystbin import MystbinClient
 
 log = logging.getLogger(__name__)
 load_dotenv()
@@ -49,6 +49,7 @@ initial_extensions =  {
     'cogs.stats',
     'cogs.tags',
     'cogs.tickets',
+    'cogs.time',
     'cogs.twitter',
     'jishaku'
 }
@@ -103,6 +104,7 @@ class RoboVJ(commands.Bot):
                 traceback.print_exc()
                 
         self.session = aiohttp.ClientSession(loop=self.loop)
+        self.mb_client = MystbinClient(session=self.session)
 
         self._prev_events = deque(maxlen=10)
 

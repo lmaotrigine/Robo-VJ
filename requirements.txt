@@ -20,5 +20,8 @@ pydealer
 d20
 pygost
 cryptography
+mystbin.py
+fuzzywuzzy
+pytz
 
 jishaku @ git+https://github.com/darthshittious/jishaku

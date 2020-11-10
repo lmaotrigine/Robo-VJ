@@ -242,3 +242,11 @@ def human_timedelta(dt, *, source=None, accuracy=3, brief=False, suffix=True):
             return human_join(output, final='and') + suffix
         else:
             return ' '.join(output) + suffix
+
+def hf_time(dt: datetime.datetime) -> str:
+    date_modif = ordinal(dt.day)
+    return dt.strftime(f"%A {date_modif} of %B %Y @ %H:%M %Z (%z)")
+
+
+def ordinal(number: int) -> str:
+    return f"{number}{'tsnrhtdd'[(number//10%10!=1)*(number%10<4)*number%10::4]}"
