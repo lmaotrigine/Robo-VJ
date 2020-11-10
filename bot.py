@@ -1,5 +1,5 @@
 
-__version__ = "7.4.0"
+__version__ = "7.5.0"
 __author__ = "Varun J"
 
 import aiohttp
@@ -31,6 +31,7 @@ initial_extensions =  {
     'cogs.admin',
     'cogs.buttons',
     'cogs.change_state',
+    'cogs.code',
     'cogs.config',
     'cogs.crypto',
     'cogs.dpy_help',
