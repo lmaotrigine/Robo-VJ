@@ -270,7 +270,7 @@ class Snipe(commands.Cog):
         
         full_results = sorted(full_results, key=lambda d: d['delete_time'], reverse=True)[:amount]
         embeds = self._gen_delete_embeds(full_results)
-        pages = RoboPages(source=SnipePageSource(range(0, amount), embeds), delete_message_after=True)
+        pages = RoboPages(source=SnipePageSource(range(0, amount), embeds))
         await pages.start(ctx)
 
     @show_snipes.command(name='setup')
@@ -372,7 +372,7 @@ class Snipe(commands.Cog):
         embeds = self._gen_edit_embeds(full_results)
         if not embeds:
             return await ctx.send('No edit snipes for this channel.')
-        pages = RoboPages(source=SnipePageSource(range(0, amount), embeds), delete_message_after=True)
+        pages = RoboPages(source=SnipePageSource(range(0, amount), embeds))
         await pages.start(ctx)
 
     @show_snipes.command(name='clear', aliases=['remove', 'delete'], hidden=True)
