@@ -26,6 +26,7 @@ class Tickets(commands.Cog):
         self.task.cancel()
 
     async def _prepare_tickets(self):
+        await self.bot.wait_until_ready()
         self.guild = self.bot.get_guild(GUILD_ID)
         self.category = self.guild.get_channel(CAT_ID)
         self.closed_cat = self.guild.get_channel(CLOSED_CAT_ID)
