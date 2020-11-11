@@ -23,7 +23,7 @@ class TimeTable(db.Table, table_name='tz_store'):
     """Table for timezones. Unique per user, with guild array."""
     user_id = db.Column(db.Integer(big=True), primary_key=True)
     guild_ids = db.Column(db.Array(db.Integer(big=True)))
-    tz = db.Column(db.String, unique=True)
+    tz = db.Column(db.String)
 
 class TimezoneConverter(commands.Converter):
     async def convert(self, ctx, argument: str):
