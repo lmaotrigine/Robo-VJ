@@ -369,7 +369,7 @@ class Snipe(commands.Cog):
         local_snipes = [snipe for snipe in self.snipe_edits if snipe['channel_id'] == channel.id]
         full_results = dict_results + local_snipes
         full_results = sorted(full_results, key=lambda d: d['edited_time'], reverse=True)[:amount]
-        embeds = self._gen_edit_embeds(full_results)
+        embeds = await self._gen_edit_embeds(full_results)
         if not embeds:
             return await ctx.send('No edit snipes for this channel.')
         pages = RoboPages(source=SnipePageSource(range(0, amount), embeds))
