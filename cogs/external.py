@@ -69,7 +69,7 @@ class External(commands.Cog):
         embed.description = pypi_details.description
 
         if pypi_details.module_author_email:
-            embed.add_field(name='Author contact', value=f'[Email]({pypi_details.module_author_email})')
+            embed.add_field(name='Author contact', value=pypi_details.module_author_email)
         
         embed.add_field(name='Latest released version', value=pypi_details.module_latest_ver)
         embed.add_field(name='Released at', value=pypi_details.release_datetime)
