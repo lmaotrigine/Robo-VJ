@@ -186,7 +186,7 @@ class Snipe(commands.Cog):
             return
         if message.author.id == self.bot.user.id:
             return
-        config = await self.bot.get_snipe_config(message.guild.id)
+        config = await self.get_snipe_config(message.guild.id)
         if not config.configured:
             return
         if message.author.id in config.member_ids:
