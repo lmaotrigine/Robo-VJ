@@ -426,7 +426,7 @@ class Snipe(commands.Cog):
         query = """INSERT INTO snipe_deletes (user_id, guild_id, channel_id, message_id, message_content, attachment_urls, delete_time)
                    SELECT x.user_id, x.guild_id, x.channel_id, x.message_id, x.message_content, x.attachment_urls, x.delete_time
                    FROM jsonb_to_recordset($1::jsonb) AS
-                   x(user_id, BIGINT, guild_id BIGINT, channel_id BIGINT, message_id BIGINT, message_content TEXT, attachment_urls TEXT ARRAY, delete_time BIGINT)
+                   x(user_id BIGINT, guild_id BIGINT, channel_id BIGINT, message_id BIGINT, message_content TEXT, attachment_urls TEXT ARRAY, delete_time BIGINT)
                 """
         async with self._snipe_lock:
             await self.bot.pool.execute(query, self.snipe_deletes)
