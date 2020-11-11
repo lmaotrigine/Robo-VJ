@@ -20,7 +20,8 @@ class Tickets(commands.Cog):
         self.bot = bot
         self.open = {}  # dict() of user_id to channel_id
         self.task = self.bot.loop.create_task(self._prepare_tickets())
-
+        self.guild = None
+        self.category = None
     def cog_unload(self):
         self.task.cancel()
 
