@@ -109,6 +109,8 @@ If there isn't a response after 12 hours, we will close the ticket automatically
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.author.bot:
+            return
         if message.guild is None or message.channel.category != self.category:
             return
         
