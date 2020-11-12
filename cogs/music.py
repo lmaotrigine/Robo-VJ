@@ -189,7 +189,13 @@ class Player(wavelink.Player):
         await self.play(self.queue.current_track)
 
 class Music(commands.Cog, wavelink.WavelinkMixin):
-    """Music Playback (beta)"""
+    """Music Playback (beta)
+    
+    No fancy embeds, etc. No position viewing.
+    Lot of TODOs, but none will be implemented anytime soon.
+    
+    Currently, the player is functional, as long as the singular node isn't overloaded.
+    """
 
     def __init__(self, bot):
         self.bot = bot
@@ -245,20 +251,26 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         elif isinstance(obj, discord.Guild):
             return self.wavelink.get_player(obj.id, cls=Player)
         
-    @commands.command(name='connect')
+    @commands.command(name='connect', aliases=['c', 'j'])
     async def _connect(self, ctx, *, channel: discord.VoiceChannel=None):
+        """Connects to a voice channel. If none is provided, try to connect to the voice channel you are currently in."""
         player = self.get_player(ctx)
         channel = await player.connect(ctx, channel)
         await ctx.send(f'Connected to `{channel.name}`')
     
-    @commands.command(name='disconnect', aliases=['leave'])
+    @commands.command(name='disconnect', aliases=['leave', 'dc'])
     async def _disconnect(self, ctx):
+        """Disconnect from a voice channel."""
         player = self.get_player(ctx)
         await player.teardown()
         await ctx.send('Disconnect.')
 
     @commands.command(name='play')
     async def _play(self, ctx, *, query: str=None):
+        """Play a song in the current channel, or add it to queue.
+        
+        If no query is given, tryies to resume previously paused playback.
+        """
         player = self.get_player(ctx)
         if not player.is_connected:
             await player.connect(ctx)
@@ -277,6 +289,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
     @commands.command(name='pause')
     async def _pause(self, ctx):
+        """Pauses playback in the current channel."""
         player = self.get_player(ctx)
         if player.is_paused:
             raise PlayerIsAlreadyPaused('Player is already paused.')
@@ -286,6 +299,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
     @commands.command(name='stop')
     async def _stop(self, ctx):
+        """Stops playback completely and also clears the queue."""
         player = self.get_player(ctx)
         player.queue.empty()
         await player.stop()
@@ -293,6 +307,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
     @commands.command(name='next', aliases=['skip'])
     async def _next(self, ctx):
+        """Skips current track in the queue."""
         player = self.get_player(ctx)
 
         if not player.queue.upcoming:
@@ -302,6 +317,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
     @commands.command(name='previous')
     async def _previous(self, ctx):
+        """Plays the previous track in queue."""
         player = self.get_player(ctx)
 
         if not player.queue.history:
@@ -312,12 +328,14 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
     
     @commands.command(name='shuffle')
     async def _shuffle(self, ctx):
+        """Shuffles the queue. Original order not preserved."""
         player = self.get_player(ctx)
         player.queue.shuffle()
         await ctx.send('Queue shuffled.')
 
     @commands.group(name='repeat', aliases=['loop'], invoke_without_command=True, ignore_extra=False)
     async def _repeat(self, ctx):
+        """Set repeat mode for the current queue."""
         if ctx.invoked_subcommand is None:
             player = self.get_player(ctx)
             mode = ['none', 'song', 'all'][player.queue.repeat_mode.value]
@@ -325,18 +343,21 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
     @_repeat.command(name='song', aliases=['current', 'one', 'single', '1'])
     async def repeat_song(self, ctx):
+        """Repeat current song."""
         player = self.get_player(ctx)
         player.queue.set_repeat_mode(RepeatMode.SONG)
         await ctx.send('Repeat mode set to `song`')
 
     @_repeat.command(name='all', aliases=['list', 'queue'])
     async def repeat_all(self, ctx):
+        """Repeat entire queue."""
         player = self.get_player(ctx)
         player.queue.set_repeat_mode(RepeatMode.ALL)
         await ctx.send('Repeat mode set to `list`.')
 
     @_repeat.command(name='none', aliases=['off'])
     async def repeat_none(self, ctx):
+        """Turn off repeat."""
         player = self.get_player(ctx)
         player.queue.set_repeat_mode(RepeatMode.NONE)
         await ctx.send('Repeat mode has been set to `none`.')
@@ -348,6 +369,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
     @commands.command(name='queue')
     async def _queue(self, ctx, *, show: int=10):
+        """Shows the current queue."""
         player = self.get_player(ctx)
         if player.queue.is_empty():
             raise QueueIsEmpty('No tracks queued.')
@@ -363,6 +385,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
     @commands.command(name='nowplaying', aliases=['np', 'now_playing'])
     async def _nowplaying(self, ctx):
+        """Shows currently playing track."""
         player = self.get_player(ctx)
         if player.queue.is_empty():
             raise QueueIsEmpty('Nothing playing right now.')
