@@ -293,7 +293,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
     @commands.command(name='next', aliases=['skip'])
     async def _next(self, ctx):
-        player = self/get_player(ctx)
+        player = self.get_player(ctx)
 
         if not player.queue.upcoming:
             raise NoMoreTracks('No more tracks in queue.')
@@ -302,7 +302,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
     @commands.command(name='previous')
     async def _previous(self, ctx):
-        player = self/get_player(ctx)
+        player = self.get_player(ctx)
 
         if not player.queue.history:
             raise NoPreviousTracks('No previous tracks in queue.')
