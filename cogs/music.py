@@ -247,7 +247,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         elif isinstance(obj, discord.Guild):
             return self.wavelink.get_player(obj.id, cls=Player)
         
-    @commands.command(name='connect', aliases=['join'])
+    @commands.command(name='connect')
     async def _connect(self, ctx, *, channel: discord.VoiceChannel=None):
         player = self.get_player(ctx)
         channel = await player.connect(ctx, channel)
