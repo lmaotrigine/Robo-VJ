@@ -1,5 +1,5 @@
 
-__version__ = "7.7.2"
+__version__ = "7.8.0-beta"
 __author__ = "Varun J"
 
 import aiohttp
@@ -52,7 +52,8 @@ initial_extensions =  {
     'cogs.tickets',
     'cogs.time',
     'cogs.twitter',
-    'jishaku'
+    'cogs.voicerooms',
+    'jishaku',
 }
 
 class GuildPrefixes(db.Table, table_name='guild_prefixes'):

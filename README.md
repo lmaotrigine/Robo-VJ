@@ -53,7 +53,11 @@ postgresql = f"postgresql://user:{quote('password')}@host/database"
 
 To configure the PostgreSQL database for use by the bot, go to the directory where `launcher.py` is located, and run the script by doing `python3.8 launcher.py db init`
 
-7. **Running the bot**
+7. **Set up Lavalink server (for Music cog)**
+
+To set up a Lavalink server, download OpenJDK 13.0.2, and the latest release of Lavalink.jar, and run `java -jar Lavalink.jar`
+
+8. **Running the bot**
 
 You can use the provided `bot.service` file to use systemd to launch the bot after every reboot.
 

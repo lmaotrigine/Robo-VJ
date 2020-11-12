@@ -23,5 +23,6 @@ cryptography
 mystbin.py
 fuzzywuzzy
 pytz
+Wavelink
 
 jishaku @ git+https://github.com/darthshittious/jishaku
