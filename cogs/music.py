@@ -159,7 +159,7 @@ class Player(wavelink.Player):
 
     async def choose_track(self, ctx, tracks):
         def _check(r, u):
-            return r.emoji in opts and u == ctx.author and u.message.id == msg.id
+            return r.emoji in opts and u == ctx.author and r.message.id == msg.id
 
         embed = discord.Embed(title='Choose a song', colour=ctx.author.colour, timestamp=datetime.datetime.utcnow())
         embed.set_author(name='Query Results')
