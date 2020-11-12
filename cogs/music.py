@@ -275,7 +275,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             if not URL_REGEX.match(query):
                 query = f'ytsearch:{query}'
 
-            await player.add_track(ctx, await self.wavelink.get_tracks(query))
+            await player.add_tracks(ctx, await self.wavelink.get_tracks(query))
 
     @commands.command(name='pause')
     async def _pause(self, ctx):
