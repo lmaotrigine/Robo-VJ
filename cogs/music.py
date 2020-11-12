@@ -15,8 +15,6 @@ def to_emoji(c):
     base = 0x1F1E6
     return chr(base + c)
 
-OPTIONS = {to_emoji(i+1): i for i in range(4)}
-
 class MusicBaseException(commands.CommandError):
     pass
 
@@ -164,10 +162,10 @@ class Player(wavelink.Player):
         embed = discord.Embed(title='Choose a song', colour=ctx.author.colour, timestamp=datetime.datetime.utcnow())
         embed.set_author(name='Query Results')
         embed.set_footer(text=f'Requested by {ctx.author.display_name}', icon_url=ctx.author.avatar_url)
-        embed.description = '\n'.join(f'**{i + 1}.** {t.title} ({t.length // 60000}:{str(t.length % 60).zfill(2)})' for i, t in enumerate(tracks[:5]))
+        embed.description = '\n'.join(f'**{to_emoji(i)}.** {t.title} ({t.length // 60000}:{str(t.length % 60).zfill(2)})' for i, t in enumerate(tracks[:5]))
         msg = await ctx.send(embed=embed)
-        opts = list(OPTIONS.keys())[:min(len(tracks), len(OPTIONS))]
-        for emoji in opts:
+        opts = {to_emoji(i): i for i in range(min(len(tracks), 5))}
+        for emoji in opts.keys():
             await msg.add_reaction(emoji)
         
         try:
@@ -175,7 +173,7 @@ class Player(wavelink.Player):
         except asyncio.TimeoutError:
             await msg.delete()
         else:
-            return tracks[OPTIONS[reaction.emoji]]
+            return tracks[opts[reaction.emoji]]
 
     async def start_playback(self):
         await self.play(self.queue.current_track)
