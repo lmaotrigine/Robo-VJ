@@ -387,7 +387,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
     async def _nowplaying(self, ctx):
         """Shows currently playing track."""
         player = self.get_player(ctx)
-        if player.queue.is_empty():
+        if player.queue.is_empty:
             raise QueueIsEmpty('Nothing playing right now.')
         embed = discord.Embed(title='Now Playing', colour=ctx.author.colour, timestamp=datetime.datetime.utcnow())
         embed.set_author(name='Query Results')
