@@ -162,7 +162,7 @@ class Player(wavelink.Player):
             return r.emoji in opts and u == ctx.author and u.message.id == msg.id
 
         embed = discord.Embed(title='Choose a song', colour=ctx.author.colour, timestamp=datetime.datetime.utcnow())
-        embed.st_author(name='Query Results')
+        embed.set_author(name='Query Results')
         embed.set_footer(text=f'Requested by {ctx.author.display_name}', icon_url=ctx.author.avatar_url)
         embed.description = '\n'.join(f'**{i + 1}.** {t.title} ({t.length // 60000}:{str(t.length % 60).zfill(2)})' for i, t in enumerate(tracks[:5]))
         msg = await ctx.send(embed=embed)
