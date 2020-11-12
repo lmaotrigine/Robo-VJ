@@ -231,7 +231,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             'MAIN': {
                 'host': self.bot.config.lavalink_ip,
                 'port': 2333,
-                'rest_uri': f'{self.bot.config.lavalink_ip}:2333',
+                'rest_uri': f'http://{self.bot.config.lavalink_ip}:2333',
                 'password': 'youshallnotpass',
                 'identifier': 'MAIN',
                 'region': 'europe',
