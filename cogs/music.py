@@ -371,7 +371,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
     async def _queue(self, ctx, *, show: int=10):
         """Shows the current queue."""
         player = self.get_player(ctx)
-        if player.queue.is_empty():
+        if player.queue.is_empty:
             raise QueueIsEmpty('No tracks queued.')
 
         embed = discord.Embed(title='Queue', colour=ctx.author.colour, timestamp=datetime.datetime.utcnow())
