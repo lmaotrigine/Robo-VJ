@@ -20,11 +20,13 @@ class Tickets(commands.Cog):
         self.bot = bot
         self.open = {}  # dict() of user_id to channel_id
         self.task = self.bot.loop.create_task(self._prepare_tickets())
-
+        self.guild = None
+        self.category = None
     def cog_unload(self):
         self.task.cancel()
 
     async def _prepare_tickets(self):
+        await self.bot.wait_until_ready()
         self.guild = self.bot.get_guild(GUILD_ID)
         self.category = self.guild.get_channel(CAT_ID)
         self.closed_cat = self.guild.get_channel(CLOSED_CAT_ID)
@@ -107,6 +109,8 @@ If there isn't a response after 12 hours, we will close the ticket automatically
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.author.bot:
+            return
         if message.guild is None or message.channel.category != self.category:
             return
         
