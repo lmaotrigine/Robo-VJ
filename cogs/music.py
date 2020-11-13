@@ -61,8 +61,8 @@ class Music(commands.Cog):
     async def do_next(self, player: Player):
         player.current = None
 
-        if player._current.repeats:
-            player._current.repeats -= 1
+        if player.current.repeats:
+            player.current.repeats -= 1
             player.index -= 1
         
         player.index += 1
@@ -430,7 +430,7 @@ class Music(commands.Cog):
 
         if self.is_privileged(ctx):
             await ctx.send(f'{ctx.author.mention} has repeated the song as an Admin or DJ.', delete_after=10)
-            player._current.repeats += 1
+            player.current.repeats += 1
 
             if not player.is_playing():
                 await self.do_next(player)
@@ -443,7 +443,7 @@ class Music(commands.Cog):
         player.repeat_votes.add(ctx.author)
         if len(player.repeat_votes) >= self.required(ctx):
             await ctx.send('Vote to repeat the song passed. Now repeating the song.', delete_after=10)
-            player._current.repeats += 1
+            player.current.repeats += 1
 
             if not player.is_playing:
                 await self.do_next(player)
@@ -514,8 +514,8 @@ class Music(commands.Cog):
             return await ctx.send('No more songs are queued.')
 
         entries = []
-        if player._current.repeats:
-            entries.append(f'**({player._current.repeats}x)** `{player._current.title}`')
+        if player.current.repeats:
+            entries.append(f'**({player.current.repeats}x)** `{player.current.title}`')
 
         for song in player.queue[player.index + 1:]:
             entries.append(f'`{song.title}`')
