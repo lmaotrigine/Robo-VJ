@@ -66,7 +66,7 @@ class Music(commands.Cog):
 
     def get_player(self, *, ctx: commands.Context=None, member=None):
         if member:
-            player: Player = self.wl.get_player(ctx.guild.id, cls=Player)
+            player: Player = self.wl.get_player(member.guild.id, cls=Player)
             return player
         
         player: Player = self.wl.get_player(ctx.guild.id, cls=Player)
