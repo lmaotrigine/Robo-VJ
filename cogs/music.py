@@ -4,10 +4,11 @@ import math
 import random
 import re
 import time
+import typing
 import wavelink
 from discord.ext import buttons, commands
 from .utils import checks, db
-from .utils.player import Player, Track
+from .utils.player import Player, Track, SpotifyTrack
 from bot import RoboVJ  # documentation purposes
 import spotify
 
@@ -20,6 +21,17 @@ TRACK_URL = re.compile(r'^(?:https?://(?:open\.)?spotify\.com|spotify)([/:])trac
 class DJConfig(db.Table, table_name='dj_config'):
     guild_id = db.Column(db.Integer(big=True), primary_key=True)
     role_id = db.Column(db.Integer(big=True))
+
+class SpotifyList:
+    def __init__(self, tracks: typing.List[SpotifyTrack]):
+        self.tracks = tracks
+
+    async def get_first_track(self):
+        if not self.tracks:
+            return None
+        
+        track = self.tracks.pop(0)
+        return await track.get_wavelink_track()
 
 class Music(commands.Cog):
     """Music player (beta)
@@ -61,8 +73,8 @@ class Music(commands.Cog):
     async def do_next(self, player: Player):
         player.current = None
 
-        if player.current.repeats:
-            player.current.repeats -= 1
+        if player._current.repeats:
+            player._current.repeats -= 1
             player.index -= 1
         
         player.index += 1
@@ -112,12 +124,6 @@ class Music(commands.Cog):
                     else:
                         player.dj = mem
                         break
-
-    async def cog_before_invoke(self, ctx: commands.Context):
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
 
     async def cog_after_invoke(self, ctx: commands.Context):
         player = self.get_player(ctx=ctx)
@@ -195,25 +201,22 @@ class Music(commands.Cog):
         
         if TRACK_URL.match(query):
             id = TRACK_URL.match(query).group(2)
-            tracks = await self.get_spotify_track(id)
+            tracks = await self.get_spotify_track(id, ctx)
         
         elif ALBUM_URL.match(query):
             id = ALBUM_URL.match(query).group(2)
-            tracks = await self.get_album_tracks(id)
+            tracks = await self.get_album_tracks(id, ctx)
 
         elif PLAYLIST_URL.match(query):
             id = PLAYLIST_URL.match(query).group(2)
-            tracks = await self.get_playlist_tracks(id)
+            tracks = await self.get_playlist_tracks(id, ctx)
 
         elif ARTIST_URL.match(query):
             id = ARTIST_URL.match(query).group(2)
-            tracks = await self.get_artist_tracks(id)
+            tracks = await self.get_artist_tracks(id, ctx)
 
         else:
-            try:
-                tracks = [(await self.wl.get_tracks(query))[0]]
-            except (IndexError, TypeError):
-                return await ctx.send('No songs were found with that query. Please try again.', delete_after=15)
+            tracks = await self.wl.get_tracks(query)
 
         if not tracks:
             return await ctx.send('No songs were found with that query. Please try again.', delete_after=15)
@@ -227,47 +230,48 @@ class Music(commands.Cog):
 
             await ctx.send(f'```ini\nAdded the playlist {tracks.data["playlistInfo"]["name"]}'
                            f' with {len(tracks.tracks)} songs to the queue.\n```', delete_after=15)
-
-        else:
-            if len(tracks) > 1:
-                await ctx.send(f'```ini\nAdded {len(tracks)} tracks to the queue\n```', delete_after=15)
+        
+        elif isinstance(tracks, SpotifyList):
+            first = None
+            while not first:
+                first = await tracks.get_first_track()
+            if len(tracks.tracks) == 0:
+                await ctx.send(f'```ini\nAdded {first.title}  to the queue.```')
             else:
-                track = tracks[0]
-                if isinstance(track, wavelink.Track):
-                    title = track.title
-                else:
-                    title = track.name
-                await ctx.send(f'```ini\nAdded {title} to the queue\n```', delete_after=15)
-            for track in tracks:
-                if isinstance(track, wavelink.Track):
-                    player.queue.append(Track(track.id, track.info, ctx=ctx))
-                else:
-                    base = (await self.wl.get_tracks(f'ytsearch:{" ".join([a.name for a in track.artists])} {track.name}'))[0]
-                    player.queue.append(Track(base.id, base.info, ctx=ctx))
+                await ctx.send(f'```ini\nAdded {len(tracks.tracks) + 1} tracks to the queue.```')
+            player.queue.append(first)
+        
+        else:
+            track = tracks[0]
+            await ctx.send(f'```ini\nAdded {track.title} to the queue\n```', delete_after=15)
+            player.queue.append(Track(track.id, track.info, ctx=ctx))
 
-                await asyncio.sleep(1)
+        await asyncio.sleep(1)
 
-                if not player.is_playing():
-                    await player._play_next()
+        if not player.is_playing():
+            await player._play_next()
+
+        if isinstance(tracks, SpotifyList):
+            player.queue.extend(tracks.tracks)
     
-    async def get_album_tracks(self, id):
+    async def get_album_tracks(self, id, ctx):
         album = await self.spotify.get_album(id)
-        tracks = await album.get_all_tracks()
-        return tracks
+        tracks = [SpotifyTrack(track.name, [a.name for a in track.artists], ctx=ctx, client=self.wl) async for track in album.get_all_tracks()]
+        return SpotifyList(tracks)
 
-    async def get_artist_tracks(self, id):
+    async def get_artist_tracks(self, id, ctx):
         artist = await self.spotify.get_artist(id)
-        tracks = await artist.top_tracks()
-        return tracks
+        tracks =  [SpotifyTrack(track.name, [a.name for a in track.artists], ctx=ctx, client=self.wl) async for track in artist.top_tracks()]
+        return SpotifyList(tracks)
 
-    async def get_playlist_tracks(self, id):
+    async def get_playlist_tracks(self, id, ctx):
         playlist = spotify.Playlist(self.spotify, await self.spotify.http.get_playlist(id))
-        tracks = await playlist.get_all_tracks()
-        return tracks
+        tracks =  [SpotifyTrack(track.name, [a.name for a in track.artists], ctx=ctx, client=self.wl) async for track in playlist.get_all_tracks()]
+        return SpotifyList(tracks)
 
-    async def get_spotify_track(self, id):
+    async def get_spotify_track(self, id, ctx):
         track = await self.spotify.get_track(id)
-        return [track]
+        return SpotifyList([SpotifyTrack(track.name, [a.name for a in track.artists], ctx=ctx, client=self.wl)])
 
     @commands.command()
     async def pause(self, ctx: commands.Context):
@@ -515,8 +519,8 @@ class Music(commands.Cog):
             return await ctx.send('No more songs are queued.')
 
         entries = []
-        if player.current.repeats:
-            entries.append(f'**({player.current.repeats}x)** `{player.current.title}`')
+        if player._current.repeats:
+            entries.append(f'**({player._current.repeats}x)** `{player._current.title}`')
 
         for song in player.queue[player.index + 1:]:
             entries.append(f'`{song.title}`')

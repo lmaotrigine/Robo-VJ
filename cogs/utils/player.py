@@ -124,6 +124,22 @@ class Track(wavelink.Track):
     @property
     def is_dead(self):
         return self.dead
+
+class SpotifyTrack:
+    __slots__ = ('name', 'artists', 'ctx', 'client')
+    
+    def __init__(self, name: str, artists, *, ctx: commands.Context, client: wavelink.Client):
+        self.name = name
+        self.artists = artists
+        self.ctx = ctx
+        self.client = client
+
+    async def get_wavelink_track(self):
+        tracks = await self.client.get_tracks(f'ytsearch:{" ".join(a.name for a in self.artists)} {self.name}')
+        if not tracks:
+            return None
+        track = tracks[0]
+        return Track(track.id, track.info, ctx=self.ctx)
     
 class Player(wavelink.Player):
     def __init__(self, *args, **kwargs):
@@ -145,7 +161,7 @@ class Player(wavelink.Player):
         self.repeat_votes = set()
         self.back_votes = set()
         
-        self.current = None
+        self._current = None
         self.current = None
 
     async def _play_next(self):
@@ -165,15 +181,22 @@ class Player(wavelink.Player):
                 while True:
                     try:
                         track = self.queue[self.index]
-                        break
+                        if isinstance(track, Track):
+                            break
+                        _track = await track.get_wavelink_track()
+                        if _track is not None:
+                            track = _track
+                            break
+                        else:
+                            self.index += 1
                     except IndexError:
                         await asyncio.sleep(1)
                     
         except asyncio.TimeoutError:
             return await self.teardown()
-
+        
         self.waiting = False
-        self.current = track
+        self._current = track
         await self.play(track)
         await asyncio.sleep(1)
         await self.invoke_session()
@@ -205,13 +228,13 @@ class Player(wavelink.Player):
         embed.add_field(name='Video URL', value=f'[Click Here!]({track.uri})')
         embed.add_field(name='Requested By', value=track.requester.mention)
         embed.add_field(name='DJ', value=self.dj.mention)
-        embed.add_field(name='Queue Length', value=str(len(self.queue[self.index + 1:]) + self.current.repeats))
+        embed.add_field(name='Queue Length', value=str(len(self.queue[self.index + 1:]) + self._current.repeats))
         embed.add_field(name='Volume', value=f'**`{self.volume}%`**')
 
-        if (len(self.queue) + self.current.repeats) > self.index + 1:
-            if self.current.repeats:
-                data = f'**-** ({self.current.repeats})x' \
-                    f' `{self.current.title[:45]}{"..." if len(self.current.title) > 45 else ""}`\n{"-" * 10}\n'
+        if (len(self.queue) + self._current.repeats) > self.index + 1:
+            if self._current.repeats:
+                data = f'**-** ({self._current.repeats})x' \
+                    f' `{self._current.title[:45]}{"..." if len(self._current.title) > 45 else ""}`\n{"-" * 10}\n'
             else:
                 data = ''
             
@@ -220,7 +243,7 @@ class Player(wavelink.Player):
             
             embed.add_field(name='Coming Up:', value=data, inline=False)
 
-        if not await self.iscurrent_fresh(track.channel) and self.session.page:
+        if not await self.is_current_fresh(track.channel) and self.session.page:
             try:
                 await self.destroy_controller()
             except discord.NotFound:
@@ -236,7 +259,7 @@ class Player(wavelink.Player):
 
         self.updating = False
 
-    async def iscurrent_fresh(self, chan: discord.TextChannel):
+    async def is_current_fresh(self, chan: discord.TextChannel):
         """Check whether our controller is fresh in message history."""
         try:
             async for m in chan.history(limit=8):
