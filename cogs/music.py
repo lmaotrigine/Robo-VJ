@@ -242,7 +242,7 @@ class Music(commands.Cog):
                 if isinstance(track, wavelink.Track):
                     player.queue.append(Track(track.id, track.info, ctx=ctx))
                 else:
-                    base = (await self.wl.get_tracks(f'ytsearch:{" ".join(track.artists)} {track.name}'))[0]
+                    base = (await self.wl.get_tracks(f'ytsearch:{" ".join([a.name for a in track.artists])} {track.name}'))[0]
                     player.queue.append(Track(base.id, base.info, ctx=ctx))
 
                 await asyncio.sleep(1)
