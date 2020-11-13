@@ -261,7 +261,7 @@ class Music(commands.Cog):
         return to_return
 
     async def get_playlist_tracks(self, id):
-        playlist: spotify.Playlist = await self.spotify.http.get_playlist(id)
+        playlist = spotify.Playlist(self.spotify, await self.spotify.http.get_playlist(id))
         tracks = await playlist.get_all_tracks()
         to_return = []
         for track in tracks:
