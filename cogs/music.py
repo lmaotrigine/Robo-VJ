@@ -266,7 +266,7 @@ class Music(commands.Cog):
         to_return = []
         for track in tracks:
             try:
-                actual_track = (await self.wl.get_tracks(f'ytsearch:{" ".join([[a.name for a in track.artists]])} {track.name}'))[0]
+                actual_track = (await self.wl.get_tracks(f'ytsearch:{" ".join([a.name for a in track.artists])} {track.name}'))[0]
             except (IndexError, TypeError):
                 continue
             to_return.append(actual_track)
