@@ -106,6 +106,24 @@ class PlayerSession(buttons.Session):
         command = ctx.bot.get_command('queue')
         new.command = command
         await new.bot.invoke(new)
+
+class Track(wavelink.Track):
+    __slots__ = ('ctx', 'requester', 'channel', 'message', 'repeats')
+
+    def __init__(self, id_, info, *, ctx=None):
+        super(Track, self).__init__(id_, info)
+
+        self.ctx: commands.Context = ctx
+        self.requester = ctx.author
+        self.channel = ctx.channel
+        self.message = ctx.message
+
+        self.repeats = 0
+        self.dead = False
+
+    @property
+    def is_dead(self):
+        return self.dead
     
 class Player(wavelink.Player):
     def __init__(self, *args, **kwargs):
@@ -251,20 +269,3 @@ class Player(wavelink.Player):
     def is_playing(self):
         return self.is_connected and self.current is not None
 
-class Track(wavelink.Track):
-    __slots__ = ('ctx', 'requester', 'channel', 'message', 'repeats')
-
-    def __init__(self, id_, info, *, ctx=None):
-        super(Track, self).__init__(id_, info)
-
-        self.ctx: commands.Context = ctx
-        self.requester = ctx.author
-        self.channel = ctx.channel
-        self.message = ctx.message
-
-        self.repeats = 0
-        self.dead = False
-
-    @property
-    def is_dead(self):
-        return self.dead
