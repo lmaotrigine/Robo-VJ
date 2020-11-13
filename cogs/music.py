@@ -206,7 +206,7 @@ class Music(commands.Cog):
 
         else:
             try:
-                tracks = await self.wl.get_tracks(query)[0]
+                tracks = (await self.wl.get_tracks(query))[0]
             except (IndexError, TypeError):
                 return await ctx.send('No songs were found with that query. Please try again.', delete_after=15)
 
