@@ -6,7 +6,7 @@ import re
 import time
 import typing
 import wavelink
-from discord.ext import buttons, commands
+from discord.ext import buttons, commands, tasks
 from .utils import checks, db
 from .utils.player import Player, Track, SpotifyTrack
 from bot import RoboVJ  # documentation purposes
@@ -48,6 +48,18 @@ class Music(commands.Cog):
         bot.loop.create_task(self.__init_nodes__())
         bot.loop.create_task(self._prepare_dj_list())
         self.spotify = self.bot.spotify_client
+        self.update_players.start()
+
+    def cog_unload(self):
+        self.update_players.cancel()
+
+    @tasks.loop(seconds=30)
+    async def update_players(self):
+        for guild_id in self.wl.players.keys():
+            player = self.wl.get_player(guild_id, cls=Player)
+            for track in player.queue[:]:
+                if not isinstance(track, wavelink.Track):
+                    player.queue[player.queue.index(track)] = await track.get_wavelink_track() 
 
     async def __init_nodes__(self):
         await self.bot.wait_until_ready()
@@ -232,14 +244,13 @@ class Music(commands.Cog):
                            f' with {len(tracks.tracks)} songs to the queue.\n```', delete_after=15)
         
         elif isinstance(tracks, SpotifyList):
-            first = None
-            while not first:
-                first = await tracks.get_first_track()
-            if len(tracks.tracks) == 0:
-                await ctx.send(f'```ini\nAdded {first.title}  to the queue.```')
-            else:
-                await ctx.send(f'```ini\nAdded {len(tracks.tracks) + 1} tracks to the queue.```')
-            player.queue.append(first)
+            player.queue.append(await tracks.get_first_track())
+            player.queue.extend(tracks.tracks)
+            await ctx.send(f'```ini\nAdded {len(tracks.tracks) + 1} tracks to the queue.\n```')
+
+        elif isinstance(tracks, SpotifyTrack):
+            player.queue.append(await tracks.get_wavelink_track())
+            await ctx.send(f'```ini\nAdded {tracks.name} to the queue.\n```')
         
         else:
             track = tracks[0]
@@ -250,9 +261,6 @@ class Music(commands.Cog):
 
         if not player.is_playing():
             await player._play_next()
-
-        if isinstance(tracks, SpotifyList):
-            player.queue.extend(tracks.tracks)
     
     async def get_album_tracks(self, id, ctx):
         album = await self.spotify.get_album(id)
@@ -271,7 +279,7 @@ class Music(commands.Cog):
 
     async def get_spotify_track(self, id, ctx):
         track = await self.spotify.get_track(id)
-        return SpotifyList([SpotifyTrack(track.name, track.artists, ctx=ctx, client=self.wl)])
+        return SpotifyTrack(track.name, track.artists, ctx=ctx, client=self.wl)
 
     @commands.command()
     async def pause(self, ctx: commands.Context):
