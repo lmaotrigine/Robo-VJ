@@ -25,5 +25,6 @@ fuzzywuzzy
 pytz
 Wavelink
 buttons
+spotify
 
 jishaku @ git+https://github.com/darthshittious/jishaku
