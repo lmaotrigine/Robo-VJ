@@ -232,9 +232,17 @@ class Music(commands.Cog):
             if len(tracks) > 1:
                 await ctx.send(f'```ini\nAdded {len(tracks)} tracks to the queue\n```', delete_after=15)
             else:
-                await ctx.send(f'```ini\nAdded {tracks[0].title} to the queue\n```', delete_after=15)
+                track = tracks[0]
+                if isinstance(track, wavelink.Track):
+                    title = track.title
+                else:
+                    title = track[0].name
+                await ctx.send(f'```ini\nAdded {title} to the queue\n```', delete_after=15)
             for track in tracks:
-                player.queue.append(Track(track.id, track.info, ctx=ctx))
+                if isinstance(track, wavelink.Track):
+                    player.queue.append(Track(track.id, track.info, ctx=ctx))
+                else:
+                    player.queue.append(track)
 
         await asyncio.sleep(1)
 
