@@ -195,19 +195,19 @@ class Music(commands.Cog):
         
         if TRACK_URL.match(query):
             id = TRACK_URL.match(query).group(2)
-            tracks = await self.get_spotify_track(id, ctx)
+            tracks = await self.get_spotify_track(id)
         
         elif ALBUM_URL.match(query):
             id = ALBUM_URL.match(query).group(2)
-            tracks = await self.get_album_tracks(id, ctx)
+            tracks = await self.get_album_tracks(id)
 
         elif PLAYLIST_URL.match(query):
             id = PLAYLIST_URL.match(query).group(2)
-            tracks = await self.get_playlist_tracks(id, ctx)
+            tracks = await self.get_playlist_tracks(id)
 
         elif ARTIST_URL.match(query):
             id = ARTIST_URL.match(query).group(2)
-            tracks = await self.get_artist_tracks(id, ctx)
+            tracks = await self.get_artist_tracks(id)
 
         else:
             try:
@@ -236,37 +236,38 @@ class Music(commands.Cog):
                 if isinstance(track, wavelink.Track):
                     title = track.title
                 else:
-                    title = track[0].name
+                    title = track.name
                 await ctx.send(f'```ini\nAdded {title} to the queue\n```', delete_after=15)
             for track in tracks:
                 if isinstance(track, wavelink.Track):
                     player.queue.append(Track(track.id, track.info, ctx=ctx))
                 else:
-                    player.queue.append(track)
+                    base = (await self.wl.get_tracks(f'ytsearch:{" ".join(track.artists)} {track.name}'))[0]
+                    player.queue.append(Track(base.id, base.info, ctx=ctx))
 
-        await asyncio.sleep(1)
+                await asyncio.sleep(1)
 
-        if not player.is_playing():
-            await player._play_next()
+                if not player.is_playing():
+                    await player._play_next()
     
-    async def get_album_tracks(self, id, ctx):
+    async def get_album_tracks(self, id):
         album = await self.spotify.get_album(id)
         tracks = await album.get_all_tracks()
         return [(track, ctx) for track in tracks]
 
-    async def get_artist_tracks(self, id, ctx):
+    async def get_artist_tracks(self, id):
         artist = await self.spotify.get_artist(id)
         tracks = await artist.top_tracks()
-        return [(track, ctx) for track in tracks]
+        return tracks
 
-    async def get_playlist_tracks(self, id, ctx):
+    async def get_playlist_tracks(self, id):
         playlist = spotify.Playlist(self.spotify, await self.spotify.http.get_playlist(id))
         tracks = await playlist.get_all_tracks()
-        return [(track, ctx) for track in tracks]
+        return tracks
 
-    async def get_spotify_track(self, id, ctx):
+    async def get_spotify_track(self, id):
         track = await self.spotify.get_track(id)
-        return [(track, ctx)]
+        return [track]
 
     @commands.command()
     async def pause(self, ctx: commands.Context):
