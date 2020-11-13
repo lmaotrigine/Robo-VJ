@@ -170,7 +170,7 @@ class Player(wavelink.Player):
         await self.invoke_session()
 
     async def invoke_session(self):
-        track = self.current
+        track = self._current
         if not track:
             return
         
