@@ -430,7 +430,7 @@ class Music(commands.Cog):
 
         if self.is_privileged(ctx):
             await ctx.send(f'{ctx.author.mention} has repeated the song as an Admin or DJ.', delete_after=10)
-            player.current.repeats += 1
+            player._current.repeats += 1
 
             if not player.is_playing():
                 await self.do_next(player)
@@ -443,7 +443,7 @@ class Music(commands.Cog):
         player.repeat_votes.add(ctx.author)
         if len(player.repeat_votes) >= self.required(ctx):
             await ctx.send('Vote to repeat the song passed. Now repeating the song.', delete_after=10)
-            player.current.repeats += 1
+            player._current.repeats += 1
 
             if not player.is_playing:
                 await self.do_next(player)
