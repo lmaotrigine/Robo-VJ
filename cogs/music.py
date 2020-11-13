@@ -22,7 +22,12 @@ class DJConfig(db.Table, table_name='dj_config'):
     role_id = db.Column(db.Integer(big=True))
 
 class Music(commands.Cog):
-    """Music player (beta)"""
+    """Music player (beta)
+    
+    I haven't handled this well at all, so loading from Spotify is REALLY SLOW.
+    
+    Please don't try to play huge playlists to avoid massive delays.
+    """
 
     def __init__(self, bot: RoboVJ):
         self.bot = bot
