@@ -242,7 +242,7 @@ class Music(commands.Cog):
         to_return = []
         for track in tracks:
             try:
-                actual_track = await self.wl.get_tracks(f'ytsearch:{" ".join([a.name for a in track.artists])} {track.name}')[0]
+                actual_track = (await self.wl.get_tracks(f'ytsearch:{" ".join([a.name for a in track.artists])} {track.name}'))[0]
             except (IndexError, TypeError):
                 continue
             to_return.append(actual_track)
@@ -254,7 +254,7 @@ class Music(commands.Cog):
         to_return = []
         for track in tracks:
             try:
-                actual_track = await self.wl.get_tracks(f'ytsearch:{artist.name} {track.name}')[0]
+                actual_track = (await self.wl.get_tracks(f'ytsearch:{artist.name} {track.name}'))[0]
             except (IndexError, TypeError):
                 continue
             to_return.append(actual_track)
@@ -266,7 +266,7 @@ class Music(commands.Cog):
         to_return = []
         for track in tracks:
             try:
-                actual_track = await self.wl.get_tracks(f'ytsearch:{" ".join([[a.name for a in track.artists]])} {track.name}')[0]
+                actual_track = (await self.wl.get_tracks(f'ytsearch:{" ".join([[a.name for a in track.artists]])} {track.name}'))[0]
             except (IndexError, TypeError):
                 continue
             to_return.append(actual_track)
@@ -275,7 +275,7 @@ class Music(commands.Cog):
     async def get_spotify_track(self, id):
         track = await self.spotify.get_track(id)
         try:
-            actual_track = await self.wl.get_tracks(f'ytsearch:{" ".join([a.name for a in track.artists])} {track.name}')[0]
+            actual_track = (await self.wl.get_tracks(f'ytsearch:{" ".join([a.name for a in track.artists])} {track.name}'))[0]
         except (IndexError, TypeError):
             return []
         return [actual_track]
