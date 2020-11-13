@@ -147,9 +147,17 @@ class Player(wavelink.Player):
                 while True:
                     try:
                         track = self.queue[self.index]
+                        if not isinstance(track, wavelink.Track):
+                            try:
+                                track = (await track[1].cog.wl.get_tracks(f'ytsearch:{" ".join(track[0].artists)} {track[0].name}'))[0]
+                                break
+                            except (IndexError, TypeError):
+                                self.index += 1
+                                continue
                         break
                     except IndexError:
                         await asyncio.sleep(1)
+                    
         except asyncio.TimeoutError:
             return await self.teardown()
 
