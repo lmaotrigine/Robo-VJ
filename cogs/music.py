@@ -253,7 +253,7 @@ class Music(commands.Cog):
     async def get_album_tracks(self, id):
         album = await self.spotify.get_album(id)
         tracks = await album.get_all_tracks()
-        return [(track, ctx) for track in tracks]
+        return tracks
 
     async def get_artist_tracks(self, id):
         artist = await self.spotify.get_artist(id)
