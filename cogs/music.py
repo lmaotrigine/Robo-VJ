@@ -9,8 +9,13 @@ from discord.ext import buttons, commands
 from .utils import checks, db
 from .utils.player import Player, Track
 from bot import RoboVJ  # documentation purposes
+import spotify
 
 RURL = re.compile(r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))")
+ALBUM_URL = re.compile(r'^(?:https?://(?:open\.)?spotify\.com|spotify)([/:])album\1([a-zA-Z0-9]+)')
+ARTIST_URL = re.compile(r'^(?:https?://(?:open\.)?spotify\.com|spotify)([/:])artist\1([a-zA-Z0-9]+)')
+PLAYLIST_URL = re.compile(r'(?:https?://(?:open\.)?spotify\.com(?:/user/[a-zA-Z0-9_]+)?|spotify)([/:])playlist\1([a-zA-Z0-9]+)')
+TRACK_URL = re.compile(r'^(?:https?://(?:open\.)?spotify\.com|spotify)([/:])track\1([a-zA-Z0-9]+)')
 
 class DJConfig(db.Table, table_name='dj_config'):
     guild_id = db.Column(db.Integer(big=True), primary_key=True)
@@ -25,6 +30,7 @@ class Music(commands.Cog):
         self.djs = dict()
         bot.loop.create_task(self.__init_nodes__())
         bot.loop.create_task(self._prepare_dj_list())
+        self.spotify = self.bot.spotify_client
 
     async def __init_nodes__(self):
         await self.bot.wait_until_ready()
@@ -181,8 +187,29 @@ class Music(commands.Cog):
 
         if not RURL.match(query):
             query = f'ytsearch:{query}'
+        
+        if TRACK_URL.match(query):
+            id = TRACK_URL.match(query).group(2)
+            tracks = await self.get_spotify_track(id)
+        
+        elif ALBUM_URL.match(query):
+            id = ALBUM_URL.match(query).group(2)
+            tracks = await self.get_album_tracks(id)
 
-        tracks = await self.wl.get_tracks(query)
+        elif PLAYLIST_URL.match(query):
+            id = PLAYLIST_URL.match(query).group(2)
+            tracks = await self.get_playlist_tracks(id)
+
+        elif ARTIST_URL.match(query):
+            id = ARTIST_URL.match(query).group(2)
+            tracks = await self.get_artist_tracks(id)
+
+        else:
+            try:
+                tracks = await self.wl.get_tracks(query)[0]
+            except (IndexError, TypeError):
+                return await ctx.send('No songs were found with that query. Please try again.', delete_after=15)
+
         if not tracks:
             return await ctx.send('No songs were found with that query. Please try again.', delete_after=15)
 
@@ -197,14 +224,61 @@ class Music(commands.Cog):
                            f' with {len(tracks.tracks)} songs to the queue.\n```', delete_after=15)
 
         else:
-            track = tracks[0]
-            await ctx.send(f'```ini\nAdded {track.title} to the queue\n```', delete_after=15)
-            player.queue.append(Track(track.id, track.info, ctx=ctx))
+            if len(tracks) > 1:
+                await ctx.send(f'```ini\nAdded {len(tracks)} tracks to the queue\n```', delete_after=15)
+            else:
+                await ctx.send(f'```ini\nAdded {tracks[0].title} to the queue\n```', delete_after=15)
+            for track in tracks:
+                player.queue.append(Track(track.id, track.info, ctx=ctx))
 
         await asyncio.sleep(1)
 
         if not player.is_playing():
             await player._play_next()
+    
+    async def get_album_tracks(self, id):
+        album = await self.spotify.get_album(id)
+        tracks = await album.get_all_tracks()
+        to_return = []
+        for track in tracks:
+            try:
+                actual_track = await self.wl.get_tracks(f'ytsearch:{" ".join([a.name for a in track.artists])} {track.name}')[0]
+            except (IndexError, TypeError):
+                continue
+            to_return.append(actual_track)
+        return to_return
+
+    async def get_artist_tracks(self, id):
+        artist = await self.spotify.get_artist(id)
+        tracks = await artist.top_tracks()
+        to_return = []
+        for track in tracks:
+            try:
+                actual_track = await self.wl.get_tracks(f'ytsearch:{artist.name} {track.name}')[0]
+            except (IndexError, TypeError):
+                continue
+            to_return.append(actual_track)
+        return to_return
+
+    async def get_playlist_tracks(self, id):
+        playlist: spotify.Playlist = await self.spotify.http.get_playlist(id)
+        tracks = await playlist.get_all_tracks()
+        to_return = []
+        for track in tracks:
+            try:
+                actual_track = await self.wl.get_tracks(f'ytsearch:{" ".join([[a.name for a in track.artists]])} {track.name}')[0]
+            except (IndexError, TypeError):
+                continue
+            to_return.append(actual_track)
+        return to_return
+
+    async def get_spotify_track(self, id):
+        track = await self.spotify.get_track(id)
+        try:
+            actual_track = await self.wl.get_tracks(f'ytsearch:{" ".join([a.name for a in track.artists])} {track.name}')[0]
+        except (IndexError, TypeError):
+            return []
+        return [actual_track]
 
     @commands.command()
     async def pause(self, ctx: commands.Context):

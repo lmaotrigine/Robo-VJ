@@ -20,6 +20,7 @@ import traceback
 import pyowm
 import tweepy
 from mystbin import MystbinClient
+import spotify
 
 log = logging.getLogger(__name__)
 os.environ['JISHAKU_HIDE'] = 'true'
@@ -98,6 +99,9 @@ class RoboVJ(commands.Bot):
         self.twitter_auth.set_access_token(config.twitter_access_token, config.twitter_access_token_secret)
         self.twitter_api = tweepy.API(self.twitter_auth)
 
+        ## Spotify
+        self.spotify_client = spotify.Client(config.spotify_client_id, config.spotify_client_secret, loop=self.loop)
+        
         for extension in initial_extensions:
             try:
                 self.load_extension(extension)
