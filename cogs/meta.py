@@ -474,6 +474,8 @@ class Meta(commands.Cog):
             guild = self.bot.get_guild(guild_id)
         if not guild:
             guild = await self.bot.fetch_guild(guild_id)
+        if not guild:
+            return await ctx.send('Guild not found.')
         name = guild.name
         await guild.leave()
         await self.bot.owner.send(f"Left '{name}'")
