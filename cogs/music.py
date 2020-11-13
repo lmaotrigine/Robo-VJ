@@ -21,7 +21,7 @@ class Music(commands.Cog):
 
     def __init__(self, bot: RoboVJ):
         self.bot = bot
-        self.wl = wavelink.Client(self.bot)
+        self.wl = wavelink.Client(bot=self.bot)
         self.djs = dict()
         bot.loop.create_task(self.__init_nodes__())
         bot.loop.create_task(self._prepare_dj_list())
