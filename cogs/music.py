@@ -256,22 +256,22 @@ class Music(commands.Cog):
     
     async def get_album_tracks(self, id, ctx):
         album = await self.spotify.get_album(id)
-        tracks = [SpotifyTrack(track.name, [a.name for a in track.artists], ctx=ctx, client=self.wl) for track in await album.get_all_tracks()]
+        tracks = [SpotifyTrack(track.name, track.artists, ctx=ctx, client=self.wl) for track in await album.get_all_tracks()]
         return SpotifyList(tracks)
 
     async def get_artist_tracks(self, id, ctx):
         artist = await self.spotify.get_artist(id)
-        tracks =  [SpotifyTrack(track.name, [a.name for a in track.artists], ctx=ctx, client=self.wl) for track in await artist.top_tracks()]
+        tracks =  [SpotifyTrack(track.name, tracks.artists, ctx=ctx, client=self.wl) for track in await artist.top_tracks()]
         return SpotifyList(tracks)
 
     async def get_playlist_tracks(self, id, ctx):
         playlist = spotify.Playlist(self.spotify, await self.spotify.http.get_playlist(id))
-        tracks =  [SpotifyTrack(track.name, [a.name for a in track.artists], ctx=ctx, client=self.wl) for track in await playlist.get_all_tracks()]
+        tracks =  [SpotifyTrack(track.name, track.artists, ctx=ctx, client=self.wl) for track in await playlist.get_all_tracks()]
         return SpotifyList(tracks)
 
     async def get_spotify_track(self, id, ctx):
         track = await self.spotify.get_track(id)
-        return SpotifyList([SpotifyTrack(track.name, [a.name for a in track.artists], ctx=ctx, client=self.wl)])
+        return SpotifyList([SpotifyTrack(track.name, track.artists, ctx=ctx, client=self.wl)])
 
     @commands.command()
     async def pause(self, ctx: commands.Context):
