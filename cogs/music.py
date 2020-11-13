@@ -10,7 +10,7 @@ from .utils import checks, db
 from .utils.player import Player, Track
 from bot import RoboVJ  # documentation purposes
 
-RURL = re.compile(r'https?:\/\/(?:www\.)?.+')
+RURL = re.compile(r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))")
 
 class DJConfig(db.Table, table_name='dj_config'):
     guild_id = db.Column(db.Integer(big=True), primary_key=True)
@@ -177,9 +177,6 @@ class Music(commands.Cog):
 
         player = self.get_player(ctx=ctx)
 
-        if not player.is_connected:
-            await ctx.invoke(self.connect)
-
         query = query.strip('<>')  # remove angle brackets that suppress embeds
 
         if not RURL.match(query):
@@ -188,6 +185,9 @@ class Music(commands.Cog):
         tracks = await self.wl.get_tracks(query)
         if not tracks:
             return await ctx.send('No songs were found with that query. Please try again.', delete_after=15)
+
+        if not player.is_connected:
+            await ctx.invoke(self.connect)
         
         if isinstance(tracks, wavelink.TrackPlaylist):
             for t in tracks.tracks:
