@@ -126,14 +126,18 @@ class Track(wavelink.Track):
         return self.dead
 
 class SpotifyTrack:
-    __slots__ = ('name', 'artists', 'ctx', 'client')
+    __slots__ = ('name', 'title' 'artists', 'ctx', 'client')
     
     def __init__(self, name: str, artists, *, ctx: commands.Context, client: wavelink.Client):
         self.name = name
         self.artists = artists
         self.ctx = ctx
         self.client = client
-
+    
+    @property
+    def title(self):
+        return self.name
+        
     async def get_wavelink_track(self):
         tracks = await self.client.get_tracks(f'ytsearch:{" ".join(a.name for a in self.artists)} {self.name}')
         if not tracks:
@@ -206,6 +210,9 @@ class Player(wavelink.Player):
         if not track:
             return
         
+        if isinstance(track, SpotifyTrack):
+            track = await track.get_wavelink_track()
+        
         if self.updating:
             return
         
@@ -237,7 +244,7 @@ class Player(wavelink.Player):
                     f' `{self._current.title[:45]}{"..." if len(self._current.title) > 45 else ""}`\n{"-" * 10}\n'
             else:
                 data = ''
-            
+
             data = data + '\n'.join(f'**-** `{t.title[:45]}{"..." if len(t.title) > 45 else ""}`\n{"-" * 10}'
                                      for t in itertools.islice([e for e in self.queue[self.index + 1:] if not e.is_dead], 0, 3, None))
             
