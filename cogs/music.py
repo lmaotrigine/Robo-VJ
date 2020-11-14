@@ -48,19 +48,6 @@ class Music(commands.Cog):
         bot.loop.create_task(self.__init_nodes__())
         bot.loop.create_task(self._prepare_dj_list())
         self.spotify = self.bot.spotify_client
-        self.update_players.start()
-
-    def cog_unload(self):
-        self.update_players.cancel()
-
-    @tasks.loop(seconds=30)
-    async def update_players(self):
-        await self.bot.wait_until_ready()
-        for guild_id in self.wl.players.keys():
-            player = self.wl.get_player(guild_id, cls=Player)
-            for track in player.queue[:]:
-                if not isinstance(track, wavelink.Track):
-                    player.queue[player.queue.index(track)] = await track.get_wavelink_track() 
 
     async def __init_nodes__(self):
         await self.bot.wait_until_ready()
