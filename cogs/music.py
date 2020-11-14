@@ -55,6 +55,7 @@ class Music(commands.Cog):
 
     @tasks.loop(seconds=30)
     async def update_players(self):
+        await self.bot.wait_until_ready()
         for guild_id in self.wl.players.keys():
             player = self.wl.get_player(guild_id, cls=Player)
             for track in player.queue[:]:

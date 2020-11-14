@@ -185,8 +185,6 @@ class Player(wavelink.Player):
                 while True:
                     try:
                         track = self.queue[self.index]
-                        if isinstance(track, Track):
-                            break
                     except IndexError:
                         await asyncio.sleep(1)
                     
@@ -194,10 +192,17 @@ class Player(wavelink.Player):
             return await self.teardown()
         
         self.waiting = False
-        self._current = track
         await self.play(track)
         await asyncio.sleep(1)
         await self.invoke_session()
+
+    async def play(self, track, *, replace=True, start=0, end=0):
+        if not isinstance(track, wavelink.Track):
+            actual_track = await track.get_wavelink_track()
+            self._current = actual_track
+            return await super().play(actual_track, replace=replace, start=start, end=end)
+        self._current = track
+        return await super().play(track, replace=replace, start=start, end=end)
 
     async def invoke_session(self):
         track = self.current
