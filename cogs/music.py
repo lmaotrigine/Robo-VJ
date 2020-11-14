@@ -242,19 +242,19 @@ class Music(commands.Cog):
     async def get_album_tracks(self, id, ctx):
         album = await self.spotify.get_album(id)
         tracks = await album.get_all_tracks()
-        return self.return_tracks(tracks, ctx)
+        return self.return_tracks(album.name, tracks, ctx)
 
     async def get_artist_tracks(self, id, ctx):
         artist = await self.spotify.get_artist(id)
         tracks = await artist.top_tracks()
-        return self.return_tracks(tracks, ctx)
+        return self.return_tracks(artist.name, tracks, ctx)
 
     async def get_playlist_tracks(self, id, ctx):
         playlist = spotify.Playlist(self.spotify, await self.spotify.http.get_playlist(id))
         tracks = await playlist.get_all_tracks()
-        return self.return_tracks(tracks, ctx)
+        return self.return_tracks(playlist.name, tracks, ctx)
 
-    def return_tracks(self, tracks, ctx):
+    def return_tracks(self, name, tracks, ctx):
         to_return = []
         for track in tracks:
             try:
@@ -262,7 +262,7 @@ class Music(commands.Cog):
             except (IndexError, AttributeError):
                 thumb = None
             to_return.append(plugins.SpotifyTrack(track.name, track.artists, thumb, ctx=ctx, client=self.wl))
-        return SpotifyList(to_return)
+        return SpotifyList(name, to_return)
 
     async def get_spotify_track(self, id, ctx):
         track = await self.spotify.get_track(id)
