@@ -179,9 +179,10 @@ class Player(wavelink.Player):
         if not isinstance(track, wavelink.Track):
             actual_track = await track.get_wavelink_track()
             self._current = actual_track
-            return await super().play(actual_track, replace=replace, start=start, end=end)
-        self._current = track
-        return await super().play(track, replace=replace, start=start, end=end)
+            await super().play(actual_track, replace=replace, start=start, end=end)
+        else:
+            self._current = track
+            await super().play(track, replace=replace, start=start, end=end)
 
     async def invoke_session(self):
         track = self.current
@@ -196,9 +197,9 @@ class Player(wavelink.Player):
         embed = discord.Embed(title='Music Controller', colour=0xebb145)
 
         if self.paused:
-            embed.description = f'<:paused:545511040117374986>Paused:\n**`{track.title}`**\n\n'
+            embed.description = f'<:paused:776665714512625674>Paused:\n**`{track.title}`**\n\n'
         else:
-            embed.description = f'<a:eq:545194963810648077>Now Playing:\n**`{track.title}`**\n\n'
+            embed.description = f'<a:eq:776665781031010304>Now Playing:\n**`{track.title}`**\n\n'
 
         embed.set_thumbnail(url=track.thumb)
 
