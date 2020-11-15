@@ -56,6 +56,7 @@ class Music(commands.Cog):
             node.set_hook(self.event_hook)
 
     async def event_hook(self, event):
+        await self.bot.stats_webhook.send(f'{event}:: {event.reason}')
         await self.do_next(event.player)
 
     async def do_next(self, player):
@@ -121,12 +122,6 @@ class Music(commands.Cog):
                 else:
                     player.dj = mem
                     break
-
-    async def cog_before_invoke(self, ctx: commands.Context):
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
 
     async def cog_after_invoke(self, ctx):
         player = self.get_player(ctx=ctx)
