@@ -116,12 +116,12 @@ class RTFX(commands.Cog):
 
     async def do_rtfm(self, ctx, key, obj):
         page_types = {
-            'discord.py': 'https://discordpy.readthedocs.io/en/latest/',
+            'discord.py': 'https://discordpy.readthedocs.io/en/latest',
             'python': 'https://docs.python.org/3',
-            'asyncpg': 'https://magicstack.githiub.io/asyncpg/current/',
-            'twitchio': 'https://twitchio.readthedocs.io/en/rewrite/',
-            'aiohttp': 'https://docs.aiohttp.org/en/stable/',
-            'wavelink': 'https://wavelink.readthedocs.io/en/latest/',
+            'asyncpg': 'https://magicstack.githiub.io/asyncpg/current',
+            'twitchio': 'https://twitchio.readthedocs.io/en/rewrite',
+            'aiohttp': 'https://docs.aiohttp.org/en/stable',
+            'wavelink': 'https://wavelink.readthedocs.io/en/latest',
         }
 
         if obj is None:
