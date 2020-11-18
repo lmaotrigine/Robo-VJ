@@ -158,7 +158,7 @@ class RTFX(commands.Cog):
 
         matches = fuzzy.finder(obj, cache, key=lambda t: t[0], lazy=False)
 
-        e = discord.Embed(colour=self.bot.colour['dsc'])
+        e = discord.Embed(colour=discord.Colour.blurple())
         if not matches:
             return await ctx.send('Could not find anything. Sorry.')
         e.title = f"RTFM for __**`{key}`**__: {obj}"
@@ -224,7 +224,7 @@ class RTFX(commands.Cog):
         e.add_field(name='Uses', value=count)
         e.add_field(name='Percentage',
                     value=f'{count/total_uses:.2%} out of {total_uses}')
-        e.colour = self.bot.colour['dsc']
+        e.colour = discord.Colour.blurple()
         await ctx.send(embed=e)
 
     @commands.command()
@@ -232,7 +232,7 @@ class RTFX(commands.Cog):
         """ Read the fuckin' source of discord.py. """
         embed = discord.Embed(
             title="Read the f*ckin source",
-            colour=self.bot.colour['dsc']
+            colour=discord.Colour.blurple()
         )
         timeout = ClientTimeout(5)
         try:
