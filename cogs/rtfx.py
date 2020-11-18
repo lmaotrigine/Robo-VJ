@@ -1,3 +1,4 @@
+import inspect
 import io
 import os
 import re
@@ -7,7 +8,14 @@ from asyncio import TimeoutError
 from aiohttp import ClientTimeout
 
 import discord
-from discord.ext import commands
+import discord.http
+import discord.abc
+import discord.state
+import discord.webhook
+import discord.gateway
+import discord.raw_models
+
+from discord.ext import commands, tasks
 from .utils import fuzzy
 
 
@@ -209,24 +217,6 @@ class RTFX(commands.Cog):
         """ Gives you the documentation link for a `Wavelink` entity. """
         await self.do_rtfm(ctx, 'wavelink', obj)
 
-    async def _member_stats(self, ctx, member, total_uses):
-        e = discord.Embed(title='RTFM Stats')
-        e.set_author(name=str(member), icon_url=member.avatar_url)
-
-        query = 'SELECT count FROM rtfm WHERE user_id=$1;'
-        record = await ctx.db.fetchrow(query, member.id)
-
-        if record is None:
-            count = 0
-        else:
-            count = record['count']
-
-        e.add_field(name='Uses', value=count)
-        e.add_field(name='Percentage',
-                    value=f'{count/total_uses:.2%} out of {total_uses}')
-        e.colour = discord.Colour.blurple()
-        await ctx.send(embed=e)
-
     @commands.command()
     async def rtfs(self, ctx, *, search: str):
         """ Read the fuckin' source of discord.py. """
@@ -234,21 +224,61 @@ class RTFX(commands.Cog):
             title="Read the f*ckin source",
             colour=discord.Colour.blurple()
         )
-        timeout = ClientTimeout(5)
+        # timeout = ClientTimeout(5)
+        # try:
+        #     async with self.bot.session.get(f"https://rtfs.eviee.me/dpy?search={search}", timeout=timeout) as resp:
+        #         results = await resp.json()
+        # except TimeoutError:
+        #     return await ctx.send("API is down, go look yourself lmao: <https://github.com/Rapptz/discord.py>")
+        # if not results:
+        #     embed.title = "Couldn't find anything."
+        # else:
+        #     embed.title = f"RTFS for '{search}'"
+        #     embed.description = '\n'.join(
+        #         f"[`{result['module']}.{result['object']}`]({result['url']})" for result in results[:10])
+        #     eviee = self.bot.get_user(402159684724719617) or "Eviee#0666"  # just in case ;q
+        #     embed.set_footer(
+        #         text=f"Requested by {ctx.author} | Thank you {eviee} for the API.")
+        overhead = ""
+        raw_search = search
+        searches = []
+        if '.' in search:
+            searches = search.split('.')
+            search = searches[0]
+            searches = searches[1:]
+        get = getattr(discord, search, None)
+        if get is None:
+            get = getattr(commands, search, None)
+            if get is None:
+                get = getattr(tasks, search, None)
+        if get is None:
+            embed.title = f'Nothing found under `{raw_search}`'
+            return await ctx.send(embed=embed)
+        if inspect.isclass(get) or searches:
+            if searches:
+                for i in searches:
+                    last_get = get
+                    get = getattr(get, i, None)
+                    if get is None and last_get is None:
+                        embed.title = f'Nothing found under `{raw_search}`'
+                        return await ctx.send(embed=embed)
+                    elif get is None:
+                        overhead = f'Couldn\'t find `{i}` under `{last_get.__name__}`, showing source for `{last_get.__name__}`\n\n'
+                        get = last_get
+                        break
+        if isinstance(get, property):
+            get = get.fget
+
+        lines, firstlineno = inspect.getsourcelines(get)
         try:
-            async with self.bot.session.get(f"https://rtfs.eviee.me/dpy?search={search}", timeout=timeout) as resp:
-                results = await resp.json()
-        except TimeoutError:
-            return await ctx.send("API is down, go look yourself lmao: <https://github.com/Rapptz/discord.py>")
-        if not results:
-            embed.title = "Couldn't find anything."
-        else:
-            embed.title = f"RTFS for '{search}'"
-            embed.description = '\n'.join(
-                f"[`{result['module']}.{result['object']}`]({result['url']})" for result in results[:10])
-            eviee = self.bot.get_user(402159684724719617) or "Eviee#0666"  # just in case ;q
-            embed.set_footer(
-                text=f"Requested by {ctx.author} | Thank you {eviee} for the API.")
+            module = get.__module__
+            location = module.replace('.', '/') + '.py'
+        except AttributeError:
+            location = get.__name__.replace('.', '/') + '.py'
+
+        ret = f'https://github.com/Rapptz/discord.py/blob/v{discord.__version__}'
+        final = f'{overhead}[{location}]({ret}/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1})'
+        embed.description = final
         return await ctx.send(embed=embed)
 
 
