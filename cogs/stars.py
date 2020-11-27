@@ -363,7 +363,7 @@ class Stars(commands.Cog):
             # ergo, when we add a reaction from starboard we want it to star
             # the original message
 
-            query = "SELECT channel_id, message_id FROM starboard_entries WHERE bot_message_is = $1;"
+            query = "SELECT channel_id, message_id FROM starboard_entries WHERE bot_message_id = $1;"
             record = await connection.fetchrow(query, message_id)
             if record is None:
                 raise StarError("Could not find message in the starboard.")
