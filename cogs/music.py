@@ -626,7 +626,6 @@ class Music(commands.Cog):
 
     @commands.command(name='vol_up', hidden=True)
     @check_in_voice()
-    @commands.help_check(lambda c: False)
     async def volume_up(self, ctx):
         """
         """
@@ -643,7 +642,6 @@ class Music(commands.Cog):
 
     @commands.command(name='vol_down', hidden=True)
     @check_in_voice()
-    @commands.help_check(lambda c: False)
     async def volume_down(self, ctx):
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
