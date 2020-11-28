@@ -96,7 +96,7 @@ class Music(commands.Cog):
             self.bot.wavelink = wavelink.Client(bot=bot)
         if not hasattr(self.bot, 'cached_always_play'):
             self.bot.cached_always_play = self.always_plays = {}
-            self.bot.loop.create_task(self.load_always_plays())
+            self.bot.loop.create_task(self.load_always_play())
         else:
             self.always_plays = self.bot.cached_always_play
         
