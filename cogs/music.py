@@ -835,3 +835,7 @@ class Music(commands.Cog):
             await ctx.player.destroy()
         except:
             pass
+
+
+def setup(bot):
+    bot.add_cog(Music(bot))
