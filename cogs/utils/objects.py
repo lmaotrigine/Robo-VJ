@@ -170,7 +170,6 @@ class Player(wavelink.Player):
         self.skips = set()
         self.repeats = set()
 
-        self.eq = wavelink.Equalizer.flat()
         self.equalizers = {'FLAT': wavelink.Equalizer.flat(),
                            'BOOST': wavelink.Equalizer.boost(),
                            'METAL': wavelink.Equalizer.metal(),
