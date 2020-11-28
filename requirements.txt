@@ -1,6 +1,7 @@
 git+https://github.com/Rapptz/discord.py@master
 git+https://github.com/Rapptz/discord-ext-menus@master
 git+https://github.com/ssut/py-googletrans@master
+git+https://github.com/darthshittious/d20@main
 asyncpg>=0.21.0
 Pillow>=7.2.0
 PTable>=0.9.2
@@ -17,7 +18,6 @@ tweepy
 pyowm
 treys
 pydealer
-d20
 pygost
 cryptography
 mystbin.py

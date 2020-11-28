@@ -1888,6 +1888,33 @@ class Moderation(commands.Cog):
             modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
             if modlog_channel:
                 await modlog_channel.send(embed=e)
+    
+    @commands.command()
+    @checks.is_mod()
+    async def unblock(self, ctx, *, member: discord.Member):
+        """Unblocks a user from your channel."""
+
+        if member.top_role > ctx.author.top_role:
+            return
+
+        reason = f'Unblock by {ctx.author} (ID: {ctx.author.id})'
+
+        channels = self.get_block_channels(ctx.guild, ctx.channel)
+
+        try:
+            for channel in channels:
+                await channel.set_permissions(member, send_messages=None, add_reactions=None, reason=reason)
+        except:
+            await ctx.send('\N{THUMBS DOWN SIGN}')
+        else:
+            await ctx.send('\N{THUMBS UP SIGN}')
+            e = discord.Embed(title=f'[UNBLOCK] {member}', colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
+            e.add_field(name='Member ID', value=member.id)
+            e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
+            e.add_field(name='Channel', value=ctx.channel.mention)
+            modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
+            if modlog_channel:
+                await modlog_channel.send(embed=e)
 
     @commands.command()
     @checks.is_mod()

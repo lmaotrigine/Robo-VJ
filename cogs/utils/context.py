@@ -2,6 +2,7 @@ from discord.ext import commands
 import asyncio
 import discord
 import io
+from . import objects as _objects
 
 class _ContextDBAcquire:
     __slots__ = ('ctx', 'timeout')
@@ -220,3 +221,7 @@ class Context(commands.Context):
             return await self.send(file=discord.File(fp, filename='message_too_long.txt'), **kwargs)
         else:
             return await self.send(content)
+    
+    @property
+    def player(self):
+        return self.bot.wavelink.get_player(self.guild.id, cls=_objects.Player)
