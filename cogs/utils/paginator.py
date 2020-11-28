@@ -128,7 +128,7 @@ class SimplePages(RoboPages):
         super().__init__(SimplePageSource(entries, per_page=per_page))
         self.embed = discord.Embed(colour=discord.Colour.blurple())
 
-class CannotPaginate(CommandError):
+class CannotPaginate(commands.CommandError):
     pass
 
 class Pages:
