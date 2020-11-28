@@ -1,6 +1,6 @@
 import asyncio
 import discord
-from discord.ext.commands import Paginator as CommandPaginator
+from discord.ext.commands import Paginator as CommandPaginator, CommandError
 from discord.ext import menus
 
 class RoboPages(menus.MenuPages):
@@ -128,7 +128,7 @@ class SimplePages(RoboPages):
         super().__init__(SimplePageSource(entries, per_page=per_page))
         self.embed = discord.Embed(colour=discord.Colour.blurple())
 
-class CannotPaginate(commands.CommandError):
+class CannotPaginate(CommandError):
     pass
 
 class Pages:
