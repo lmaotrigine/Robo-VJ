@@ -117,7 +117,7 @@ class Music(commands.Cog):
         }
 
         for n in nodes.values():
-            node = await self.wl.initiate_node(**n)
+            node = await self.bot.wavelink.initiate_node(**n)
             node.set_hook(self.event_hook)
 
     def event_hook(self, event):
