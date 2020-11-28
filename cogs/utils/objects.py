@@ -170,7 +170,11 @@ class Player(wavelink.Player):
         self.skips = set()
         self.repeats = set()
 
-        self.eq = 'Flat'
+        self.eq = wavelink.Equalizer.flat()
+        self.equalizers = {'FLAT': wavelink.Equalizer.flat(),
+                           'BOOST': wavelink.Equalizer.boost(),
+                           'METAL': wavelink.Equalizer.metal(),
+                           'PIANO': wavelink.Equalizer.piano()}
 
         self._task = bot.loop.create_task(self.player_loop())
     
