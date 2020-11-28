@@ -40,7 +40,7 @@ initial_extensions =  {
     'cogs.github',
     'cogs.meta',
     'cogs.mod',
-    #'cogs.music',
+    'cogs.music',
     'cogs.my_quiz',
     'cogs.poll',
     'cogs.quiz',
