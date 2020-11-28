@@ -19,7 +19,7 @@ import logging
 import traceback
 import pyowm
 import tweepy
-from mystbin import MystbinClient
+from mystbin import Client as MystbinClient
 import spotify
 
 log = logging.getLogger(__name__)
