@@ -40,36 +40,6 @@ class SpotifyList:
         self.name = name
         self.tracks = tracks
 
-    async def get_album_tracks(self, id, ctx):
-        album = await self.spotify.get_album(id)
-        tracks = await album.get_all_tracks()
-        return self.return_tracks(album.name, tracks, ctx)
-
-    async def get_artist_tracks(self, id, ctx):
-        artist = await self.spotify.get_artist(id)
-        tracks = await artist.top_tracks()
-        return self.return_tracks(artist.name, tracks, ctx)
-
-    async def get_playlist_tracks(self, id, ctx):
-        playlist = spotify.Playlist(self.spotify, await self.spotify.http.get_playlist(id))
-        tracks = await playlist.get_all_tracks()
-        return self.return_tracks(playlist.name, tracks, ctx)
-
-    def return_tracks(self, name, tracks, ctx):
-        to_return = []
-        for track in tracks:
-            try:
-                thumb = track.images[0].url
-            except (IndexError, AttributeError):
-                thumb = None
-            to_return.append(SpotifyTrack(track.name, track.artists, ctx=ctx, requester=ctx.author))
-        return SpotifyList(name, to_return)
-
-    async def get_spotify_track(self, id, ctx):
-        track = await self.spotify.get_track(id)
-        base = SpotifyTrack(track.name, track.artists, ctx=ctx, requester=ctx.author)
-        return [await base.find_wavelink_track()]
-
 def check_no_automusic():
     def predicate(ctx):
         if not isinstance(ctx.player, AutoPlayer):
@@ -88,7 +58,11 @@ def check_in_voice():
     return commands.check(predicate)
 
 class Music(commands.Cog):
-    """All the tunes \U0001f3b5"""
+    """All the tunes \U0001f3b5
+    
+    Spotify is buggy for some reason and I don't know enough Java to debug.
+    If it doesn't work just don't use it for the time being.
+    """
     def __init__(self, bot):
         self.bot = bot
 
