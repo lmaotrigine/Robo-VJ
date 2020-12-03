@@ -1,7 +1,7 @@
 import contextlib
 import asyncio
 import discord
-from discord.ext.commands import BadArgument, Converter
+from discord.ext.commands import BadArgument, Converter, Context
 from ssl import CertificateError
 from aiohttp import ClientConnectorError
 import logging
