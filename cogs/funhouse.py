@@ -189,7 +189,7 @@ class Funhouse(commands.Cog):
         rollstr = '1d20+' + mod
         await self.roll_cmd(ctx, rollstr=rollstr)
 
-    @commands.command(name='roll', aliases=['r'])
+    @commands.command(name='roll', aliases=['r'], hidden=True)
     async def roll_cmd(self, ctx, *, rollstr: str='1d20'):
         """Roll is used to roll any combination of dice in the `XdY` format. (`1d6`, `2d8`, etc)
         
@@ -261,7 +261,7 @@ class Funhouse(commands.Cog):
             pass
         await ctx.send(embed=discord.Embed(title=':game_die:', description=out, colour=discord.Colour.blurple()).set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url))
 
-    @commands.command(name='multiroll', aliases=['rr'])
+    @commands.command(name='multiroll', aliases=['rr'], hidden=True)
     async def rr(self, ctx, iterations: int, *, rollstr):
         """Rolls dice in xdy format a given number of times.
         Usage: !rr <iterations> <dice>
@@ -269,7 +269,7 @@ class Funhouse(commands.Cog):
         rollstr, adv = self._string_search_adv(rollstr)
         await self._roll_many(ctx, iterations, rollstr, adv=adv)
 
-    @commands.command(name='iterroll', aliases=['rrr'])
+    @commands.command(name='iterroll', aliases=['rrr'], hidden=True)
     async def rrr(self, ctx, iterations: int, rollstr, dc: int=None, *, args=''):
         """Rolls dice in xdy format, given a set dc.
         Usage: !rrr <iterations> <xdy> <DC> [args]
