@@ -363,7 +363,7 @@ class Doc(commands.Cog):
                     await ctx.message.delete(delay=NOT_FOUND_DELETE_DELAY)
             else:
                 msg = await ctx.send(embed=doc_embed)
-                await wait_for_deletion(msg, (ctx.author.id,))
+                await wait_for_deletion(self.bot, msg, (ctx.author.id,))
 
     @docs_group.command(name='set', aliases=('s',))
     @commands.is_owner()
