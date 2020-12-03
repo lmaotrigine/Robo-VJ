@@ -380,9 +380,9 @@ class Doc(commands.Cog):
                     https://docs.python.org/3/ \
                     https://docs.python.org/3/objects.inv
         """
-        query = """INSERT INTO docs (package, base_url, inventory_url) VALUES ($1, $2, $3)
-                   ON CONFLICT (package) DO UPDATE SET (base_url, inventory_url) = ($2, $3)
-                   WHERE package = $1;
+        query = """INSERT INTO docs (docs.package, base_url, inventory_url) VALUES ($1, $2, $3)
+                   ON CONFLICT (docs.package) DO UPDATE SET (base_url, inventory_url) = ($2, $3)
+                   WHERE docs.package = $1;
                    """
         await ctx.db.execute(query, package_name.lower(), base_url, inventory_url)
         async with ctx.typing():

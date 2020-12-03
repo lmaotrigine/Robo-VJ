@@ -30,6 +30,6 @@ beautifulsoup4
 sphinx
 requests
 markdownify
-
+pyYAML
 
 jishaku @ git+https://github.com/darthshittious/jishaku
