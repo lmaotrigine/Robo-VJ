@@ -85,7 +85,7 @@ class Funhouse(commands.Cog):
         from [here](https://http.cat)
         """
         if code is not None:
-            await ctx.send(embed=discord.Embed(title=f'Status: {code}').set_image(f'https://http.cat/{code}.jpg'))
+            await ctx.send(embed=discord.Embed(title=f'Status: {code}').set_image(url=f'https://http.cat/{code}.jpg'))
             return
         async with self.bot.session.get('https://api.thecatapi.com/v1/images/search') as resp:
             if resp.status != 200:
