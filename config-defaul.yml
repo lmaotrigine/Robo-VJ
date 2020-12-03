@@ -1,0 +1,3 @@
+redirect_output:
+    delete_invocation: true
+    delete_delay: 15

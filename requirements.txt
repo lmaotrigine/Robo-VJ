@@ -26,5 +26,10 @@ pytz
 Wavelink
 buttons
 spotify
+beautifulsoup4
+sphinx
+requests
+markdownify
+
 
 jishaku @ git+https://github.com/darthshittious/jishaku
