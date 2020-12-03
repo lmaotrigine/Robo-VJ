@@ -1,4 +1,5 @@
 import enum
+from http import HTTPStatus
 import discord
 from discord.ext import commands
 import googletrans
@@ -21,6 +22,14 @@ class RPSLS(enum.Enum):
     PAPER = 2
     LIZARD = 3
     SCISSORS = 4
+
+class HTTPCode(commands.Converter):
+    async def convert(self, ctx, argument):
+        try:
+            HTTPStatus(int(argument))
+        except ValueError:
+            raise commands.BadArgument(f'Status code `{argument}` does not exist.')
+        return int(argument)
 
 RULE_DICT = {
     'rock': {
@@ -69,13 +78,23 @@ class Funhouse(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(hidden=True)
-    async def cat(self, ctx):
-        """Gives you a random cat."""
+    async def cat(self, ctx, code: HTTPCode=None):
+        """Gives you a random cat.
+        
+        You may also provide an optional HTTP Status code to get the appropriate status cat
+        from [here](https://http.cat)
+        """
+        if code is not None:
+            await ctx.send(embed=discord.Embed(title=f'Status: {code}').set_image(f'https://http.cat/{code}.jpg')
         async with self.bot.session.get('https://api.thecatapi.com/v1/images/search') as resp:
             if resp.status != 200:
                 return await ctx.send('No cat found :(')
             js = await resp.json()
             await ctx.send(embed=discord.Embed(title='Random Cat').set_image(url=js[0]['url']))
+    @cat.error
+    async def cat_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send(error)
 
     @commands.command(hidden=True)
     async def dog(self, ctx):
