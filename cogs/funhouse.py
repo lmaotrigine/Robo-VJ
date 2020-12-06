@@ -59,23 +59,49 @@ class Funhouse(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.trans = googletrans.Translator()
-        
-    @commands.command(hidden=True)
-    async def translate(self, ctx, *, message: commands.clean_content):
-        """Translates a message to English using Google translate."""
 
+    async def do_translate(self, ctx, message, *, from_='auto', to='en'):
         loop = self.bot.loop
         try:
-            ret = await loop.run_in_executor(None, self.trans.translate, message)
+            ret = await loop.run_in_executor(None, self.trans.translate, message, to, from_)
         except Exception as e:
             return await ctx.send(f'An error occurred: {e.__class__.__name__}: {e}')
 
-        embed=discord.Embed(title='Translated', colour=0x4284F3)
+        embed = discord.Embed(title='Translated', colour=0x4284F3)
         src = googletrans.LANGUAGES.get(ret.src, '(auto-detected)').title()
         dest = googletrans.LANGUAGES.get(ret.dest, 'Unknown').title()
         embed.add_field(name=f'From {src}', value=ret.origin, inline=False)
         embed.add_field(name=f'To {dest}', value=ret.text, inline=False)
+        if ret.pronunciation and ret.pronunciation != ret.text:
+            embed.add_field(name='Pronunciation', value=ret.pronunciation)
         await ctx.send(embed=embed)
+        
+    @commands.group(hidden=True, invoke_without_command=True)
+    async def translate(self, ctx, *, message: commands.clean_content):
+        """Translates a message to English using Google translate."""
+        await self.do_translate(ctx, message)
+
+    @translate.command(name='src')
+    async def _src(self, ctx, lang, *, message):
+        if lang not in googletrans.LANGUAGES and lang not in googletrans.LANGCODES:
+            return await ctx.send(f'`{lang}` is not a recognised language.')
+        await self.do_translate(ctx, message, from_=lang)
+
+    @translate.command(name='dest')
+    async def _dest(self, ctx, lang, *, message):
+        if lang not in googletrans.LANGUAGES and lang not in googletrans.LANGCODES:
+            return await ctx.send(f'`{lang}` is not a recognised language')
+        await self.do_translate(ctx, message, to=lang)
+
+    @translate.command()
+    async def src_and_dest(self, ctx, _src, _dest, *, message):
+        def valid(lang):
+            return lang in googletrans.LANGUAGES or lang in googletrans.LANGCODES
+        if not valid(_dest):
+            return await ctx.send(f'Cannot translate to `{_dest}`: Not a recognised language.')
+        if not valid(_src):
+            return await ctx.send(f'`{_src}` is not a recognised language.')
+        await self.do_translate(ctx, message, from_=_src, to=_dest)
 
     @commands.command(hidden=True)
     async def cat(self, ctx, code: HTTPCode=None):
