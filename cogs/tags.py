@@ -148,33 +148,15 @@ class FakeUser(discord.Object):
         return str(self.id)
 
 class TagMember(commands.Converter):
-    async def resolve_id(self, ctx, member_id):
-        member = ctx.guild.get_member(member_id)
-        if member is not None:
-            return member
-
-        try:
-            return await ctx.guild.fetch_member(member_id)
-        except discord.HTTPException:
-            return FakeUser(id=member_id)
 
     async def convert(self, ctx, argument):
-        if argument.isdigit():
-            return await self.resolve_id(ctx, int(argument))
+        try:
+            return await commands.MemberConverter().convert(ctx, argument)
+        except commands.BadArgument as e:
+            if argument.isdigit():
+                return FakeUser(id=int(argument))
+            raise e
 
-        match = re.match(r'<@!?([0-9]+)>$', argument)
-        if match is not None:
-            return await self.resolve_id(ctx, int(match.group(1)))
-
-        name, _, discrim = argument.partition('#')
-        if discrim:
-            result = discord.utils.get(ctx.guild.members, name=name, discriminator=discrim)
-        else:
-            result = discord.utils.get(ctx.guild.members, name=name)
-
-        if result is None:
-            raise commands.BadArgument(f'User "{argument}" not found.')
-        return result
 
 class Tags(commands.Cog):
     """The tag related commands."""
@@ -337,7 +319,7 @@ class Tags(commands.Cog):
         except RuntimeError as e:
             return await ctx.send(e)
 
-        await ctx.send(tag['content'])
+        await ctx.send(tag['content'], reference=ctx.replied_reference)
 
         # update the usage
         query = "UPDATE tags SET uses = uses + 1 WHERE name = $1 AND (location_id = $2 OR location_id IS NULL);"
@@ -987,11 +969,7 @@ class Tags(commands.Cog):
         if row is None:
             return await ctx.send(f'A tag with the name of "{tag}" does not exist.')
 
-        try:
-            member = ctx.guild.get_member(row[1]) or await ctx.guild.fetch_member(row[1])
-        except discord.NotFound:
-            member = None
-
+        member = await self.bot.get_or_fetch_member(ctx.guild, row[1])
         if member is not None:
             return await ctx.send('Tag owner is still in server.')
 

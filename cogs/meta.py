@@ -22,6 +22,7 @@ try:
 except ImportError:
     Greeter = None
 
+
 class Prefix(commands.Converter):
     async def convert(self, ctx, argument):
         user_id = ctx.bot.user.id
@@ -29,16 +30,6 @@ class Prefix(commands.Converter):
             raise commands.BadArgument('That is a reserved prefix already in use.')
         return argument
 
-class FetchedUser(commands.Converter):
-    async def convert(self, ctx, argument):
-        if not argument.isdigit():
-            raise commands.BadArgument('Not a valid user ID.')
-        try:
-            return await ctx.bot.fetch_user(argument)
-        except discord.NotFound:
-            raise commands.BadArgument('User not found.') from None
-        except discord.HTTPException:
-            raise commands.BadArgument('An error occurred while fetching the user.') from None
 
 class Meta(commands.Cog):
     """Commands for utilities related to Discord or the Bot itself."""
@@ -66,6 +57,7 @@ class Meta(commands.Cog):
             digit = f'{ord(c):x}'
             name = unicodedata.name(c, 'Name not found.')
             return f'`\\U{digit:>08}`: {name} - {c} \N{EM DASH} <http://www.fileformat.info/info/unicode/char/{digit}>'
+
         msg = '\n'.join(map(to_string, characters))
         if len(msg) > 2000:
             return await ctx.send('Output too long to display.')
@@ -77,9 +69,9 @@ class Meta(commands.Cog):
         If called without a subcommand, this will list the currently set
         prefixes.
         """
-                
+
         prefixes = self.bot.get_guild_prefixes(ctx.guild)
-        
+
         # we want to remove prefix #2, because it's the second form of the mention
         # and to the end user, this would end up making them confused why the
         # mention is there twice
@@ -208,9 +200,9 @@ class Meta(commands.Cog):
 
         final_url = f'<{source_url}/blob/{branch}/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'
         await ctx.send(final_url)
-        
+
     @commands.command()
-    async def avatar(self, ctx, *, user: Union[discord.Member, FetchedUser] = None):
+    async def avatar(self, ctx, *, user: Union[discord.Member, discord.User] = None):
         """Shows a user's enlarged avatar (if possible)."""
         embed = discord.Embed()
         user = user or ctx.author
@@ -220,16 +212,13 @@ class Meta(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def info(self, ctx, *, user: Union[discord.Member, FetchedUser] = None):
+    async def info(self, ctx, *, user: Union[discord.Member, discord.User] = None):
         """Shows info about a user."""
 
         user = user or ctx.author
-        if ctx.guild and isinstance(user, discord.User):
-            user = ctx.guild.get_member(user.id) or user
-
         e = discord.Embed()
         roles = [role.name.replace('@', '@\u200b') for role in getattr(user, 'roles', [])]
-        shared = sum(g.get_member(user.id) is not None for g in self.bot.guilds)
+        # shared = sum(g.get_member(user.id) is not None for g in self.bot.guilds)
         e.set_author(name=str(user))
 
         def format_date(dt):
@@ -238,7 +227,7 @@ class Meta(commands.Cog):
             return f'{dt:%Y-%m-%d %H:%M} ({time.human_timedelta(dt, accuracy=3)})'
 
         e.add_field(name='ID', value=user.id, inline=False)
-        e.add_field(name='Servers', value=f'{shared} shared', inline=False)
+        # e.add_field(name='Servers', value=f'{shared} shared', inline=False)
         e.add_field(name='Joined', value=format_date(getattr(user, 'joined_at', None)), inline=False)
         e.add_field(name='Created', value=format_date(user.created_at), inline=False)
 
@@ -250,7 +239,8 @@ class Meta(commands.Cog):
             e.add_field(name='Voice', value=voice, inline=False)
 
         if roles:
-            e.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles', inline=False)
+            e.add_field(name='Roles', value=', '.join(roles) if len(roles) < 10 else f'{len(roles)} roles',
+                        inline=False)
 
         colour = user.colour
         if colour.value:
@@ -337,7 +327,6 @@ class Meta(commands.Cog):
             'BANNER': 'Banner'
         }
 
-
         for feature, label in all_features.items():
             if feature in features:
                 info.append(f'{ctx.tick(True)}: {label}')
@@ -375,11 +364,11 @@ class Meta(commands.Cog):
 
         fmt = f'Regular: {emoji_stats["regular"]}/{guild.emoji_limit}\n' \
               f'Animated: {emoji_stats["animated"]}/{guild.emoji_limit}\n' \
-
+ \
         if emoji_stats['disabled'] or emoji_stats['animated_disabled']:
             fmt = f'{fmt}Disabled: {emoji_stats["disabled"]} regular, {emoji_stats["animated_disabled"]} animated\n'
 
-        fmt = f'{fmt}Total Emoji: {len(guild.emojis)}/{guild.emoji_limit*2}'
+        fmt = f'{fmt}Total Emoji: {len(guild.emojis)}/{guild.emoji_limit * 2}'
         e.add_field(name='Emoji', value=fmt, inline=False)
         e.set_footer(text='Created').timestamp = guild.created_at
         await ctx.send(embed=e)
@@ -431,7 +420,7 @@ class Meta(commands.Cog):
         if author_id is None:
             member = guild.me
         else:
-            member = guild.get_member(author_id)
+            member = await self.bot.get_or_fetch_member(guild, author_id)
 
         if member is None:
             return await ctx.send('Member not found?')
@@ -450,19 +439,19 @@ class Meta(commands.Cog):
         owner = self.bot.get_user(self.bot.owner_id)
         await ctx.send(f"{greeting} I'm a robot! {str(owner)} made me.")
 
-
     @commands.command(aliases=['invite'])
     async def join(self, ctx):
         """Get the invite link to add the bot to your server"""
         embed = discord.Embed(title="Click here to add me to your server", colour=discord.Colour(0xFF0000),
-                            url=discord.utils.oauth_url(self.bot.user.id, discord.Permissions(administrator=True)))
-        embed.set_author(name=self.bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name, icon_url=self.bot.user.avatar_url)
+                              url=discord.utils.oauth_url(self.bot.user.id, discord.Permissions(administrator=True)))
+        embed.set_author(name=self.bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name,
+                         icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
 
     # leave a guild
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def leave(self, ctx, guild_id = None):
+    async def leave(self, ctx, guild_id=None):
         if not await self.bot.is_owner(ctx.author):
             return
         if not guild_id:
@@ -485,13 +474,13 @@ class Meta(commands.Cog):
         """Appreci8 that wun"""
         await ctx.send(f"Thanks {ctx.author.mention}, I try :slight_smile:")
 
-
     @commands.command(hidden=True)
     async def ping(self, ctx):
         """
         Returns bot latency
         """
         await ctx.send(f"Pong! {(self.bot.latency * 1000):.2f}ms")
+
 
 def setup(bot):
     bot.add_cog(Meta(bot))

@@ -222,13 +222,17 @@ class Stars(commands.Cog):
         if str(payload.emoji) != '\N{WHITE MEDIUM STAR}':
             return
 
-        channel = self.bot.get_channel(payload.channel_id)
+        guild = self.bot.get_guild(payload.guild_id)
+        if guild is None:
+            return
+
+        channel = guild.get_channel(payload.channel_id)
         if not isinstance(channel, discord.TextChannel):
             return
 
         method = getattr(self, f'{fmt}_message')
 
-        user = self.bot.get_user(payload.user_id)
+        user = payload.member or (await self.bot.get_or_fetch_member(guild, payload.user_id))
         if user is None or user.bot:
             return
 
@@ -780,9 +784,8 @@ class Stars(commands.Cog):
         if records is None or len(records) == 0:
             return await ctx.send('No one starred this message or this is an invalid message ID.')
 
-        members = [str(ctx.guild.get_member(r[0]))
-                   for r in records
-                   if ctx.guild.get_member(r[0])]
+        records = [r[0] for r in records]
+        members = [str(member) async for member in self.bot.resolve_member_ids(ctx.guild, records)]
 
         p = SimplePages(entries=members, per_page=20)
         base = format(plural(len(records)), 'star')

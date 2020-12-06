@@ -222,7 +222,10 @@ class Stats(commands.Cog):
         name = self.bot.user.display_name
         embed.title = f"{name} {chr(0x2014)} v{self.bot.version}"
         embed.set_thumbnail(url=self.bot.user.avatar_url)
-        embed.set_author(name=str(self.bot.owner), url=f"https://discord.com/users/{self.bot.owner_id}", icon_url=self.bot.owner.avatar_url)
+        # To properly cache myself, I need to use the bot support server.
+        support_guild = self.bot.get_guild(746769944774967440)
+        owner = await self.bot.get_or_fetch_member(support_guild, self.bot.owner_id)
+        embed.set_author(name=str(owner), url=f"https://discord.com/users/{self.bot.owner_id}", icon_url=owner.avatar_url)
 
         # Statistics
         total_members = 0

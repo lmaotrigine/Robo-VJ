@@ -14,6 +14,7 @@ import discord.state
 import discord.webhook
 import discord.gateway
 import discord.raw_models
+from lxml import etree
 
 from discord.ext import commands, tasks
 from .utils import fuzzy
@@ -172,7 +173,7 @@ class RTFX(commands.Cog):
         e.title = f"RTFM for __**`{key}`**__: {obj}"
         e.description = '\n'.join(f'[`{key}`]({url})' for key, url in matches[:8])
         e.set_footer(text=f"{len(matches)} possible results.")
-        await ctx.send(embed=e)
+        await ctx.send(embed=e, reference=ctx.replied_reference)
 
     @commands.group(aliases=['rtfd'], invoke_without_command=True)
     async def rtfm(self, ctx, *, obj: str = None):
@@ -216,6 +217,36 @@ class RTFX(commands.Cog):
     async def rtfm_wavelink(self, ctx, *, obj: str = None):
         """ Gives you the documentation link for a `Wavelink` entity. """
         await self.do_rtfm(ctx, 'wavelink', obj)
+
+    async def refresh_faq_cache(self):
+        self.faq_entries = {}
+        base_url = 'https://discordpy.readthedocs.io/en/latest/faq.html'
+        async with self.bot.session.get(base_url) as resp:
+            text = await resp.text(encoding='utf-8')
+
+            root = etree.fromstring(text, etree.HTMLParser())
+            nodes = root.findall(".//div[@id='questions']/ul[@class='simple']/li/ul//a")
+            for node in nodes:
+                self.faq_entries[''.join(node.itertext()).strip()] = base_url + node.get('href').strip()
+
+    @commands.command()
+    async def faq(self, ctx, *, query: str = None):
+        """Shows an FAQ entry from the discord.py documentation."""
+        if not hasattr(self, 'faq_entries'):
+            await self.refresh_faq_cache()
+
+        if query is None:
+            return await ctx.send('https://discordpy.readthedocs.io/en/latest/faq.html')
+
+        matches = fuzzy.extract_matches(query, self.faq_entries, scorer=fuzzy.partial_ratio, score_cutoff=40)
+        if len(matches) == 0:
+            return await ctx.send('Nothing found...')
+
+        paginator = commands.Paginator(suffix='', prefix='')
+        for key, _, value in matches:
+            paginator.add_line(f'**{key}**\n{value}')
+        page = paginator.pages[0]
+        await ctx.send(page, reference=ctx.replied_reference)
 
     @commands.command()
     async def rtfs(self, ctx, *, search: str):
