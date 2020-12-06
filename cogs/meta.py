@@ -364,7 +364,7 @@ class Meta(commands.Cog):
 
         fmt = f'Regular: {emoji_stats["regular"]}/{guild.emoji_limit}\n' \
               f'Animated: {emoji_stats["animated"]}/{guild.emoji_limit}\n' \
- \
+
         if emoji_stats['disabled'] or emoji_stats['animated_disabled']:
             fmt = f'{fmt}Disabled: {emoji_stats["disabled"]} regular, {emoji_stats["animated_disabled"]} animated\n'
 
