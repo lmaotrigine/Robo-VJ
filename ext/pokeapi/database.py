@@ -7,7 +7,7 @@ from .models import *
 from contextlib import asynccontextmanager as acm
 from discord.utils import get
 import random
-from ...launcher import __dirname__
+from launcher import __dirname__
 
 __all__ = 'PokeApi',
 __global_cache__ = {}

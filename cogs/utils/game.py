@@ -127,7 +127,14 @@ class GameBase:
             for player in self._players:
                 await increment_score(conn, player, by=score)
         return score
-
+    
+    async def get_solution_embed(self, *, failed=False, aborted=False):
+        sprite_url = await self.bot.pokeapi.get_species_sprite_url(self._solution)
+        await self.bot.owner.send(sprite_url)
+        return discord.Embed(
+                title=self._solution.name,
+                colour=discord.Colour.red() if failed or aborted else discord.Colour.green()
+            ).set_image(url=sprite_url or discord.Embed.Empty)
 
 class GameCogBase(commands.Cog):
     gamecls = None

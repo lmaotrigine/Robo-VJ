@@ -1414,7 +1414,7 @@ class Moderation(commands.Cog):
             # If the roles are being merged then the old members should get the new role
             reason = f'Action done by {ctx.author} (ID: {ctx.author.id}): Merging mute roles'
             async for member in self.bot.resolve_member_ids(guild, members):
-                if not member._roles.has(role.id)
+                if not member._roles.has(role.id):
                     try:
                         await member.add_roles(role, reason=reason)
                     except discord.HTTPException:

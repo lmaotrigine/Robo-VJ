@@ -3,7 +3,7 @@ import os
 import sqlite3
 from .cog import *
 from .models import *
-from.database import *
+from .database import *
 
 
 def setup(bot):

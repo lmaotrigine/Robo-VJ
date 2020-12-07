@@ -39,6 +39,7 @@ initial_extensions =  {
     'cogs.external',
     'cogs.funhouse',
     'cogs.github',
+    'cogs.hangman',
     'cogs.meta',
     'cogs.mod',
     'cogs.music',
@@ -103,6 +104,10 @@ class RoboVJ(commands.Bot):
 
         ## Spotify
         self.spotify_client = spotify.Client(config.spotify_client_id, config.spotify_client_secret, loop=self.loop)
+
+        ## Pokeapi
+        self._pokeapi = None
+        self._pokeapi_factory = None
         
         for extension in initial_extensions:
             try:
@@ -114,9 +119,6 @@ class RoboVJ(commands.Bot):
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.mb_client = MystbinClient(session=self.session)
 
-        ## Pokeapi
-        self._pokeapi_factory = None
-        self._pokeapi = None
 
         self._prev_events = deque(maxlen=10)
 

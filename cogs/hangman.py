@@ -50,12 +50,7 @@ class HangmanGame(GameBase):
                 self._task.cancel()
                 self._task = None
             await self._message.edit(content=self)
-            base_forme = await self.bot.pokeapi.get_default_forme(self._solution)
-            embed = discord.Embed(
-                title=self._solution.name,
-                colour=discord.Colour.red() if failed or aborted else discord.Colour.green()
-            ).set_thumbnail(url=await self.bot.pokeapi.get_sprite_url(base_forme.pokemon,
-                                                                      'versions/generation-viii/icons/front_default'))
+            embed = await self.get_solution_embed(failed=failed, aborted=aborted)
             if aborted:
                 await ctx.send(f'Game terminated by {ctx.author.mention}.\n'
                                f'Solution: {self._solution_name}',
