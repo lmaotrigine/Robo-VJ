@@ -8,12 +8,17 @@ from contextlib import asynccontextmanager as acm
 from discord.utils import get
 import random
 from launcher import __dirname__
+import asyncio
 
 __all__ = 'PokeApi',
 __global_cache__ = {}
 
 
 class PokeApi(aiosqlite.Connection, PokeapiModels):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._lock = asyncio.Lock()
+
     @staticmethod
     def _clean_name(name):
         name = name.replace('♀', '_F').replace('♂', '_m').replace('é', 'e')
@@ -24,10 +29,14 @@ class PokeApi(aiosqlite.Connection, PokeapiModels):
 
     @acm
     async def replace_row_factory(self, factory: Callable[[Cursor, Tuple[Any]], Any]):
+        if self._connection is None:
+            await self._connect()
+        await self._lock.acquire()
         old_factory = self.row_factory
         self.row_factory = factory
         yield self
         self.row_factory = old_factory
+        self._lock.release()
 
     def resolve_model(self, model: Union[str, Callable[[Cursor, Tuple[Any]], Any]]) -> Callable[
                       [Cursor, Tuple[Any]], Any]:

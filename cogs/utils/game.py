@@ -33,7 +33,7 @@ async def increment_score(connection, player, *, by=1):
 class GameBase:
     __slots__ = (
         'bot', '_timeout', '_lock', '_max_score', '_state', '_running', '_message', '_task',
-        'start_time', '_players'
+        'start_time', '_players', '_solution'
     )
 
     def __init__(self, bot, timeout=90, max_score=1000):
@@ -57,6 +57,7 @@ class GameBase:
         self._task = None
         self.start_time = -1
         self._players = set()
+        self._solution = None
 
     @property
     def state(self):
