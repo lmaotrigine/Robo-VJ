@@ -34,6 +34,7 @@ initial_extensions =  {
     'cogs.code',
     'cogs.config',
     'cogs.crypto',
+    'cogs.docs',
     'cogs.feeds',
     'cogs.external',
     'cogs.funhouse',
@@ -54,6 +55,7 @@ initial_extensions =  {
     'cogs.time',
     'cogs.twitter',
     'cogs.voicerooms',
+    'ext.pokeapi',
     'jishaku',
 }
 
@@ -112,12 +114,28 @@ class RoboVJ(commands.Bot):
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.mb_client = MystbinClient(session=self.session)
 
+        ## Pokeapi
+        self._pokeapi_factory = None
+        self._pokeapi = None
+
         self._prev_events = deque(maxlen=10)
 
         # shard_id: List[datetime.datetime]
         # shows the last attempted IDENTIFYs and RESUMEs
         self.resumes = defaultdict(list)
         self.identifies = defaultdict(list)
+    @property
+    def pokeapi(self):
+        return self._pokeapi
+
+    @pokeapi.setter
+    def pokeapi(self, value):
+        old_value = self._pokeapi
+        if old_value and old_value._running:
+            self.loop.create_task(old_value.close())
+        value.start()
+        self.loop.create_task(value._connect())
+        self._pokeapi = value
 
     def _clear_gateway_data(self):
         one_week_ago = datetime.datetime.utcnow() - datetime.timedelta(days=7)

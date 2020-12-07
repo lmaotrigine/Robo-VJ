@@ -6,6 +6,7 @@ import asyncpg
 import discord
 import importlib
 import contextlib
+import os
 
 from bot import RoboVJ, initial_extensions
 from cogs.utils.db import Table
@@ -22,6 +23,9 @@ except ImportError:
     pass
 else:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+
+__dirname__ = os.path.dirname(__file__) or '.'
+
 
 class RemoveNoise(logging.Filter):
     def __init__(self):
