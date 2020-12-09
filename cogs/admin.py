@@ -184,9 +184,9 @@ class Admin(commands.Cog):
 
         # progress and stuff is redirected to stderr in git pull
         # however, things like "fast forward" and files
-        # along with the text "already up to date." are in stdout
+        # along with the text "already up-to-date." are in stdout
 
-        if stdout.startswith('Already up to date.'):
+        if stdout.startswith(('Already up-to-date.', 'Already up to date.')):
             return await ctx.send(stdout)
 
         modules = self.find_modules_from_git(stdout)
