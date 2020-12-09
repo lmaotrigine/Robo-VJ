@@ -29,3 +29,6 @@ restart_from_channel.txt
 
 # scripts
 push.sh
+
+# binaries
+/bin
