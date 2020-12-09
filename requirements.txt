@@ -33,4 +33,7 @@ pyYAML~=5.3.1
 aiosqlite~=0.16.0
 python-Levenshtein
 currencyconverter
+chess
+py-cpuinfo
+wand
 jishaku @ git+https://github.com/darthshittious/jishaku
