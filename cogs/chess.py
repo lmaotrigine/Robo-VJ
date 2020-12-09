@@ -187,7 +187,7 @@ class ChessMatch(chess.Board):
         self.bot = ctx.bot
         self.ended = asyncio.Event()
         self.engine_transport, self.chess_engine = \
-            await chess.engine.popen_uci(f'bin/{STOCKFISH_BINARY}', creationflags=subprocess.CREATE_NO_WINDOW)
+            await chess.engine.popen_uci(f'bin/{STOCKFISH_BINARY}')
         self.match_message = None
         self.task = ctx.bot.loop.create_task(self.match_task(), name='Chess Match')
         return self
