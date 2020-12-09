@@ -31,6 +31,7 @@ initial_extensions =  {
     'cogs.admin',
     'cogs.buttons',
     'cogs.change_state',
+    'cogs.chess',
     'cogs.code',
     'cogs.config',
     'cogs.crypto',
