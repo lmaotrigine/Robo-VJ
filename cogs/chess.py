@@ -190,6 +190,7 @@ class ChessCog(commands.Cog, name='Chess'):
 
     # TODO: Improve resignation
 
+
 class ChessMatch(chess.Board):
 
     @classmethod
