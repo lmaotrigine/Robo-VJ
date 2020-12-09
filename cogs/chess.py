@@ -4,6 +4,7 @@ from discord.ext import commands
 import asyncio
 import datetime
 import io
+import os
 import random
 from typing import Union
 
@@ -31,10 +32,13 @@ try:
     # BMI2 >= AVX2 > SSE4.1 + POPCNT (modern) >= SSSE3 > none
     # https://stockfishchess.org/download/
     # TODO: Handle 32-bit?
-    # TODO: Handle non-Linux?
+     
 except:
     pass
 
+# Use executable (.exe) for Windows
+if os.name == 'nt':
+    STOCKFISH_BINARY += '.exe'
 
 class ChessCog(commands.Cog, name='Chess'):
     def __init__(self):
