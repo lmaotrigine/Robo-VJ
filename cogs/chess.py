@@ -5,7 +5,6 @@ import asyncio
 import datetime
 import io
 import random
-import subprocess
 from typing import Union
 
 import chess
@@ -118,7 +117,6 @@ class ChessCog(commands.Cog, name='Chess'):
                                   self.matches)
 
     # TODO: Handle matches in DMs
-    # TODO: Allow resignation
     # TODO: Allow draw offers
 
     @chess_command.group(aliases=['match'], invoke_without_command=True)
@@ -175,6 +173,22 @@ class ChessCog(commands.Cog, name='Chess'):
         else:
             await ctx.reply('It\'s black\'s turn to move.')
 
+    @chess_command.command(hidden=True)
+    async def resign(self, ctx):
+        match = self.get_match(ctx.channel, ctx.author)
+        if not match:
+            return await ctx.reply(':no_entry: Chess match not found.')
+        confirm = await ctx.prompt(f'{ctx.author.mention} Are you sure you want to resign?')
+        if not confirm:
+            return
+        match.ended.set()
+        await match.update_match_embed(footer_text=discord.Embed.Empty)
+        if match.white_player == match.black_player:
+            return await ctx.reply(f'{ctx.author.mention} stopping your game.')
+        opponent = match.white_player if match.black_player == ctx.author else match.black_player
+        await ctx.reply(f'{opponent.mention}: {ctx.author.mention} has resigned the game.')
+
+    # TODO: Improve resignation
 
 class ChessMatch(chess.Board):
 
@@ -218,7 +232,7 @@ class ChessMatch(chess.Board):
         while not self.ended.is_set():
             player = [self.black_player, self.white_player][int(self.turn)]
             embed = self.match_message.embeds[0]
-            if player == self.bot.user:
+            if player == self.  bot.user:
                 await self.match_message.edit(embed=embed.set_footer(text='I\'m thinking...'))
                 result = await self.chess_engine.play(self, chess.engine.Limit(time=2))
                 self.push(result.move)
