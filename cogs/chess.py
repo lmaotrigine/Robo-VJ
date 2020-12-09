@@ -127,7 +127,7 @@ class ChessCog(commands.Cog, name='Chess'):
         match = self.get_match(ctx.channel, ctx.author)
         if not match:
             return await ctx.reply(':no_entry: Chess match not found.')
-        await match.mew_match_embed()
+        await match.new_match_embed()
 
     @board.command(name='text')
     async def board_text(self, ctx):
