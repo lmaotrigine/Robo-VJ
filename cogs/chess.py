@@ -6,6 +6,7 @@ import datetime
 import io
 import os
 import random
+import subprocess
 from typing import Union
 
 import chess
@@ -39,6 +40,7 @@ except:
 # Use executable (.exe) for Windows
 if os.name == 'nt':
     STOCKFISH_BINARY += '.exe'
+
 
 class ChessCog(commands.Cog, name='Chess'):
     def __init__(self):
@@ -205,8 +207,12 @@ class ChessMatch(chess.Board):
         self.black_player = black_player
         self.bot = ctx.bot
         self.ended = asyncio.Event()
+        try:
+            creationflags = subprocess.CREATE_NO_WINDOW
+        except AttributeError:
+            creationflags = 0
         self.engine_transport, self.chess_engine = \
-            await chess.engine.popen_uci(f'bin/{STOCKFISH_BINARY}')
+            await chess.engine.popen_uci(f'bin/{STOCKFISH_BINARY}', creationflags=creationflags)
         self.match_message = None
         self.task = ctx.bot.loop.create_task(self.match_task(), name='Chess Match')
         return self

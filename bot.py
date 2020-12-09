@@ -41,6 +41,7 @@ initial_extensions =  {
     'cogs.funhouse',
     'cogs.github',
     'cogs.hangman',
+    'cogs.maze',
     'cogs.meta',
     'cogs.mod',
     'cogs.music',
