@@ -223,7 +223,7 @@ class MazeCog(commands.Cog, name="Maze"):
             else:
                 move = task.result()
             moved = maze.move(self.move_mapping[move.content.lower()])
-            response = ctx.bot.CODE_BLOCK.format(str(maze))
+            response = f'```\n{str(maze)}\n```'
             if not moved:
                 response += "\n:no_entry: You can't go that way"
             elif (reached_end := maze.reached_end):
@@ -283,14 +283,14 @@ class MazeMenu(menus.Menu):
     async def on_direction(self, payload):
         embed = self.message.embeds[0]
         if not self.maze.move(self.arrows[str(payload.emoji)]):
-            embed.description = (self.bot.CODE_BLOCK.format(str(self.maze))
+            embed.description = (f'```\n{str(self.maze)}\n```'
                                  + "\n:no_entry: You can't go that way")
         elif self.maze.reached_end:
-            embed.description = (self.bot.CODE_BLOCK.format(str(self.maze))
+            embed.description = (f'```\n{str(self.maze)}\n```'
                                  + f"\nCongratulations! You reached the end of the maze in {self.maze.move_counter} moves")
             self.stop()
         else:
-            embed.description = self.bot.CODE_BLOCK.format(str(self.maze))
+            embed.description = f'```\n{str(self.maze)}\n```'
         embed.set_footer(text=f"Your current position: {self.maze.column + 1}, {self.maze.row + 1}")
         await self.message.edit(embed=embed)
 
