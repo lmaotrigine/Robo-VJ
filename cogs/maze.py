@@ -206,7 +206,7 @@ class MazeCog(commands.Cog, name="Maze"):
         if maze := self.mazes.get(ctx.channel.id):
             return await ctx.reply(embed=discord.Embed(description=f'```\n{str(maze)}\n```'))
         self.mazes[ctx.channel.id] = maze = Maze(height, width, random_start=random_start, random_end=random_end)
-        message = await ctx.ctx.reply(embed=discord.Embed(description=f'```\n{str(maze)}\n```').set_footer(text=f"Your current position: {maze.column + 1}, {maze.row + 1}"))
+        message = await ctx.reply(embed=discord.Embed(description=f'```\n{str(maze)}\n```').set_footer(text=f"Your current position: {maze.column + 1}, {maze.row + 1}"))
         reached_end = False
         while not reached_end:
             task = ctx.bot.loop.create_task(ctx.bot.wait_for(
