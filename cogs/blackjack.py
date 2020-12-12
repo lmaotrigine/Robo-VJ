@@ -29,6 +29,9 @@ class Games(commands.Cog):
         Play a game of Blackjack.
         Manage Messages permissions required for message cleanup.
         """
+        if ctx.prefix.lower() in ('hit', 'stay'):
+            return await ctx.reply('This is a stupid prefix that you can\'t use to play this game.'
+                                   'Use another prefix or mention me and call this command again.')
         # TODO: S17
         deck = pydealer.Deck()
         deck.shuffle()
@@ -50,7 +53,7 @@ class Games(commands.Cog):
                 await action.delete()
             except discord.HTTPException:
                 pass
-            if action.content.lower() == 'hit':
+            if action.content.lower().strip(ctx.prefix) == 'hit':
                 player.add(deck.deal())
                 player_string = self.cards_to_string(player.cards)
                 player_total = self.blackjack_total(player.cards)
