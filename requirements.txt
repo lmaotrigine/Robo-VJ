@@ -36,4 +36,7 @@ currencyconverter
 chess
 py-cpuinfo
 wand
+more-itertools
+tabulate
+inflect
 jishaku @ git+https://github.com/darthshittious/jishaku
