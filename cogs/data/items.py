@@ -1,0 +1,328 @@
+# The items store is a bit odd.
+# Every person can only buy an item once (and it's put in their backpack).
+# An item can only be bought once and they have limited uses.
+# Items are free and on a first come first served basis. They get restocked every so often.
+# The item shop only has a few items unlocked per day. They might rotate as well.
+
+from textwrap import dedent
+
+
+# An easier way to alias emoji items
+class Emoji:
+    mask = '\U0001F637'
+    bed = '\U0001F6CF\uFE0F'
+    soap = '\U0001F9FC'
+    hand_sanitiser = '\U0001F9F4'
+    dna = '\U0001F9EC'
+    microbe = '\U0001F9A0'
+    petri_dish = '\U0001F9EB'
+    test_tube = '\U0001F9EA'
+    pill = '\N{PILL}'
+    syringe = '\N{SYRINGE}'
+    shower = '\N{SHOWER}'
+    microscope = '\N{MICROSCOPE}'
+    potato = '\N{POTATO}'
+    herb = '\N{HERB}'
+    books = '\N{BOOKS}'
+    love_letter = '\N{LOVE LETTER}'
+    present = '\N{WRAPPED PRESENT}'
+    aeroplane = '\N{AIRPLANE}\uFE0F'
+    bell = '\N{BELLHOP BELL}\uFE0F'
+    meditate = '\U0001F9D8'
+    toilet_paper = '\U0001F9FB'
+    gun = '\N{PISTOL}'
+    dagger = '\N{DAGGER KNIFE}\uFE0F'
+
+
+raw = [
+    {
+        'emoji': Emoji.mask,
+        'name': 'Mask',
+        'total': 5,
+        'description': 'Helps prevent the spread of the disease!',
+        'code': 'user.masked = True',
+    },
+    {
+        'emoji': Emoji.bed,
+        'name': 'Rest',
+        'total': 20,
+        'uses': 3,
+        'description': 'A good night\'s rest.',
+        'code': dedent("""
+            if user.infected:
+                return user.add_sickness(-3)
+        """),
+    },
+    {
+        'emoji': Emoji.soap,
+        'name': 'Soap',
+        'total': 20,
+        'uses': 3,
+        'description': 'Washing your hands is always good.',
+        'code': dedent("""
+            if user.infected:
+                user.sickness = max(user.sickness - 5, 5)
+        """),
+    },
+    {
+        'emoji': Emoji.hand_sanitiser,
+        'name': 'Hand Sanitiser',
+        'description': 'One of the best ways to prevent infection',
+        'total': 10,
+        'uses': 3,
+        'code': dedent("""
+            if user.infected:
+                user.sickness = max(user.sickness - random.randint(10, 15), 5)
+        """)
+    },
+    {
+        'emoji': Emoji.dna,
+        'name': 'Research Item',
+        'description': 'Will we ever figure out the cause of this?',
+        'total': 5,
+        'uses': 0,
+        'code': 'pass',
+        'predicate': 'return user.healer',
+    },
+    {
+        'emoji': Emoji.microbe,
+        'name': 'Research Item',
+        'description': 'Who did this?',
+        'total': 5,
+        'uses': 0,
+        'code': 'pass',
+        'predicate': 'return user.healer',
+    },
+    {
+        'emoji': Emoji.petri_dish,
+        'name': 'Research Item',
+        'description': 'If we don\'t try then how will we know?',
+        'total': 5,
+        'uses': 0,
+        'code': 'pass',
+        'predicate': 'return user.healer',
+    },
+    {
+        'emoji': Emoji.test_tube,
+        'name': 'Research Item',
+        'description': 'A cure must be possible, surely',
+        'total': 5,
+        'uses': 0,
+        'code': 'pass',
+        'predicate': 'return user.healer',
+    },
+    {
+        'emoji': Emoji.microscope,
+        'name': 'Research Item',
+        'description': 'Research is necessary',
+        'total': 5,
+        'uses': 0,
+        'code': 'pass',
+        'predicate': 'return user.healer',
+    },
+    {
+        'emoji': Emoji.syringe,
+        'name': 'Vaccine',
+        'description': 'A cure',
+        'total': 10,
+        'code': dedent("""
+            await ctx.cog.vaccinate(user)
+        """)
+    },
+    {
+        'emoji': Emoji.shower,
+        'name': 'Shower',
+        'description': 'You do shower right?',
+        'total': 25,
+        'uses': 5,
+        'code': dedent("""
+            if user.infected:
+                if user.sickness >= 30:
+                    user.sickness -= random.randint(8, 16)
+                elif user.sickness >= 10:
+                    user.sickness = max(user.sickness - 3, 10)
+        """),
+    },
+    {
+        'emoji': Emoji.pill,
+        'name': 'Medicine',
+        'description': 'Experimental medicine that might help',
+        'total': 10,
+        'code': dedent("""
+            roll = random.random()
+            if roll < 0.1:
+                user.sickness = 0
+                return State.cured
+            return user.add_sickness(random.randint(-20, -5))
+        """),
+        'predicate': 'return user.is_infectious()',
+    },
+    {
+        'emoji': Emoji.potato,
+        'name': 'Potato',
+        'unlocked': True,
+        'total': 100,
+        'description': '"Some people like potatoes. Me? I love potatoes." — Whoever buys this',
+        'uses': 5,
+        'code': 'user.sickness = max(user.sickness - 1, 1)',
+        'predicate': 'return user.is_infectious()',
+    },
+    {
+        'emoji': Emoji.herb,
+        'name': 'Chinese medicine',
+        'total': 20,
+        'uses': 5,
+        'description': 'Who needs western medicine?',
+        'code': 'return user.add_sickness(random.randint(-2, 2))',
+        'predicate': 'return user.is_infectious()',
+    },
+    {
+        'emoji': Emoji.books,
+        'name': 'Education',
+        'description': 'The most important thing in a society',
+        'total': 100,
+        'code': dedent("""
+            roll = random.random()
+            if roll < 0.05:
+                user.healer = True
+                return State.become_healer
+        """),
+        'predicate': 'return not user.healer'
+    },
+    {
+        'emoji': Emoji.love_letter,
+        'name': 'Love Letter',
+        'description': 'Send a love letter to someone in your dying breath.',
+        'total': 5,
+        'code': dedent(f"""
+            member = await ctx.request('Who do you want to send this letter to?')
+            if member is ...:
+                raise VirusError("Timed out")
+            elif member is None:
+                raise VirusError("I don't know this member.")
+            if member.id == user.member_id:
+                raise VirusError("Uh, you probably want to send that to someone else.")
+            participant = await ctx.cog.get_participant(member.id)
+            participant.backpack['{Emoji.love_letter}'] = 1
+            chances = [(10, 'infect'), (89, 'nothing'), (1, 'kill')]
+            value = weighted_random(chances)
+            if value == 'infect':
+                await ctx.cog.reinfect(participant)
+            elif value == 'kill':
+                await ctx.silent_react('\N{COLLISION SYMBOL}')
+                return State.dead
+        """),
+        'predicate': 'return user.sickness >= 70'
+    },
+    {
+        'emoji': Emoji.present,
+        'name': 'Mystery Gift',
+        'description': "I wonder what's inside",
+        'total': 100,
+        'code': dedent("""
+            if user.is_susceptible():
+                roll = random.random()
+                if roll < 0.25:
+                    await ctx.cog.infect(user)
+            elif user.infected:
+                roll = weighted_random([(1, 'a'), (3, 'b'), (6, 'c')])
+                if roll == 'a':
+                    await ctx.silent_react('\N{COLLISION SYMBOL}')
+                    return State.dead
+                elif roll == 'b':
+                    return user.add_sickness(-10)
+                else:
+                    return user.add_sickness(random.randint(10, 20))
+        """)
+    },
+    {
+        'emoji': Emoji.aeroplane,
+        'name': 'Fly',
+        'description': "Go somewhere else, the sky's the limit",
+        'total': 10,
+        'code': dedent("""
+            channel = await ctx.request('What channel should we fly to?', commands.TextChannelConverter())
+            if channel is ...:
+                raise VirusError('Timed out')
+            elif channel is None:
+                raise VirusError('Invalid channel')
+            if user.healer:
+                # Healers have a higher chance of healing
+                rates = [(20, -20), (65, -5), (5, 20), (10, 15)]
+            elif user.infected:
+                rates = [(65, 20), (5, -5), (20, 10), (10, 15)]
+            else:
+                rates = [(90, 0), (5, -5), (5, 5)]
+            sickness = weighted_random(rates)
+            await ctx.cog.apply_sickness_to_all(channel, sickness, cause=user)
+        """)
+    },
+    {
+        'emoji': Emoji.bell,
+        'name': "Evangelist's Bell",
+        'description': "Probably not a good idea to touch this one...",
+        'total': 25,
+        'code': dedent("""
+            rates = [(75, 'infect'), (2, 'cure'), (3, 'die'), (20, 'healer')]
+            roll = weighted_random(rates)
+            if roll == 'infect':
+                await ctx.cog.reinfect(user)
+            elif roll == 'cure':
+                await ctx.cog.cure(user)
+            elif roll == 'die':
+                await ctx.cog.kill(user)
+            elif roll == 'healer':
+                return State.become_healer
+        """)
+    },
+    {
+        'emoji': Emoji.gun,
+        'name': 'Water Gun',
+        'description': 'Have some fun and shoot someone with a little water',
+        'total': 20,
+        'uses': 6,
+        'code': dedent("""
+            member = await ctx.request('Who do you want to shoot?')
+            if member is ...:
+                raise VirusError("Timed out")
+            elif member is None:
+                raise VirusError("I don't know this member.")
+            participant = await ctx.cog.get_participant(member.id)
+            if participant.death is not None:
+                raise VirusError("It's rude to play with the dead.")
+            chance = [(1, 'die'), (5, 'dud')]
+            if weighted_random(chance) == 'die':
+                return await ctx.cog.process_state(State.dead, participant, cause=user)
+            if participant.is_cured():
+                if random.randint(0, 5) == 5:
+                    await ctx.cog.process_state(State.reinfect, participant, cause=user)
+                return
+            if participant.is_susceptible():
+                await ctx.cog.infect(participant)
+                return
+            if user.infected:
+                sickness = random.randint(5, 20)
+            else:
+                sickness = random.randint(-10, 10)
+            state = participant.add_sickness(sickness)
+            await ctx.cog.process_state(state, participant, cause=user)
+        """)
+    },
+    {
+        'emoji': Emoji.dagger,
+        'name': 'Dagger',
+        'description': 'Found this laying around somewhere',
+        'total': 20,
+        'uses': 2,
+        'code': dedent("""
+            if user.is_infectious():
+                return user.add_sickness(random.randint(10, 50))
+            if user.is_susceptible():
+                if random.randint(0, 1) == 0:
+                    await ctx.cog.infect(user)
+            if user.healer:
+                if random.randint(0, 1) == 0:
+                    return State.lose_healer
+        """)
+    }
+]

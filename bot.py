@@ -1,5 +1,5 @@
 
-__version__ = "7.8.0-beta"
+__version__ = "8.0.0a"
 __author__ = "Varun J"
 
 import aiohttp
@@ -408,6 +408,9 @@ class RoboVJ(commands.Bot):
             await ctx.release()
 
     async def on_message(self, message):
+        ctx = await self.get_context(message, cls=context.Context)
+        if not ctx.valid:
+            self.dispatch('regular_message', message)
         if message.author.bot:
             return
         if message.content.strip() in [f'<@!{self.user.id}>', f'<@{self.user.id}>']:
