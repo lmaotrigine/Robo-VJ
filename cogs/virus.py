@@ -456,7 +456,6 @@ class Virus(commands.Cog):
             await self.storage.put('next_cycle', next_cycle + datetime.timedelta(days=1))
 
     @commands.group()
-    @commands.is_owner()
     async def virus(self, ctx):
         """Manages the virus."""
         pass
@@ -519,6 +518,7 @@ class Virus(commands.Cog):
         return '\n'.join(to_send)
 
     @virus.command(name='start')
+    @commands.is_owner()
     async def virus_start(self, ctx):
         """Starts the virus infection."""
         to_send = await self.new_virus_day(ctx.guild)
@@ -1051,7 +1051,7 @@ class Virus(commands.Cog):
 
         await ctx.send('The item was used... I wonder what happened?')
 
-    @commands.command()
+    @virus.command()
     async def info(self, ctx, *, member: discord.Member = None):
         """Shows you info about yourself, or someone else."""
         member = member or ctx.author
@@ -1131,7 +1131,7 @@ class Virus(commands.Cog):
 
         await ctx.send('\n'.join(to_send))
 
-    @commands.command(name='stats')
+    @virus.command(name='stats')
     async def _stats(self, ctx):
         """Stats on the outbreak."""
 
