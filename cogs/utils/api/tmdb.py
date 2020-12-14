@@ -89,7 +89,7 @@ class TVShowSeason(TVShowEpisode):
 
 class TVShow(Movie, PartialTVShow):
     def __init__(self, *, created_by, in_production, last_air_date, last_episode_to_air, next_episode_to_air, number_of_episodes, number_of_seasons, seasons, status, **kwargs):
-        Movie.__init__(self, budget=None, imdb_id=kwargs.get('imdb_id'), release_date=None, revenue=None, status=status, spoken_languages=tuple(), production_countries=tuple(), **kwargs)
+        Movie.__init__(self, budget=kwargs.pop('budget', None), imdb_id=kwargs.get('imdb_id', None), release_date=kwargs.pop('release_date', None), revenue=kwargs.pop('revenue', None), status=kwargs.pop('status', None), spoken_languages=kwargs.pop('spoken_languages', []), production_countries=kwargs.pop('production_countries', []), **kwargs)
         PartialTVShow.__init__(self, **kwargs)
         self.creators = [c["name"] for c in created_by]
         self.in_production = in_production
@@ -187,7 +187,7 @@ class TMDBClient(object):
     async def fetch_ratings(self, imdb_id):
         if imdb_id is None:
             return Ratings()
-        async with self.http.session.get("http://www.omdbapi.com", params={"apikey": config.omdb_api_key, "i": imdb_id}) as resp:
+        async with self.http.session.get("http://www.omdbapi.com", params={"i": imdb_id, "apikey": config.omdb_api_key}) as resp:
             if resp.status != 200:
                 return Ratings()
             data = await resp.json()
@@ -200,7 +200,8 @@ class TMDBClient(object):
         imdb_id = await self.http.fetch_movie_imdb_id(movie_id)
         ratings = await self.fetch_ratings(imdb_id)
         data.update({"ratings": ratings})
-        return Movie(**data, credits=Credits(**data.pop("credits")))
+        credits = Credits(**data.pop('credits'))
+        return Movie(**data, credits=credits)
 
     async def search_movie(self, query) -> list:
         results = await self.http.search_movie(query)
@@ -218,7 +219,8 @@ class TMDBClient(object):
         imdb_id = await self.http.fetch_tv_imdb_id(tvshow_id)
         ratings = await self.fetch_ratings(imdb_id)
         data.update({"ratings": ratings})
-        return TVShow(**data, credits=Credits(**data.pop("credits")))
+        credits = Credits(**data.pop('credits'))
+        return TVShow(**data, credits=credits)
 
     async def search_tvshow(self, query) -> list:
         results = await self.http.search_tvshow(query)
