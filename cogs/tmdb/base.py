@@ -12,8 +12,16 @@ class TMDBBaseCog(commands.Cog, name="Search"):
                 "film_reel": "<:film_reel:768770081546436620>",
                 "two_hearts": "<:two_hearts:768770081886437376>",
                 "hero": "<:hero:768774437163106314>",
-                "draw": "<:draw:768774137325813762>"
+                "draw": "<:draw:768774137325813762>",
+                "documentary": "<:file:788005034867818526>",
+                "cash": "<:cash:788005035006099486>"
             }
+
+    @staticmethod
+    def localise_number(number):
+        import locale
+        locale.setlocale(locale.LC_ALL, 'en_GB.utf8')
+        return locale.format_string('%d', number, grouping=True)
 
     def _get_embed(self, instance, icon):
         icon = discord.File(f"assets/Emojis/{icon}.png", filename="icon.png")
@@ -30,11 +38,22 @@ class TMDBBaseCog(commands.Cog, name="Search"):
             embed.add_field(name=f"{self.emotes['film_reel']}    Screenplay", value=instance.credits.screenplay.name)
         if instance.genres:
             embed.add_field(name=f"{self.emotes['two_hearts']}    Genres", value=", ".join(instance.genres))
+        if instance.revenue:
+            embed.add_field(
+                name=f'{self.emotes["cash"]}    Total Revenue',
+                value=f'${self.localise_number(instance.revenue)}'
+            )
         if hasattr(instance, "ratings") and instance.ratings.runtime:
             # TODO Add this attribute to instance directly
             embed.add_field(name=f"{self.emotes['film_reel']}    Runtime", value=instance.ratings.runtime)
         if instance.release_date:
             embed.timestamp = instance.release_date
+        if instance.productions:
+            embed.add_field(
+                name=f'{self.emotes["film_reel"]}    Productions',
+                value=' • '.join(instance.productions),
+                inline=False
+            )
         if instance.credits.cast:
             embed.add_field(
                 name=f"{self.emotes['hero']}    Top Billed Cast", inline=False,    # len(embed.fields) % 2 == 0,

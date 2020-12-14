@@ -351,22 +351,25 @@ class RoboVJ(commands.Bot):
     async def on_guild_join(self, guild):
         owner = self.get_user(self.owner_id)
         if guild.id in self.blocklist:
-                await guild.leave()
+            await guild.leave()
         async with self.pool.acquire() as con:
-            await con.execute("INSERT INTO guild_prefixes (id, name) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING;", guild.id, guild.name)
+            await con.execute("INSERT INTO guild_prefixes (id, name) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING;",
+                              guild.id, guild.name)
         if guild.id not in self.prefixes.keys():
             await self.set_guild_prefixes(guild, ['!', '?'])
 
         pfx = self.get_raw_guild_prefixes(guild.id)[0]
         embed = discord.Embed(title="Thanks for adding me to your server! :blush:", colour=discord.Colour.blurple())
-        embed.description = f"""Robo VJ was originally made to keep scores during online quizzes, but has since evolved to support moderation commands and some fun here and there.
-        For a full list of commands, use `{pfx}help`.
-        
-        Be mindful of hierarchy while using commands that involve assigning or removing roles, or editing nicknames. It is advisable to give the bot the highest role in the server if you are unfamiliar with Discord hierarchy and permission flow.
-        
-        Some easter egg commands are not included in the help page. Others like the `utils` group have been deliberately hidden because they are reserved for the bot owner.
-        
-        If you have any questions, or need help with the bot, or want to report bugs or request features, [click here](https://discord.gg/rqgRyF8) to join the support server."""
+        embed.description = f"Robo VJ was originally made to keep scores during online quizzes, " \
+                            f"but has since evolved to support moderation commands and some fun here and there.\n\n" \
+                            f"For a full list of commands, use `{pfx}help`. " \
+                            f"Be mindful of hierarchy while using commands that involve assigning or removing roles, " \
+                            f"or editing nicknames.\n\nIt is advisable to give the bot the highest role in the server " \
+                            f"if you are unfamiliar with Discord hierarchy and permission flow.\n\n" \
+                            f"Some easter egg commands are not included in the help page. " \
+                            f"Others like the `utils` group have been deliberately hidden because they are reserved " \
+                            f"for the bot owner. \n\nIf you have any questions, or want to report bugs or " \
+                            f"request features, [click here](https://discord.gg/rqgRyF8) to join the support server."
         embed.set_footer(text=f"Made by {owner}", icon_url=owner.avatar_url)
         if guild.system_channel is not None:
             await guild.system_channel.send(embed=embed)
