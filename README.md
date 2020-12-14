@@ -74,5 +74,5 @@ To copy the remote database from source to target:
 ## Requirements
 
 - Python 3.8.x
-- v1.5.0 of discord.py
+- v1.6.0+ of discord.py
 - psutil
