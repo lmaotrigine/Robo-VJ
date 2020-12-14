@@ -15,6 +15,7 @@ import sys
 from collections import Counter, deque, defaultdict
 from cogs.utils.config import Config
 from cogs.utils import context, time, db
+from cogs.utils.api import pokeapi
 import logging
 import traceback
 import pyowm
@@ -59,7 +60,6 @@ initial_extensions =  {
     'cogs.time',
     'cogs.twitter',
     'cogs.voicerooms',
-    'ext.pokeapi',
     'jishaku',
 }
 
@@ -78,7 +78,7 @@ def _prefix_callable(bot, msg):
         base.extend(bot.prefixes.get(msg.guild.id, ['?', '!']))
     return base
 
-class RoboVJ(commands.Bot):
+class RoboVJ(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(command_prefix=_prefix_callable, status=discord.Status.online, activity=discord.Activity(
                         name=f"!help", type=discord.ActivityType.listening), owner_id=411166117084528640,
@@ -109,8 +109,7 @@ class RoboVJ(commands.Bot):
         self.spotify_client = spotify.Client(config.spotify_client_id, config.spotify_client_secret, loop=self.loop)
 
         ## Pokeapi
-        self._pokeapi = None
-        self._pokeapi_factory = None
+        self.pokeapi = pokeapi.PokeAPI(self)
         
         for extension in initial_extensions:
             try:
@@ -129,18 +128,6 @@ class RoboVJ(commands.Bot):
         # shows the last attempted IDENTIFYs and RESUMEs
         self.resumes = defaultdict(list)
         self.identifies = defaultdict(list)
-    @property
-    def pokeapi(self):
-        return self._pokeapi
-
-    @pokeapi.setter
-    def pokeapi(self, value):
-        old_value = self._pokeapi
-        if old_value and old_value._running:
-            self.loop.create_task(old_value.close())
-        value.start()
-        self.loop.create_task(value._connect())
-        self._pokeapi = value
 
     def _clear_gateway_data(self):
         one_week_ago = datetime.datetime.utcnow() - datetime.timedelta(days=7)
