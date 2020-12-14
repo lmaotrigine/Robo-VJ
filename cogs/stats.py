@@ -769,6 +769,77 @@ class Stats(commands.Cog):
         for page in paginator.pages:
             await ctx.send(page)
 
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def gateway(self, ctx):
+        """Gateway related stats."""
+
+        yesterday = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+        identifies = {
+            shard_id: sum(1 for dt in dates if dt > yesterday)
+            for shard_id, dates in self.bot.identifies.items()
+        }
+        resumes = {
+            shard_id: sum(1 for dt in dates if dt > yesterday)
+            for shard_id, dates in self.bot.resumes.items()
+        }
+
+        total_identifies = sum(identifies.values())
+
+        builder = [
+            f'Total RESUMEs: {sum(resumes.values())}',
+            f'Total IDENTIFYs: {total_identifies}'
+        ]
+
+        shard_count = len(self.bot.shards)
+        if total_identifies > (shard_count * 10):
+            issues = 2 + (total_identifies // 10) - shard_count
+        else:
+            issues = 0
+
+        for shard_id, shard in self.bot.shards.items():
+            badge = None
+            # Shard WS closed
+            # Shard Task failure
+            # Shard Task complete (no failure)
+            if shard.is_closed():
+                badge = '<:offline:766623210379673652>'
+                issues += 1
+            elif shard._parent._task.done():
+                exc = shard._parent._task.exception()
+                if exc is not None:
+                    badge = '\N{FIRE}'
+                    issues += 1
+                else:
+                    badge = '\U0001F504'
+
+            if badge is None:
+                badge = '<:online:766623209687613466>'
+
+            stats = []
+            identify = identifies.get(shard_id, 0)
+            resume = resumes.get(shard_id, 0)
+            if resume != 0:
+                stats.append(f'R: {resume}')
+            if identify != 0:
+                stats.append(f'ID: {identify}')
+
+            if stats:
+                builder.append(f'Shard ID {shard_id}: {badge} ({", ".join(stats)})')
+            else:
+                builder.append(f'Shard ID {shard_id}: {badge}')
+
+        if issues == 0:
+            colour = 0x43B581
+        elif issues < len(self.bot.shards) // 4:
+            colour = 0xF09E47
+        else:
+            colour = 0xF04947
+
+        embed = discord.Embed(colour=colour, title='Gateway (last 24 hours)')
+        embed.description = '\n'.join(builder)
+        embed.set_footer(text=f'{issues} warnings')
+        await ctx.send(embed=embed)
 
     @commands.group(hidden=True, invoke_without_command=True)
     @commands.is_owner()
@@ -962,7 +1033,7 @@ class Stats(commands.Cog):
         render = table.render()
         await ctx.safe_send(f'```\n{render}\n```')
 
-old_on_error = commands.Bot.on_error
+old_on_error = commands.AutoShardedBot.on_error
 
 async def on_error(self, event, *args, **kwargs):
     e = discord.Embed(title='Event Error', colour=0xa32952)
@@ -992,7 +1063,7 @@ def setup(bot):
     bot.add_cog(cog)
     bot._stats_cog_gateway_handler = handler = GatewayHandler(cog)
     logging.getLogger().addHandler(handler)
-    commands.Bot.on_error = on_error
+    commands.AutoShardedBot.on_error = on_error
 
 def teardown(bot):
     commands.AutoShardedBot.on_error = old_on_error

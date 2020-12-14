@@ -221,7 +221,8 @@ class RoboVJ(commands.AutoShardedBot):
         if member is not None:
             return member
 
-        if self.is_ws_ratelimited():
+        shard = self.get_shard(guild.shard_id)
+        if shard.is_ws_ratelimited():
             try:
                 return await guild.fetch_member(member_id)
             except discord.HTTPException:
@@ -263,7 +264,8 @@ class RoboVJ(commands.AutoShardedBot):
 
         total_need_resolution = len(needs_resolution)
         if total_need_resolution == 1:
-            if self.is_ws_ratelimited():
+            shard = self.get_shard(guild.shard_id)
+            if shard.is_ws_ratelimited():
                 try:
                     member = await guild.fetch_member(needs_resolution[0])
                 except discord.HTTPException:
@@ -333,9 +335,9 @@ class RoboVJ(commands.AutoShardedBot):
 
         print(f'Ready: {self.user} (ID: {self.user.id})')
 
-    async def on_resumed(self):
-        print("Bot has resumed...")
-        self.resumes[None].append(datetime.datetime.utcnow())
+    async def on_shard_resumed(self, shard_id):
+        print(f'Shard ID {shard_id} has resumed...')
+        self.resumes[shard_id].append(datetime.datetime.utcnow())
 
     async def on_guild_join(self, guild):
         owner = self.get_user(self.owner_id)
