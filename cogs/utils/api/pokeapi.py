@@ -11,11 +11,11 @@ class PokeAPI:
         self.bot = bot
         self.session = self.bot.session
 
-    BASE_URL = 'https://pokeapi.co/v2/'
+    BASE_URL = 'https://pokeapi.co/api/v2/'
     BASE_EXCEPTION = PokeAPIException
 
     async def request(self, route, method="GET", data=None, **kwargs):
-            url = f"{self.API_BASE_URL}{route}"
+            url = f"{self.BASE_URL}{route}"
             async with self.session.request(method=method, url=url, data=data, **kwargs) as resp:
                 if resp.status >= 400:
                     raise self.BASE_EXCEPTION(
