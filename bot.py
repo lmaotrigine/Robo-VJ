@@ -91,6 +91,8 @@ class RoboVJ(commands.AutoShardedBot):
         self.blocklist = Config('blocklist.json')
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
         self._auto_spam_count = Counter()
+
+        self.session = aiohttp.ClientSession(loop=self.loop)
         
         # external clients
         ## OpenWeatherMap
@@ -118,7 +120,7 @@ class RoboVJ(commands.AutoShardedBot):
                 print(f'Failed to load extension {extension}.', file=sys.stderr)
                 traceback.print_exc()
                 
-        self.session = aiohttp.ClientSession(loop=self.loop)
+
         self.mb_client = MystbinClient(session=self.session)
 
 
