@@ -43,6 +43,7 @@ initial_extensions =  {
     'cogs.hangman',
     'cogs.maze',
     'cogs.meta',
+    'cogs.misc',
     'cogs.mod',
     'cogs.music',
     'cogs.my_quiz',
