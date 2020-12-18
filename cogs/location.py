@@ -40,7 +40,7 @@ class Location(commands.Cog):
         if not country_data:
             country_data = data[0]
         # Flag, Population
-        fields = [('Flag', f'[:flag_{country_data["alpha2code"].lower()}:]({country_data["flag"]})'),
+        fields = [('Flag', f'[:flag_{country_data["alpha2Code"].lower()}:]({country_data["flag"]})'),
                   ('Population', f'{country_data["population"]:,}')]
         # Area
         if country_data['area']:

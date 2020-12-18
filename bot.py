@@ -1,5 +1,5 @@
 
-__version__ = "8.0.0a"
+__version__ = "8.1.0"
 __author__ = "Varun J"
 
 import aiohttp
@@ -42,6 +42,7 @@ initial_extensions =  {
     'cogs.funhouse',
     'cogs.github',
     'cogs.hangman',
+    'cogs.location',
     'cogs.maze',
     'cogs.meta',
     'cogs.misc',
