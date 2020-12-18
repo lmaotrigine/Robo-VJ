@@ -64,7 +64,7 @@ class Location(commands.Cog):
         # Currencies
         currencies = []
         for currency in country_data['currencies']:
-            currency_name = f'{currency["name"]}\n({currency["code"]})'
+            currency_name = f'{currency["name"]}\n({currency["code"]}'
             if currency['symbol']:
                 currency_name += ', ' + currency['symbol']
             currency_name += ')'
