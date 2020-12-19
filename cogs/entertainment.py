@@ -308,7 +308,7 @@ class XKCDSource(menus.PageSource):
         return embed
 
 
-class XKCDMenu(menus.Menu, menus.MenuPages):
+class XKCDMenu(menus.MenuPages):
 
     def __init__(self, initial_number=None):
         self.initial_number = initial_number
