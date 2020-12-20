@@ -39,4 +39,11 @@ wand
 more-itertools
 tabulate
 inflect
+numpy
+imageio
+matplotlib
+pandas
+numexpr
+seaborn
+sympy
 jishaku @ git+https://github.com/darthshittious/jishaku
