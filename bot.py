@@ -53,6 +53,7 @@ initial_extensions =  {
     'cogs.poll',
     'cogs.quiz',
     'cogs.reminder',
+    'cogs.rng',
     'cogs.rtfx',
     'cogs.snipe',
     'cogs.stars',
