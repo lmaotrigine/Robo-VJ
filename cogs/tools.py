@@ -234,63 +234,63 @@ class Tools(commands.Cog):
     @commands.command(alises=["acosine", "arccos", "arccosine", "a_cosine", "arc_cos", "arc_cosine"])
     async def acos(self, ctx, value: float):
         """Arc cosine function"""
-        await ctx.reply(embed=discord.Embed(description=math.acos(value)))
+        await ctx.reply(embed=discord.Embed(description=str(math.acos(value))))
 
     @commands.command(alises=["acosineh", "arccosh", "arccosineh", "a_cosineh", "arc_cosh", "arc_cosineh"])
     async def acosh(self, ctx, value: float):
         """Inverse hyperbolic cosine function"""
-        await ctx.reply(embed=discord.Embed(description=math.acosh(value)))
+        await ctx.reply(embed=discord.Embed(description=str(math.acosh(value))))
 
     @commands.command(alises=["asine", "arcsin", "arcsine", "a_sine", "arc_sin", "arc_sine"])
     async def asin(self, ctx, value: float):
         """Arc sine function"""
-        await ctx.reply(embed=discord.Embed(description=math.asin(value)))
+        await ctx.reply(embed=discord.Embed(description=str(math.asin(value))))
 
     @commands.command(alises=["asineh", "arcsinh", "arcsineh", "a_sineh", "arc_sinh", "arc_sineh"])
     async def asinh(self, ctx, value: float):
         """Inverse hyperbolic sine function"""
-        await ctx.reply(embed=discord.Embed(description=math.asinh(value)))
+        await ctx.reply(embed=discord.Embed(description=str(math.asinh(value))))
 
     # TODO: atan2
     @commands.command(alises=["atangent", "arctan", "arctangent", "a_tangent", "arc_tan", "arc_tangent"])
     async def atan(self, ctx, value: float):
         """Arc tangent function"""
-        await ctx.reply(embed=discord.Embed(description=math.atan(value)))
+        await ctx.reply(embed=discord.Embed(description=str(math.atan(value))))
 
     @commands.command(alises=["atangenth", "arctanh", "arctangenth", "a_tangenth", "arc_tanh", "arc_tangenth"])
     async def atanh(self, ctx, value: float):
         """Inverse hyperbolic tangent function"""
-        await ctx.reply(embed=discord.Embed(description=math.atanh(value)))
+        await ctx.reply(embed=discord.Embed(description=str(math.atanh(value))))
 
     @commands.command(alises=["cosine"])
     async def cos(self, ctx, value: float):
         """Cosine function"""
-        await ctx.reply(embed=discord.Embed(description=math.cos(value)))
+        await ctx.reply(embed=discord.Embed(description=str(math.cos(value))))
 
     @commands.command(alises=["cosineh"])
     async def cosh(self, ctx, value: float):
         """Hyperbolic cosine function"""
-        await ctx.reply(embed=discord.Embed(description=math.cosh(value)))
+        await ctx.reply(embed=discord.Embed(description=str(math.cosh(value))))
 
     @commands.command(alises=["sine"])
     async def sin(self, ctx, value: float):
         """Sine function"""
-        await ctx.reply(embed=discord.Embed(description=math.sin(value)))
+        await ctx.reply(embed=discord.Embed(description=str(math.sin(value))))
 
     @commands.command(alises=["sineh"])
     async def sinh(self, ctx, value: float):
         """Hyperbolic sine function"""
-        await ctx.reply(embed=discord.Embed(description=math.sinh(value)))
+        await ctx.reply(embed=discord.Embed(description=str(math.sinh(value))))
 
     @commands.command(alises=["tangent"])
     async def tan(self, ctx, value: float):
         """Tangent function"""
-        await ctx.reply(embed=discord.Embed(description=math.tan(value)))
+        await ctx.reply(embed=discord.Embed(description=str(math.tan(value))))
 
     @commands.command(alises=["tangenth"])
     async def tanh(self, ctx, value: float):
         """Hyperbolic tangent function"""
-        await ctx.reply(embed=discord.Embed(description=math.tanh(value)))
+        await ctx.reply(embed=discord.Embed(description=str(math.tanh(value))))
 
 
 def setup(bot):
