@@ -291,3 +291,7 @@ class Tools(commands.Cog):
     async def tanh(self, ctx, value: float):
         """Hyperbolic tangent function"""
         await ctx.reply(embed=discord.Embed(description=math.tanh(value)))
+
+
+def setup(bot):
+    bot.add_cog(Tools(bot))
