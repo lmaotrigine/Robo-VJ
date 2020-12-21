@@ -134,7 +134,7 @@ class Tools(commands.Cog):
             except ZeroDivisionError:
                 await ctx.reply(embed=discord.Embed(description=":no_entry: Error: Division by zero"))
             except (concurrent.futures.TimeoutError, multiprocessing.context.TimeoutError):
-                await ctx.ereply(embed=discord.Embed(description=":no_entry: Execution exceeded time limit"))
+                await ctx.reply(embed=discord.Embed(description=":no_entry: Execution exceeded time limit"))
 
     @commands.command()
     async def exp(self, ctx, value: float):
