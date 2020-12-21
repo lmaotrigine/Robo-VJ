@@ -146,6 +146,7 @@ class Meta(commands.Cog):
         await ctx.send(ctx.tick(True))
 
     @commands.command()
+    @commands.is_owner()
     async def source(self, ctx, *, command: str = None):
         """Displays my full source code or for a specific command on GitHub.
         To display the source code of a subcommand you can separate it by
