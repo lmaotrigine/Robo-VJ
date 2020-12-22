@@ -236,7 +236,7 @@ class Context(commands.Context):
                                           mention_author=None):
         if self.guild is not None and not self.channel.permissions_for(self.me).send_messages:
             return
-        await super().send(content=content, tts=tts, embed=embed, file=file, files=files, delete_after=delete_after,
+        return await super().send(content=content, tts=tts, embed=embed, file=file, files=files, delete_after=delete_after,
                            nonce=nonce, allowed_mentions=allowed_mentions, reference=reference,
                            mention_author=mention_author)
 

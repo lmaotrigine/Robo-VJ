@@ -34,6 +34,7 @@ initial_extensions = {
     'cogs.code',
     'cogs.config',
     'cogs.crypto',
+    'cogs.docs',
     'cogs.external',
     'cogs.entertainment',
     'cogs.feeds',
