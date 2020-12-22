@@ -444,7 +444,7 @@ class Meta(commands.Cog):
     async def join(self, ctx):
         """Get the invite link to add the bot to your server"""
         embed = discord.Embed(title="Click here to add me to your server", colour=discord.Colour(0xFF0000),
-                              url=discord.utils.oauth_url(self.bot.user.id, discord.Permissions(administrator=True)))
+                              url=discord.utils.oauth_url(self.bot.client_id, discord.Permissions(administrator=True)))
         embed.set_author(name=self.bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name,
                          icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
