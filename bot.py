@@ -1,4 +1,3 @@
-
 __version__ = "8.1.2"
 __author__ = "Varun J"
 
@@ -26,9 +25,8 @@ import spotify
 log = logging.getLogger(__name__)
 os.environ['JISHAKU_HIDE'] = 'true'
 
-initial_extensions =  {
+initial_extensions = {
     'cogs.tmdb',
-    'cogs.aki',
     'cogs.admin',
     'cogs.buttons',
     'cogs.change_state',
@@ -36,7 +34,6 @@ initial_extensions =  {
     'cogs.code',
     'cogs.config',
     'cogs.crypto',
-    'cogs.docs',
     'cogs.external',
     'cogs.entertainment',
     'cogs.feeds',
@@ -61,16 +58,19 @@ initial_extensions =  {
     'cogs.tags',
     'cogs.tickets',
     'cogs.time',
+    'cogs.todo',
     'cogs.tools',
     'cogs.twitter',
     'cogs.voicerooms',
     'jishaku',
 }
 
+
 class GuildPrefixes(db.Table, table_name='guild_prefixes'):
     id = db.Column(db.Integer(big=True), primary_key=True)
     prefixes = db.Column(db.Array(db.String))
     name = db.Column(db.String)
+
 
 def _prefix_callable(bot, msg):
     user_id = bot.user.id
@@ -82,13 +82,14 @@ def _prefix_callable(bot, msg):
         base.extend(bot.prefixes.get(msg.guild.id, ['?', '!']))
     return base
 
+
 class RoboVJ(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(command_prefix=_prefix_callable, status=discord.Status.online, activity=discord.Activity(
-                        name=f"!help", type=discord.ActivityType.listening), owner_id=411166117084528640,
-                        #help_command=EmbedHelpCommand(dm_help=None),
-                        help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
-                        case_insensitive=True, intents=discord.Intents.all())
+            name=f"!help", type=discord.ActivityType.listening), owner_id=411166117084528640,
+                         client_id=config.client_id,
+                         help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
+                         case_insensitive=True, intents=discord.Intents.all())
 
         self.version = __version__
         self.prefixes = {}
@@ -97,7 +98,7 @@ class RoboVJ(commands.AutoShardedBot):
         self._auto_spam_count = Counter()
 
         self.session = aiohttp.ClientSession(loop=self.loop)
-        
+
         # external clients
         ## OpenWeatherMap
         try:
@@ -116,17 +117,15 @@ class RoboVJ(commands.AutoShardedBot):
 
         ## Pokeapi
         self.pokeapi = pokeapi.PokeAPI(self)
-        
+
         for extension in initial_extensions:
             try:
                 self.load_extension(extension)
             except Exception as e:
                 print(f'Failed to load extension {extension}.', file=sys.stderr)
                 traceback.print_exc()
-                
 
         self.mb_client = MystbinClient(session=self.session)
-
 
         self._prev_events = deque(maxlen=10)
 
@@ -292,7 +291,7 @@ class RoboVJ(commands.AutoShardedBot):
                 members = await guild.query_members(limit=100, user_ids=to_resolve, cache=True)
                 for member in members:
                     yield member
-    
+
     @discord.utils.cached_property
     def stats_webhook(self):
         wh_id, wh_token = self.config.stat_webhook
@@ -319,7 +318,7 @@ class RoboVJ(commands.AutoShardedBot):
         proxy_msg = discord.Object(id=0)
         proxy_msg.guild = guild
         return local_inject(self, proxy_msg)
-    
+
     def get_raw_guild_prefixes(self, guild_id):
         return self.prefixes.get(guild_id, ['?', '!'])
 
@@ -331,7 +330,8 @@ class RoboVJ(commands.AutoShardedBot):
             raise RuntimeError('Cannot have more than 10 custom prefixes.')
         else:
             self.prefixes[guild.id] = sorted(set(prefixes), reverse=True)
-            await self.pool.execute("UPDATE guild_prefixes SET prefixes = $1 WHERE id = $2", sorted(set(prefixes), reverse=True), guild.id)
+            await self.pool.execute("UPDATE guild_prefixes SET prefixes = $1 WHERE id = $2",
+                                    sorted(set(prefixes), reverse=True), guild.id)
 
     async def on_ready(self):
         if not hasattr(self, 'uptime'):
@@ -431,8 +431,8 @@ class RoboVJ(commands.AutoShardedBot):
 
     @tasks.loop(count=1)
     async def startup(self):
-        #await bot.init_db()
-        #await self.wait_until_ready()
+        # await bot.init_db()
+        # await self.wait_until_ready()
         self.owner = self.get_user(self.owner_id)
         records = await self.pool.fetch("SELECT id, prefixes FROM guild_prefixes;")
         for record in records:
@@ -455,7 +455,7 @@ class RoboVJ(commands.AutoShardedBot):
                         fp.write(f'{data}\n')
                     else:
                         fp.write(f'{x}\n')
-    
+
     @property
     def config(self):
         return __import__('config')

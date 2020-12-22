@@ -27,7 +27,6 @@ TEAMS = {
     718380354339340358
 }
 SOLO_PARTICIPANT_ROLE = 766590219814043648
-APPROVED_ROLE = 743891769024053349
 REGISTRATION_CHANNEL_ID = 766223209938419712
 ANNOUNCEMENT_CHANNEL_ID = 743834763965759499
 
@@ -48,16 +47,6 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         self.bot = bot
         self.reg_open = False
         self.max_per_team = None
-        self.AUTOAPPROVE = {}
-        if not os.path.isdir('assets'):
-            os.mkdir('assets')
-        try:
-            with open('assets/autoapprove_messages.json', 'r') as file:
-                self.messages = json.load(file)
-        except:
-            open('assets/autoapprove_messages.json', 'w').close()
-            self.messages = {}
-        
         try:
             with open("assets/server_rules.txt", "r") as file:
                 self.title, self.rule_head, self.rules, self.honour_head, self.honour, self.privacy_head, self.privacy = file.read().split('$')
@@ -77,18 +66,6 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
             if message.channel == message.guild.get_channel(INTRO_ID):
                 if not message.author.guild_permissions.manage_guild:
                     await message.channel.set_permissions(message.author, send_messages=False)
-
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload):
-        if str(payload.emoji) == "✅" and payload.guild_id and payload.user_id != self.bot.user.id:
-            guild = self.bot.get_guild(payload.guild_id)
-            member = guild.get_member(payload.user_id)
-            if self.messages.get(str(payload.guild_id)) == payload.message_id:
-                if not member._roles.has(APPROVED_ROLE):
-                    await member.add_roles(guild.get_role(APPROVED_ROLE))               
-                channel = self.bot.get_channel(payload.channel_id)
-                message = await channel.fetch_message(payload.message_id)
-                await message.remove_reaction('✅', member)
 
 
     def cog_check(self, ctx):
@@ -138,7 +115,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
     async def spectate(self, ctx):
         """Toggle the spectator role for yourself for a quiz."""
         if self.reg_open:
-            await self.toggle_role(SPECTATOR_ROLE)
+            await self.toggle_role(ctx, SPECTATOR_ROLE)
     
     @commands.command()
     @commands.guild_only()
@@ -184,7 +161,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         
         if self.max_per_team == 1:
             if ctx.author._roles.has(SOLO_PARTICIPANT_ROLE):
-                    return await ctx.send("You are already registered to participate.")
+                return await ctx.send("You are already registered to participate.")
             if teammates:
                 await ctx.send("Ignoring arguments as this is a solo quiz...", delete_after=10.0)
             await (ctx.bot.get_command('assign'))(ctx, ctx.author, ctx.guild.get_role(SOLO_PARTICIPANT_ROLE))
@@ -196,7 +173,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         participants = {ctx.author}
         for arg in teammates:
             try:
-                member = await commands.MemberConverter().convert(arg)
+                member = await commands.MemberConverter().convert(ctx, arg)
             except commands.BadArgument:
                 return await ctx.send("Member not found: {}".format(arg))
             else:
@@ -284,8 +261,8 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         for role in ctx.author.roles:
             if role.id in TEAMS:
                 await ctx.author.remove_roles(role)
+                await ctx.send(f"Removed {ctx.author.mention} from {role.mention}")
                 break # Only one team per person.
-        await ctx.send(f"Removed {ctx.author.mention} from {role.mention}")
 
     @commands.command()
     @commands.guild_only()
@@ -304,16 +281,17 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         for member in members:
             await asyncio.sleep(1)
             try:
-                await member.edit(roles=[ctx.guild.get_role(APPROVED_ROLE), role])
+                await member.edit(roles=[role])
                 edited.append(member.mention)
             except discord.Forbidden:
-                await ctx.send(f"Couldn't edit `{member.display_name}#{member.discriminator}`. Trying to add roles without removing other roles...")
+                await ctx.send(f"Couldn't edit `{member.display_name}#{member.discriminator}`. "
+                               f"Trying to add roles without removing other roles...")
                 try:
                     await member.add_roles(role)
                     edited.append(member.mention)
                     higher_roles.append(member.mention)
                 except discord.Forbidden:
-                    await ctx.send(f"Couldn't add `{member.display_name}#{member.discriminator}` to `{team.name}`. Contact the server owner to resolve permissions")
+                    await ctx.send(f"Couldn't add `{member.display_name}#{member.discriminator}` to `{role.name}`. Contact the server owner to resolve permissions")
 
         to_send = f"{', '.join(edited)} assigned to {role.mention}."
         if higher_roles:
@@ -328,62 +306,8 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         teams = [ctx.guild.get_role(team) for team in TEAMS]
         teams.append(ctx.guild.get_role(SPECTATOR_ROLE))
         teams.append(ctx.guild.get_role(QM_ROLE))
-        await bot.get_command('purgeroles')(ctx, *teams)
+        await self.bot.get_command('purgeroles')(ctx, *teams)
         await ctx.send("Cleanup complete.")
-
-    @commands.command(hidden=True)
-    @commands.guild_only()
-    @checks.is_admin()
-    async def approve(self, ctx, member:discord.Member):
-        """Grants role Approved to the user"""
-
-        approved = ctx.guild.get_role(APPROVED_ROLE)
-        if member._roles.has(APPROVED_ROLE):
-            await ctx.send(f"{member.mention} is already approved.", delete_after=15.0)
-            await ctx.message.delete()
-            return
-        
-        await member.add_roles(approved)
-        
-        await ctx.message.delete()
-        embed = discord.Embed(title=f"Approved {member}", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
-        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
-        await ctx.guild.system_channel.send(embed=embed)
-
-    @commands.command(hidden=True)
-    @commands.guild_only()
-    @checks.is_admin()
-    async def unapprove(self, ctx, member: discord.Member):
-        """Revokes approval for a member"""
-        if not member._roles.has(APPROVED_ROLE):
-            await ctx.send(f"{member.mention} has not been approved.", delete_after=15.0)
-            await ctx.message.delete()
-            return
-        
-        await member.remove_roles(ctx.guild.get_role(APPROVED_ROLE))
-        
-        await ctx.message.delete()
-        embed=discord.Embed(title=f"Revoked approval for {member}.", colour=0xFF0000, timestamp=datetime.datetime.utcnow())
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
-        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
-        await ctx.guild.system_channel.send(embed=embed)
-
-    @commands.command(hidden=True)
-    @commands.guild_only()
-    @commands.is_owner()
-    async def autoapprove(self, ctx):
-        if not discord.utils.get(ctx.guild.roles, name="Approved"):
-            await ctx.send("Create role named 'Approved' and try again.")
-            return
-        Text= "To gain access to the rest of this server, click on :white_check_mark: below\n\n"
-        Text += "By doing so, you agree to abide by these rules."
-        await ctx.message.delete()
-        message = await ctx.send(embed=discord.Embed(title='Confirmation', description=Text, colour = 0xFF0000))
-        await message.add_reaction('✅')
-        self.messages[str(ctx.guild.id)] = message.id
-        with open('assets/autoapprove_messages.json', 'w') as file:
-            json.dump(self.messages, file, indent=2)
 
     @commands.command(hidden=True)
     @commands.guild_only()

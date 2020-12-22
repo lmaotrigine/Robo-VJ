@@ -216,8 +216,10 @@ class Stats(commands.Cog):
     @commands.command(name="about")
     async def _about(self, ctx):
         """Tells you information about the bot itself."""
-        revision = self.get_last_commits()
-        embed = discord.Embed(description='Latest Changes:\n' + revision)
+        embed = discord.Embed()
+        if await self.bot.is_owner(ctx.author):
+            revision = self.get_last_commits()
+            embed.description = 'Latest Changes:\n' + revision
         embed.colour=discord.Colour.blurple()
         name = self.bot.user.display_name
         embed.title = f"{name} {chr(0x2014)} v{self.bot.version}"
@@ -257,7 +259,7 @@ class Stats(commands.Cog):
         embed.add_field(name="OAuth2 Invite", value=f"[Click here to add the bot to your server.]({invite_url})", inline=False)
         bot_source = "https://github.com/darthshittious/Robo-VJ"
         discord_source = "https://github.com/Rapptz/discord.py"
-        embed.add_field(name="Source", value=f"Bot: {bot_source}\nLibrary: {discord_source}", inline=False)
+        #embed.add_field(name="Source", value=f"Bot: {bot_source}\nLibrary: {discord_source}", inline=False)
         version = pkg_resources.get_distribution('discord.py').version
         embed.set_footer(text=f"Made with discord.py v{version}", icon_url="http://i.imgur.com/5BFecvA.png")
         embed.timestamp = datetime.datetime.utcnow()
