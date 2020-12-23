@@ -34,6 +34,7 @@ initial_extensions = {
     'cogs.code',
     'cogs.config',
     'cogs.crypto',
+    'cogs.dictionary',
     'cogs.docs',
     'cogs.external',
     'cogs.entertainment',
@@ -53,6 +54,7 @@ initial_extensions = {
     'cogs.reminder',
     'cogs.rng',
     'cogs.rtfx',
+    'cogs.saucenao',
     'cogs.snipe',
     'cogs.stars',
     'cogs.stats',
@@ -63,6 +65,7 @@ initial_extensions = {
     'cogs.tools',
     'cogs.twitter',
     'cogs.voicerooms',
+    'cogs.wolfram',
     'jishaku',
 }
 
@@ -367,7 +370,7 @@ class RoboVJ(commands.AutoShardedBot):
                             f"for the bot owner. \n\nIf you have any questions, or want to report bugs or " \
                             f"request features, [click here](https://discord.gg/rqgRyF8) to join the support server."
         embed.set_footer(text=f"Made by {owner}", icon_url=owner.avatar_url)
-        if guild.system_channel is not None:
+        if guild.system_channel is not None and guild.system_channel.permissions_for(guild.me).send_messages::
             await guild.system_channel.send(embed=embed)
 
     async def on_guild_update(self, before, after):
