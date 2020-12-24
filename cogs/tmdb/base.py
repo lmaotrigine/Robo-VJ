@@ -20,7 +20,7 @@ class TMDBBaseCog(commands.Cog, name="Search"):
     @staticmethod
     def localise_number(number):
         import locale
-        locale.setlocale(locale.LC_ALL, 'en_GB.utf8')
+        locale.setlocale(locale.LC_ALL, 'en_GB.UTF-8')
         return locale.format_string('%d', number, grouping=True)
 
     def _get_embed(self, instance, icon):
