@@ -30,7 +30,6 @@ sphinx~=3.3.1
 requests~=2.25.0
 markdownify~=0.5.3
 pyYAML~=5.3.1
-aiosqlite~=0.16.0
 python-Levenshtein
 currencyconverter
 chess
@@ -46,4 +45,6 @@ pandas
 numexpr
 seaborn
 sympy
+googletrans==3.1.0a0
+
 jishaku @ git+https://github.com/darthshittious/jishaku
