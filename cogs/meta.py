@@ -151,13 +151,17 @@ class Meta(commands.Cog):
         """Displays my full source code or for a specific command on GitHub.
         To display the source code of a subcommand you can separate it by
         periods, e.g. modlog.assign for the assign subcommand of the modlog group,
-        or by spaces."""
+        or by spaces.
+        """
         source_url = 'https://github.com/darthshittious/Robo-VJ'
         branch = 'master'
-        if command is None:
+        if command is None or command.lower() == '--include-submodules':
             total = 0
             file_amount = 0
             for path, subdirs, files in os.walk('.'):
+                if command is None:
+                    if path.startswith('./venv/'):
+                        continue
                 for name in files:
                     if name.endswith('.py'):
                         file_amount += 1
