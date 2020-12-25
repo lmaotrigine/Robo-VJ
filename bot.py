@@ -91,12 +91,12 @@ def _prefix_callable(bot, msg):
 class RoboVJ(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(command_prefix=_prefix_callable, status=discord.Status.online, activity=discord.Activity(
-            name=f"!help", type=discord.ActivityType.listening), owner_id=411166117084528640,
-                         client_id=config.client_id,
+            name=f"you | mention for help", type=discord.ActivityType.watching), owner_id=411166117084528640,
                          help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
                          case_insensitive=True, intents=discord.Intents.all())
 
         self.version = __version__
+        self.client_id = config.client_id
         self.prefixes = {}
         self.blocklist = Config('blocklist.json')
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
