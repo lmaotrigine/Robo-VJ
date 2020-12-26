@@ -502,14 +502,14 @@ class Meta(commands.Cog):
         response_start = pytime.perf_counter()
         message = await ctx.send('Pinging...')
         response_end = pytime.perf_counter()
-        response_fmt = f'{(response_end - response_start) * 1000:,.2f}'
+        response_fmt = f'{(response_end - response_start) * 1000:,.2f}ms'
 
         db_start = pytime.perf_counter()
         call = await ctx.db.fetch('SELECT 1;')
         db_end = pytime.perf_counter()
-        db_fmt = f'{(db_end - db_start) * 1000:,.2f}'
+        db_fmt = f'{(db_end - db_start) * 1000:,.2f}ms'
 
-        hb_fmt = f'{ctx.bot.latency * 1000:,.2f}'
+        hb_fmt = f'{ctx.bot.latency * 1000:,.2f}ms'
 
         embed = discord.Embed(color=discord.Colour.blurple())
         embed.add_field(name='Heartbeat', value=hb_fmt)
