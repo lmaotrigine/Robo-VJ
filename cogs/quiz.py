@@ -195,7 +195,7 @@ class Quiz(commands.Cog):
     @commands.guild_only()
     async def shady(self, ctx):
         """Use for extremely obscure fundae that cannot be worked out"""
-        if self.in_play[ctx.guild.id]:
+        if self.in_play.get(ctx.guild.id):
             msg = await ctx.send(f"{discord.utils.get(ctx.guild.roles, name='QM').mention} Pah! Whatte!")
             await msg.add_reaction("🇸")
             await msg.add_reaction("🇭")

@@ -34,7 +34,7 @@ python-Levenshtein
 currencyconverter
 chess
 py-cpuinfo
-wand
+cairosvg
 more-itertools
 tabulate
 inflect
