@@ -22,7 +22,7 @@ INFO = {
 def in_testing(info=INFO):
     def pred(ctx):
         try:
-            if info['testing'] is None:
+            if info[ctx.guild.id]['testing'] is None:
                 return True
             return ctx.channel.id in info[ctx.guild.id]['testing']
         except (AttributeError, KeyError):
