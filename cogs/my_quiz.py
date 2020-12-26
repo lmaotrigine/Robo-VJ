@@ -367,5 +367,6 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         embed.description = self.honour
         await ctx.send(embed=embed)
 
+
 def setup(bot):
     bot.add_cog(PubQuiz(bot))
