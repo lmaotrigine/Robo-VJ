@@ -180,3 +180,7 @@ class Bots(commands.Cog):
         embed.add_field(name='Responsible Moderator', value=f'{user} (ID: {user.id})', inline=False)
         embed.colour = colour
         await self.bot.http.edit_message(payload.channel_id, payload.message_id, embed=embed.to_dict())  # I'm lazy ok
+
+
+def setup(bot):
+    bot.add_cog(Bots(bot))
