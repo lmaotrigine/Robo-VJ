@@ -171,6 +171,8 @@ class Meta(commands.Cog):
                                 else:
                                     total += 1
             msg = f'I am made of {total:,} lines of Python, spread across {file_amount:,} files!'
+            if extras.lower().strip() in ('--include-submodules',):
+                msg += ' (including all subpackages)'
         await ctx.send(f'{msg}\nYou can check the main repo source with `{ctx.prefix}source`.')
 
     @commands.command()
