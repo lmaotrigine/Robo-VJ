@@ -145,21 +145,20 @@ class Meta(commands.Cog):
         await self.bot.set_guild_prefixes(ctx.guild, [])
         await ctx.send(ctx.tick(True))
 
-    @commands.command()
+    @commands.command(aliases=['cloc'])
     @commands.is_owner()
-    async def source(self, ctx, *, command: str = None):
-        """Displays my full source code or for a specific command on GitHub.
-        To display the source code of a subcommand you can separate it by
-        periods, e.g. modlog.assign for the assign subcommand of the modlog group,
-        or by spaces.
+    async def size(self, ctx, *, extras=None):
+        """Get the line and file count of the source.
+
+        Use the flag `--include-submodules` to count git submodules and site packages.
         """
-        source_url = 'https://github.com/darthshittious/Robo-VJ'
-        branch = 'master'
-        if command is None or command.lower() == '--include-submodules':
+        if extras and extras.lower().strip() not in ('--include-submodules',):
+            return await ctx.send('Invalid flag/subcommand.')
+        async with ctx.typing():
             total = 0
             file_amount = 0
             for path, subdirs, files in os.walk('.'):
-                if command is None:
+                if extras is None:
                     if path.startswith('./venv/'):
                         continue
                 for name in files:
@@ -172,7 +171,20 @@ class Meta(commands.Cog):
                                 else:
                                     total += 1
             msg = f'I am made of {total:,} lines of Python, spread across {file_amount:,} files!'
-            return await ctx.send('\n'.join((msg, source_url)))
+        await ctx.send(f'{msg}\nYou can check the main repo source with `{ctx.prefix}source`.')
+
+    @commands.command()
+    @commands.is_owner()
+    async def source(self, ctx, *, command: str = None):
+        """Displays my full source code or for a specific command on GitHub.
+        To display the source code of a subcommand you can separate it by
+        periods, e.g. modlog.assign for the assign subcommand of the modlog group,
+        or by spaces.
+        """
+        source_url = 'https://github.com/darthshittious/Robo-VJ'
+        branch = 'master'
+        if command is None:
+            return await ctx.send(source_url)
 
         if command == 'help':
             src = type(self.bot.help_command)
