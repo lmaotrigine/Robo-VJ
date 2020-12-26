@@ -3,6 +3,7 @@ from discord.ext import commands
 import inspect
 import itertools
 import pkg_resources
+import time as pytime
 import unicodedata
 from typing import Union
 from .utils import formats, time
@@ -498,7 +499,23 @@ class Meta(commands.Cog):
         """
         Returns bot latency
         """
-        await ctx.send(f"Pong! {(self.bot.latency * 1000):.2f}ms")
+        response_start = pytime.perf_counter()
+        message = await ctx.send('Pinging...')
+        response_end = pytime.perf_counter()
+        response_fmt = f'{(response_end - response_start) * 1000:,.2f}'
+
+        db_start = pytime.perf_counter()
+        call = await ctx.db.fetch('SELECT 1;')
+        db_end = pytime.perf_counter()
+        db_fmt = f'{(db_end - db_start) * 1000:,.2f}'
+
+        hb_fmt = f'{ctx.bot.latency * 1000:,.2f}'
+
+        embed = discord.Embed(color=discord.Colour.blurple())
+        embed.add_field(name='Heartbeat', value=hb_fmt)
+        embed.add_field(name='Response', value=response_fmt)
+        embed.add_field(name='Database', value=db_fmt)
+        await message.edit(content=None, embed=embed)
 
 
 def setup(bot):
