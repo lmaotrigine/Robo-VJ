@@ -91,6 +91,32 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
             # left bounce
             await no_mic_bounce_channel.set_permissions(member, read_messages=None)
 
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if not message.guild or message.guild.id != GUILD_ID:
+            return
+
+        if message.author.bot:
+            return
+
+        # Handle some #emoji-suggestions automoderator and things
+        # Process is mainly informal anyway
+        if message.channel.id == 792640493271121940:
+            emoji = self.bot.get_cog('Emoji')
+            if emoji is None:
+                return
+            matches = emoji.find_all_emoji(message)
+            # Don't want multiple emoji per message
+            if len(matches) > 1:
+                return await message.delete()
+            elif len(message.attachments) > 1:
+                # Nor multiple attachments
+                return await message.delete()
+
+            # Add voting reactions
+            await message.add_reaction('<:greenTick:787684461214040085>')
+            await message.add_reaction('<:redTick:787684488468496406>')
+
     async def toggle_role(self, ctx, role_id):
         if any(r.id == role_id for r in ctx.author.roles):
             try:
