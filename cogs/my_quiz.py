@@ -68,7 +68,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
 
         if self.wh is None:
             message_logs = self.bot.get_channel(MESSAGE_LOGS)
-            self.wh = await message_logs.create_webhook(name='Message Logs', avatar=(await self.bot.avatar_url.read()))
+            self.wh = await message_logs.create_webhook(name='Message Logs', avatar=(await self.bot.user.avatar_url.read()))
         
     def is_in_bounce(self, state):
         return state.channel is not None and state.channel.id == BOUNCE_VOICE_ID
