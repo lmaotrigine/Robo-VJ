@@ -95,7 +95,7 @@ class Bots(commands.Cog):
         if not confirm:
             return await ctx.send('Aborting.')
 
-        url = f'https://discord.com/oauth2/authorize?client_id={user.id}&scope=bot&permissions=67487936&guild_id={ctx.guild.id}'
+        url = f'https://discord.com/oauth2/authorize?client_id={user.id}&scope=bot&guild_id={ctx.guild.id}'
         description = f'{reason}\n\n[Invite URL]({url})'
         embed = discord.Embed(title='Bot Request', colour=discord.Colour.blurple(), description=description)
         embed.add_field(name='Author', value=f'{ctx.author} (ID: {ctx.author.id})', inline=False)
@@ -181,6 +181,10 @@ class Bots(commands.Cog):
         embed.colour = colour
         await self.bot.http.edit_message(payload.channel_id, payload.message_id, embed=embed.to_dict())  # I'm lazy ok
 
+    @commands.Cog.listener()
+    async def on_member_join(self, member):
+        if member.guild == 718378271800033318 and member.bot:
+            await member.add_roles(discord.Object(id=792679027626344459))  # Bot role ID
 
 def setup(bot):
     bot.add_cog(Bots(bot))
