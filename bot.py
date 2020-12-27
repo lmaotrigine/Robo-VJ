@@ -84,6 +84,10 @@ def _prefix_callable(bot, msg):
         base.append('?')
     else:
         base.extend(bot.prefixes.get(msg.guild.id, ['?', '!']))
+
+    if msg.author.id == bot.owner_id:  # xP
+        if 'hey babe ' not in base:
+            base.append('hey babe ')
     return base
 
 
