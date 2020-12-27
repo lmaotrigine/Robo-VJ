@@ -377,7 +377,11 @@ class Funhouse(commands.Cog):
         await ctx.send(embed=discord.Embed(title="Random panda").set_image(url=js["image"]))
 
     async def do_ocr(self, url: str) -> Optional[str]:
-        async with self.bot.session.get('https://api.tsu.sh/google/ocr', params={'q': url}) as resp:
+        headers = {'Authorization': self.bot.config.tsu_token}
+        async with self.bot.session.get('https://api.tsu.sh/google/ocr', headers=headers, params={'q': url}) as resp:
+            if resp.status >= 400:
+                error = await resp.text()
+                raise OCRError(f'API responded with {resp.status}: {error}')
             data = await resp.json()
         ocr_text = data.get('text')
         ocr_text = ocr_text if len(ocr_text) < 4000 else str(await self.bot.mb_client.post(ocr_text))
@@ -400,6 +404,18 @@ class Funhouse(commands.Cog):
         if data:
             return await self.translate(ctx, message=data)
         return await ctx.send('No text returned.')
+
+    @ocr.error
+    @ocrt.error
+    async def ocr_error(self, ctx, error):
+        if isinstance(error, OCRError):
+            await ctx.send(error)
+
+
+# Probably should've defined this earlier but I have exams now yeet
+class OCRError(commands.CommandError):
+    pass
+
 
 def setup(bot):
     bot.add_cog(Funhouse(bot))
