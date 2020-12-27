@@ -137,7 +137,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
             local_snipes = [_snipe for _snipe in snipe.snipe_deletes if _snipe['channel_id'] == channel.id]
             full_results = dict_results + local_snipes
 
-            full_results = sorted(full_results, key=lambda d: d['delete_time'], reverse=True)[0]
+            full_results = sorted(full_results, key=lambda d: d['delete_time'], reverse=True)[:1]
             embeds = snipe._gen_delete_embeds(full_results)
             embed = embeds[0]
             message_logs = self.bot.get_channel(MESSAGE_LOGS)
@@ -155,9 +155,9 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
             query = "SELECT * FROM snipe_edits WHERE guild_id = $2 AND channel_id = $3 ORDER BY id DESC LIMIT $1;"
             results = await self.bot.pool.fetch(query, 1, after.guild.id, channel.id)
             dict_results = [dict(result) for result in results] if results else []
-            local_snipes = [_snipe for _snipe in snipe.snipe_edits if snipe['channel_id'] == channel.id]
+            local_snipes = [_snipe for _snipe in snipe.snipe_edits if _snipe['channel_id'] == channel.id]
             full_results = dict_results + local_snipes
-            full_results = sorted(full_results, key=lambda d: d['edited_time'], reverse=True)[0]
+            full_results = sorted(full_results, key=lambda d: d['edited_time'], reverse=True)[:1]
             embeds = await snipe._gen_edit_embeds(full_results)
             embed = embeds[0]
             message_logs = self.bot.get_channel(MESSAGE_LOGS)
