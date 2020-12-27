@@ -61,7 +61,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
 
     async def init_wh(self):
         try:
-            self.wh = discord.utils.get((await self.bot.get_guild(GUILD_ID).get_channel(MESSAGE_LOGS).webhooks()),
+            self.wh = discord.utils.get((await self.bot.get_channel(MESSAGE_LOGS).webhooks()),
                                         user=self.bot.user)
         except AttributeError:
             self.wh = None
