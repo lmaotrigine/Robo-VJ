@@ -155,7 +155,7 @@ class Snipe(commands.Cog):
                 embed.set_author(name="A deleted user...")
             else:
                 embed.set_author(name=author.name, icon_url=author.avatar_url)
-            embed.title = f"Edited in {channel.name}"
+            embed.title = f"Edited in #{channel.name}"
             diff_text = self.get_diff(
                 record['before_content'], record['after_content'])
             if len(diff_text) > 2048:
