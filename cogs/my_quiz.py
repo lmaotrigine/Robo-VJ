@@ -56,6 +56,11 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
             self.rules = self.rules.split('\n\n')
         except:
             pass
+        try:
+            self.wh = discord.utils.get(self.bot.get_guild(GUILD_ID).get_channel(MESSAGE_LOGS).webhooks,
+                                        user=self.bot.user)
+        except AttributeError:
+            self.wh = None
         
     def is_in_bounce(self, state):
         return state.channel is not None and state.channel.id == BOUNCE_VOICE_ID
@@ -140,8 +145,10 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
             full_results = sorted(full_results, key=lambda d: d['delete_time'], reverse=True)[:1]
             embeds = snipe._gen_delete_embeds(full_results)
             embed = embeds[0]
-            message_logs = self.bot.get_channel(MESSAGE_LOGS)
-            await message_logs.send(embed=embed)
+            if self.wh is None:
+                message_logs = self.bot.get_channel(MESSAGE_LOGS)
+                self.wh = await message_logs.create_webhook(name='Message Logs', avatar=(await self.bot.avatar_url.read()))
+            await self.wh.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
@@ -160,8 +167,11 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
             full_results = sorted(full_results, key=lambda d: d['edited_time'], reverse=True)[:1]
             embeds = await snipe._gen_edit_embeds(full_results)
             embed = embeds[0]
-            message_logs = self.bot.get_channel(MESSAGE_LOGS)
-            await message_logs.send(embed=embed)
+            if self.wh is None:
+                message_logs = self.bot.get_channel(MESSAGE_LOGS)
+                self.wh = await message_logs.create_webhook(name='Message Logs',
+                                                            avatar=(await self.bot.avatar_url.read()))
+            await self.wh.send(embed=embed)
 
     async def toggle_role(self, ctx, role_id):
         if any(r.id == role_id for r in ctx.author.roles):
