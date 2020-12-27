@@ -36,6 +36,7 @@ initial_extensions = {
     'cogs.crypto',
     'cogs.dictionary',
     'cogs.docs',
+    'cogs.emoji',
     'cogs.external',
     'cogs.entertainment',
     'cogs.feeds',
