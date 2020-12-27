@@ -79,9 +79,9 @@ class Entertainment(commands.Cog):
         if not (media := data['data']['Media']) and 'errors' in data:
             return await ctx.reply(f':no_entry: Error: {data["errors"][0]["message"]}')
         # Title
-        english_title = media['title']['english']
-        native_title = media['title']['native']
-        romaji_title = media['title']['romaji']
+        english_title = media['title']['english'] or ''
+        native_title = media['title']['native'] or ''
+        romaji_title = media['title']['romaji'] or ''
         title = english_title or native_title
         if native_title != title:
             title += f' ({native_title})'
@@ -163,7 +163,8 @@ class Entertainment(commands.Cog):
             non_inline_fields.append(('Tags', ', '.join(tags), False))
         embed = discord.Embed(title=title, description=description, url=media['siteUrl'])
         embed.set_thumbnail(url=media['coverImage']['extraLarge'])
-        embed.set_image(url=media['bannerImage'])
+        if media['bannerImage']:
+            embed.set_image(url=media['bannerImage'])
         fields += non_inline_fields
         for field in fields:
             if len(field) >= 3:

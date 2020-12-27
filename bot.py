@@ -30,7 +30,6 @@ initial_extensions = {
     'cogs.admin',
     'cogs.blackjack',
     'cogs.buttons',
-    'cogs.change_state',
     'cogs.chess',
     'cogs.code',
     'cogs.config',

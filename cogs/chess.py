@@ -15,7 +15,7 @@ import chess.pgn
 import chess.svg
 import cpuinfo
 
-from wand.image import Image
+import cairosvg
 
 # TODO: Dynamically load chess engine not locked to version?
 STOCKFISH_BINARY = 'stockfish_20090216_x64'
@@ -288,11 +288,9 @@ class ChessMatch(chess.Board):
         chess_pgn.headers['Black'] = self.black_player.mention
         embed.description = str(chess_pgn)
         svg = chess.svg.board(self, lastmove=lastmove, check=check, orientation=orientation)
-        buffer = io.BytesIO()
-        with Image(blob=svg.encode()) as image:
-            image.format = 'PNG'
-            image.save(file=buffer)
-        buffer.seek(0)
+        bytes_ = cairosvg.svg2png(bytestring=svg.encode())
+        buffer = io.BytesIO(bytes_)
+
         # TODO: Upload into embed + delete and re-send to update?
         image_message = await self.bot.get_channel(786201668982538240).send(file=discord.File(buffer,
                                                                                               filename='chess_board.png'
