@@ -56,11 +56,19 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
             self.rules = self.rules.split('\n\n')
         except:
             pass
+        self.wh = None
+        self.bot.loop.create_task(self.init_wh())
+
+    async def init_wh(self):
         try:
             self.wh = discord.utils.get((await self.bot.get_guild(GUILD_ID).get_channel(MESSAGE_LOGS).webhooks()),
                                         user=self.bot.user)
         except AttributeError:
             self.wh = None
+
+        if self.wh is None:
+            message_logs = self.bot.get_channel(MESSAGE_LOGS)
+            self.wh = await message_logs.create_webhook(name='Message Logs', avatar=(await self.bot.avatar_url.read()))
         
     def is_in_bounce(self, state):
         return state.channel is not None and state.channel.id == BOUNCE_VOICE_ID
@@ -145,9 +153,6 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
             full_results = sorted(full_results, key=lambda d: d['delete_time'], reverse=True)[:1]
             embeds = snipe._gen_delete_embeds(full_results)
             embed = embeds[0]
-            if self.wh is None:
-                message_logs = self.bot.get_channel(MESSAGE_LOGS)
-                self.wh = await message_logs.create_webhook(name='Message Logs', avatar=(await self.bot.avatar_url.read()))
             await self.wh.send(embed=embed)
 
     @commands.Cog.listener()
@@ -167,10 +172,6 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
             full_results = sorted(full_results, key=lambda d: d['edited_time'], reverse=True)[:1]
             embeds = await snipe._gen_edit_embeds(full_results)
             embed = embeds[0]
-            if self.wh is None:
-                message_logs = self.bot.get_channel(MESSAGE_LOGS)
-                self.wh = await message_logs.create_webhook(name='Message Logs',
-                                                            avatar=(await self.bot.avatar_url.read()))
             await self.wh.send(embed=embed)
 
     async def toggle_role(self, ctx, role_id):
