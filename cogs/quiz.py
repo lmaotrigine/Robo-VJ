@@ -15,7 +15,7 @@ from .utils import checks, db
 from itertools import groupby
 
 class QuizConfig(db.Table, table_name='quiz_config'):
-    id = db.Column(db.Integer(big=True), primary_key=True)
+    guild_id = db.Column(db.Integer(big=True), primary_key=True)
     qchannel = db.Column(db.Integer(big=True))
     pchannel = db.Column(db.Integer(big=True))
 
@@ -62,10 +62,10 @@ class Quiz(commands.Cog):
 
     async def _prepare_channels(self):
         async with self.bot.pool.acquire() as con:
-            records = await con.fetch("SELECT id, qchannel, pchannel FROM quiz_config;")
+            records = await con.fetch("SELECT guild_id, qchannel, pchannel FROM quiz_config;")
             for record in records:
-                self.qchannels[record['id']] = record['qchannel']
-                self.pchannels[record['id']] = record['pchannel']
+                self.qchannels[record['guild_id']] = record['qchannel']
+                self.pchannels[record['guild_id']] = record['pchannel']
     
     def cog_unload(self):
         self.task.cancel()
@@ -76,7 +76,7 @@ class Quiz(commands.Cog):
     async def qchannel(self, ctx, channel: discord.TextChannel=None):
         channel = channel or ctx.channel
         self.qchannels[ctx.guild.id] = channel.id
-        query = "INSERT INTO quiz_config (id, qchannel) VALUES ($2, $1) ON CONFLICT (id) DO UPDATE SET qchannel = $1 WHERE id = $2;"
+        query = "INSERT INTO quiz_config (guild_id, qchannel) VALUES ($2, $1) ON CONFLICT (guild_id) DO UPDATE SET qchannel = $1 WHERE quiz_config.guild_id = $2;"
         await ctx.db.execute(query, channel.id, ctx.guild.id)
         await ctx.send(f"{channel.mention} is marked as the questions channel.")
 
@@ -86,7 +86,7 @@ class Quiz(commands.Cog):
     async def pchannel(self, ctx, channel: discord.TextChannel=None):
         channel = channel or ctx.channel
         self.pchannels[ctx.guild.id] = channel.id
-        query = "INSERT INTO quiz_config (id, pchannel) VALUES ($2, $1) ON CONFLICT (id) DO UPDATE SET pchannel = $1 WHERE id = $2;"
+        query = "INSERT INTO quiz_config (guild_id, pchannel) VALUES ($2, $1) ON CONFLICT (guild_id) DO UPDATE SET pchannel = $1 WHERE quiz_config.guild_id = $2;"
         await ctx.db.execute(query, channel.id, ctx.guild.id)
         await ctx.send(f"{channel.mention} is now the channel where pounces will appear.")
 
@@ -203,7 +203,7 @@ class Quiz(commands.Cog):
             await msg.add_reaction("🇩")
             await msg.add_reaction("🇾")
 
-    @commands.command(usage="points [<points> <team | member>...]")
+    @commands.command(usage="[<points> <team | member>...]")
     @commands.guild_only()
     @is_qm()
     async def points(self, ctx, *, args):
