@@ -396,9 +396,9 @@ class Quiz(commands.Cog):
     @is_qm()
     async def endquiz(self, ctx):
         """Ends quiz and resets scores and that's about it. No bells and whistles"""
-        self.score_dict.pop(ctx.guild.id)
-        self.mode_dict.pop(ctx.guild.id)
-        self.pounce_dict.pop(ctx.guild.id)
+        self.score_dict.pop(ctx.guild.id, None)
+        self.mode_dict.pop(ctx.guild.id, None)
+        self.pounce_dict.pop(ctx.guild.id, None)
         self.pounce_open[ctx.guild.id] = False
         self.in_play[ctx.guild.id] = False
         await ctx.send("Quiz conluded. Scores reset.")
