@@ -13,7 +13,7 @@ git config --global user.email varunj26012001@gmail.com
 
 sudo apt update && sudo apt upgrade -y
 sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt install python3.9 python3.9-venv python3.9-dev libjpeg zlib libtiff libfreetype
+sudo apt install python3.9 python3.9-venv python3.9-dev libjpeg-dev libtiff-dev
 if [[ -n $SSH_CONNECTION ]] ; then
     bash -i ./get_postgres.sh
     sudo cp bot.service /etc/systemd/system/bot.service

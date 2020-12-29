@@ -1,7 +1,11 @@
 function venv {
-  python3.9 -m venv venv
-  . venv/bin/activate
-  pip install -U pip setuptools wheel &> /dev/null
+  if [ ! -d venv ]; then
+    python3.9 -m venv venv
+    . venv/bin/activate
+    pip install -U pip setuptools wheel &> /dev/null
+  else
+    . venv/bin/activate
+  fi
 }
 export -f venv
 
