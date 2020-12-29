@@ -1,5 +1,6 @@
 #!/bin/bash
-cat ./alias.sh >> ~/.bash_aliases
+echo 'alias postgres="psql -h database.varunj.tk -U robovj -d robovj"' >> $HOME/.bash_aliases
+cat ./alias.sh >> ~/.bashrc
 source ~/.bashrc
 if test -f "$HOME/config.py"; then
     mv $HOME/config.py ../
@@ -14,6 +15,7 @@ sudo apt update && sudo apt upgrade -y
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt install python3.9 python3.9-venv python3.9-dev libjpeg zlib libtiff libfreetype
 if [[ -n $SSH_CONNECTION ]] ; then
+    bash -i ./get_postgres.sh
     sudo cp bot.service /etc/systemd/system/bot.service
     sudo systemctl daemon-reload
 fi
