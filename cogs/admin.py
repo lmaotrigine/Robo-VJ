@@ -112,10 +112,10 @@ class Admin(commands.Cog):
 
     async def run_process(self, command):
         try:
-            process = await asyncio.create_subprocess_shell(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process = await asyncio.create_subprocess_shell(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/bash')
             result = await process.communicate()
         except NotImplementedError:
-            process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, executable='/bin/bash')
             result = await self.bot.loop.run_in_executor(None, process.communicate)
 
         return [output.decode() for output in result]
