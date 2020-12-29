@@ -393,7 +393,7 @@ class Funhouse(commands.Cog):
             return await ctx.send('URL or attachment required.')
         image_url = image_url or ctx.message.attachments[0].url
         data = await self.do_ocr(image_url) or 'No text returned.'
-        await ctx.send(embed=discord.Embed(description=data, colour=0xEC9FED))
+        await ctx.send(embed=discord.Embed(title='OCR result', description=data, colour=discord.Colour.blurple()))
 
     @commands.command(hidden=True)
     async def ocrt(self, ctx, *, image_url: str=None):
