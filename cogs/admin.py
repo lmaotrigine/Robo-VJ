@@ -474,7 +474,7 @@ class Admin(commands.Cog):
         for i in range(times):
             await new_ctx.reinvoke()
 
-    @commands.command(hidden=True)
+    @commands.command(hidden=True, aliases=['shell'])
     async def sh(self, ctx, *, command):
         """Runs a shell command."""
         from cogs.utils.paginator import TextPageSource, RoboPages
