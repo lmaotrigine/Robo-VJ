@@ -83,7 +83,6 @@ class Lichess(commands.Cog):
                            'Atomic', 'Horde', 'Racing Kings', 'Training')
         self.inflect_engine = inflect.engine()
 
-        # TODO: Use unicode code points
         self.ultrabullet_emoji = '<:lichess_ultrabullet:794156128971653142>'
         self.bullet_emoji = '<:lichess_bullet:794156128757743626>'
         self.blitz_emoji = '<:lichess_blitz:794156128741228544>'
