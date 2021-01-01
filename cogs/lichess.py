@@ -413,8 +413,8 @@ class Lichess(commands.Cog):
         embed.add_field(name='Member Since', value=created_at.strftime('%#d %b %Y'))
         if 'completionRate' in username:
             embed.add_field(name='Game Completion Rate', value=f'{username["completionRate"]}%')
-        embed.add_field(name='Followers', value=username['nbFollowers'])
-        embed.add_field(name='Following', value=username['nbFollowing'])
+        embed.add_field(name='Followers', value=str(username['nbFollowers']))
+        embed.add_field(name='Following', value=str(username['nbFollowing']))
         playtime = username.get('playTime', {})
         if 'total' in playtime:
             embed.add_field(name='Time Spent Playing',
