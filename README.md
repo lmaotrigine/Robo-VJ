@@ -12,7 +12,7 @@ I would prefer if you don't run an instance of my bot. Just call the join comman
 
 Nevertheless, the installation steps are as follows:
 
-1. **Make sure to get Python 3.8**
+1. **Make sure to get Python 3.8+**
 
 This is required to actually run the bot.
 
@@ -47,6 +47,9 @@ postgresql = 'postgresql://user:password@host/database' # your postgresql info f
 # This process is simple. To do this in python, replace the postgresql declaration in your config.py with these lines
 from urllib.parse import quote
 postgresql = f"postgresql://user:{quote('password')}@host/database"
+# There are other API keys and tokens required, all of which are not documented.
+# Since new features are added almost every week, I can't keep the README up to date.
+# This is one important reason why I don't support self hosting.
 ```
 
 6. **Configuration of database**
@@ -73,6 +76,6 @@ To copy the remote database from source to target:
 
 ## Requirements
 
-- Python 3.8.x
+- Python 3.8+
 - v1.6.0+ of discord.py
 - psutil
