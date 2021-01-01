@@ -184,7 +184,7 @@ class Lichess(commands.Cog):
         # TODO: Separate stats subcommand?
         embed = discord.Embed(title=username.get('title', '') + ' ' + username['username'], url=username['url'])
         for mode, name, emoji in zip(self.modes, self.mode_names, self.mode_emojis):
-            if not username['perfs'].get('mode', {}).get('games', 0):
+            if not username['perfs'].get(mode, {}).get('games', 0):
                 continue
             mode_data = username['perfs'][mode]
             prov = ''
