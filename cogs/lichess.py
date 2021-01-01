@@ -160,7 +160,7 @@ class Lichess(commands.Cog):
     @tournament.command(name='current', aliases=['started'])
     async def tournament_current(self, ctx):
         """Current tournaments."""
-        url = 'https://en.lichess.com/api/tournament'
+        url = 'https://en.lichess.org/api/tournament'
         async with ctx.session.get(url) as resp:
             data = await resp.json()
         data = data['started']
