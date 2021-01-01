@@ -416,11 +416,11 @@ class Lichess(commands.Cog):
         embed.add_field(name='Followers', value=str(username['nbFollowers']))
         embed.add_field(name='Following', value=str(username['nbFollowing']))
         playtime = username.get('playTime', {})
-        if 'total' in playtime:
+        if playtime.get('total'):
             embed.add_field(name='Time Spent Playing',
                             value=duration_to_string(datetime.timedelta(seconds=playtime['total']), abbreviate=True))
 
-        if 'tv' in playtime:
+        if playtime.get('tv'):
             embed.add_field(name='Time on TV',
                             value=duration_to_string(datetime.timedelta(seconds=playtime['tv']), abbreviate=True))
 
@@ -430,7 +430,6 @@ class Lichess(commands.Cog):
         if 'seenAt' in username:
             embed.set_footer(text='Last seen')
             embed.timestamp = datetime.datetime.utcfromtimestamp(username['seenAt'] / 1000.0)
-
         await ctx.send(embed=embed)
 
 
