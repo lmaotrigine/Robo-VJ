@@ -345,8 +345,8 @@ class Lichess(commands.Cog):
             # TODO: Use embed limit variables
             # TODO: Better method of checking total embed size
             date = datetime.datetime.utcfromtimestamp(day['interval']['start'] / 1000)
-            date = date.strftime('%#d %b %Y')
-            # %#d for removal of leading zero on Windows with native Python executable (for testing)
+            date = date.strftime('%-d %b %Y')
+            # %-d for removal of leading zero on UNIX with native Python executable
             total_length += len(date) + len(activity)
             if total_length > 6000:
                 break
@@ -410,7 +410,8 @@ class Lichess(commands.Cog):
         elif 'location' in profile:
             embed.add_field(name='Location', value=profile['location'])
         created_at = datetime.datetime.utcfromtimestamp(username['createdAt'] / 1000.0)
-        embed.add_field(name='Member Since', value=created_at.strftime('%#d %b %Y'))
+        embed.add_field(name='Member Since', value=created_at.strftime('%-d %b %Y'))
+        # %-d for removal of leading zero on UNIX with native Python executable
         if 'completionRate' in username:
             embed.add_field(name='Game Completion Rate', value=f'{username["completionRate"]}%')
         embed.add_field(name='Followers', value=str(username['nbFollowers']))
