@@ -130,6 +130,8 @@ class Astronomy(commands.Cog):
         """
         url = f'https://api.arcsecond.io/archives/HST/{proposal_id}/summary/'
         async with ctx.session.get(url, params={'format': 'json'}) as resp:
+            if resp.status == 404:
+                return await ctx.reply(':no_entry: Error: Not found.')
             data = await resp.json()
         # TODO: Include allocation?, pi_institution?, programme_type_auxiliary?, programme_status?, related_programmes?
         embed = discord.Embed(title=data['title'], description=data['abstract'])
