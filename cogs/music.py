@@ -53,7 +53,13 @@ def check_in_voice():
             raise MusicError('I am not currently connected to voice!')
 
         if ctx.author.voice is None or ctx.author.voice.channel != ctx.guild.me.voice.channel:
-            raise MusicError(f"You must be connected to {ctx.guild.me.voice.channel.mention} to control music!");
+            # this block is necessary because it sometimes throws an AttributeError in checks during `filter_commands`
+            # in cases of fucked up permissions, mostly in mute roles
+            try:
+                channel = ctx.guild.me.voice.channel
+            except AttributeError:
+                return False
+            raise MusicError(f"You must be connected to {ctx.guild.me.voice.channel.mention} to control music!");   
         return True
     return commands.check(predicate)
 
