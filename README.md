@@ -138,4 +138,4 @@ To copy the remote database from source to target:
 [rdanny-repo]: https://github.com/Rapptz/RoboDanny
 [d20-permalink]: https://github.com/darthshittious/Robo-VJ/blob/9b5b3800d6bd5721032097539125104588be2d3d/requirements.txt#L3
 [rdanny-license]: https://github.com/Rapptz/RoboDanny/blob/rewrite/LICENSE.txt
-[license-badge]: https://img.shields.io/github/license/darthshittious/Robo-VJ
+[license-badge]: https://img.shields.io/github/license/darthshittious/Robo-VJ?style=plastic
