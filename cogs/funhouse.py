@@ -1,3 +1,4 @@
+import asyncio
 import enum
 from http import HTTPStatus
 import discord
@@ -8,6 +9,9 @@ from typing import Optional
 import random
 import re
 import d20
+from PIL import Image, ImageFont, ImageDraw
+import textwrap
+import time
 from .utils.dice import PersistentRollContext, VerboseMDStringifier
 
 
@@ -410,6 +414,51 @@ class Funhouse(commands.Cog):
     async def ocr_error(self, ctx, error):
         if isinstance(error, OCRError):
             await ctx.send(error)
+
+    @staticmethod
+    def process_typeracer(self, buffer, wrapped_text):
+        font = ImageFont.truetype('data/fonts/monoid.ttf', size=30)
+        text = '\n'.join(wrapped_text)
+        w, h = font.getsize(text)
+        with Image.new('RGB', (525, h * len(wrapped_text))) as base:
+            canvas = ImageDraw.Draw(base)
+            canvas.multiline_text((5, 5), text, font=font)
+            base.save(buffer, 'PNG', optimize=True)
+        buffer.seek(0)
+
+    @commands.command(aliases=['tr'])
+    async def typeracer(self, ctx):
+        """Typeracer. Compete with others.
+
+        Returns: Average WPM of the winner, time spent to type, and original text.
+        """
+        buffer = io.BytesIO()
+        async with ctx.session.get('https://type.fit/api/quotes') as resp:
+            quote = await resp.json()
+        to_wrap = random.choice(quote)['text']
+        wrapped_text = textwrap.wrap(to_wrap, 30)
+        ctx.bot.loop.run_in_executor(None, self.process_typeracer, buffer, wrapped_text)
+        embed = discord.Embed(title='typeracer', description='See who is the fastest at typing.')
+        embed.set_footer(text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar_url)
+        embed.set_image(url='attachment://typeracer.png')
+        race = await ctx.send(file=discord.File(buffer, 'typeracer.png'), embed=embed)
+        start = time.time()
+        try:
+            msg = self.bot.wait_for('message', check=lambda m: m.content == to_wrap, timeout=60.0)
+            if not msg:
+                return
+            end = time.time()
+            final = round(end - start, 2)
+            wpm = len(to_wrap.split()) * (60.0 / final)
+            await ctx.send(embed=discord.Embed(title=f'{ctx.author.display_name} won!',
+                                               description=f'**Done in**: {final}s\n'
+                                                           f'**Average WPM**: {round(wpm)} words\n'
+                                                           f'**Original text**:```diff\n+ {to_wrap}\n```'))
+        except asyncio.TimeoutError:
+            try:
+                await race.delete()
+            except discord.HTTPException:
+                pass
 
 
 # Probably should've defined this earlier but I have exams now yeet
