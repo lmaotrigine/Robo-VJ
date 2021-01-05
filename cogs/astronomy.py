@@ -364,13 +364,9 @@ class Astronomy(commands.Cog):
             embed.add_field(name='Detection Method', value=data['detection_method'])
 
         # Parent star
-        parent_star_data = data.get('parent_star') or {}
-        if parent_star_data.get('name'):
-            embed.add_field(name='Parent Star', value=parent_star_data['name'])
-        elif parent_star_data.get('url'):
-            async with self.bot.session.get(parent_star_data['url']) as resp:
-                parent_star_data = await resp.json()
-            embed.add_field(name='Parent Star', value=parent_star_data['name'])
+        parent_star = data.get('parent_star')
+        if parent_star:
+            embed.add_field(name='Parent Star', value=parent_star)
 
         await ctx.send(embed=embed)
 
