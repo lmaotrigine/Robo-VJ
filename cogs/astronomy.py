@@ -160,14 +160,14 @@ class Astronomy(commands.Cog):
         embed = discord.Embed(title=data['name'])
         embed.add_field(name='System', value=data['coordinates']['system'])
         if data['coordinates']['right_ascension']:
-            value = data['coordinates']['right_ascension']
+            value = str(data['coordinates']['right_ascension'])
             if data['coordinates']['right_ascension_units'] == 'degrees':
                 value += '°'
             else:
                 value += f' {data["coordinates"]["right_ascension_units"]}'
             embed.add_field(name='Right Ascension', value=value)
         if data['coordinates']['declination']:
-            value = data['coordinates']['declination']
+            value = str(data['coordinates']['declination'])
             if data['coordinates']['declination_units'] == 'degrees':
                 value += '°'
             else:
