@@ -8,7 +8,7 @@ A personal bot that runs on Discord, originally designed for online quizzes.
 
 ## Adding the bot
 
-To use Robo-VJ on your server, you can add my public instance by [clicking here][oauth2-invite]
+To use Robo VJ on your server, you can add my public instance by [clicking here][oauth2-invite]
 
 You can also host the bot yourself, however I don't provide support for people that try to self-host.
 I don't want to spend time trying to troubleshoot issues that happen only with self-hosting,
