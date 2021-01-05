@@ -160,7 +160,7 @@ class Lichess(commands.Cog):
     @tournament.command(name='current', aliases=['started'])
     async def tournament_current(self, ctx):
         """Current tournaments."""
-        url = 'https://en.lichess.com/api/tournament'
+        url = 'https://en.lichess.org/api/tournament'
         async with ctx.session.get(url) as resp:
             data = await resp.json()
         data = data['started']
@@ -345,8 +345,8 @@ class Lichess(commands.Cog):
             # TODO: Use embed limit variables
             # TODO: Better method of checking total embed size
             date = datetime.datetime.utcfromtimestamp(day['interval']['start'] / 1000)
-            date = date.strftime('%#d %b %Y')
-            # %#d for removal of leading zero on Windows with native Python executable (for testing)
+            date = date.strftime('%-d %b %Y')
+            # %-d for removal of leading zero on UNIX with native Python executable
             total_length += len(date) + len(activity)
             if total_length > 6000:
                 break
@@ -410,17 +410,18 @@ class Lichess(commands.Cog):
         elif 'location' in profile:
             embed.add_field(name='Location', value=profile['location'])
         created_at = datetime.datetime.utcfromtimestamp(username['createdAt'] / 1000.0)
-        embed.add_field(name='Member Since', value=created_at.strftime('%#d %b %Y'))
+        embed.add_field(name='Member Since', value=created_at.strftime('%-d %b %Y'))
+        # %-d for removal of leading zero on UNIX with native Python executable
         if 'completionRate' in username:
             embed.add_field(name='Game Completion Rate', value=f'{username["completionRate"]}%')
-        embed.add_field(name='Followers', value=username['nbFollowers'])
-        embed.add_field(name='Following', value=username['nbFollowing'])
+        embed.add_field(name='Followers', value=str(username['nbFollowers']))
+        embed.add_field(name='Following', value=str(username['nbFollowing']))
         playtime = username.get('playTime', {})
-        if 'total' in playtime:
+        if playtime.get('total'):
             embed.add_field(name='Time Spent Playing',
                             value=duration_to_string(datetime.timedelta(seconds=playtime['total']), abbreviate=True))
 
-        if 'tv' in playtime:
+        if playtime.get('tv'):
             embed.add_field(name='Time on TV',
                             value=duration_to_string(datetime.timedelta(seconds=playtime['tv']), abbreviate=True))
 
@@ -430,7 +431,6 @@ class Lichess(commands.Cog):
         if 'seenAt' in username:
             embed.set_footer(text='Last seen')
             embed.timestamp = datetime.datetime.utcfromtimestamp(username['seenAt'] / 1000.0)
-
         await ctx.send(embed=embed)
 
 

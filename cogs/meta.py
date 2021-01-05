@@ -146,9 +146,9 @@ class Meta(commands.Cog):
         await self.bot.set_guild_prefixes(ctx.guild, [])
         await ctx.send(ctx.tick(True))
 
-    @commands.command(aliases=['cloc'])
+    @commands.command(aliases=['size'])
     @commands.is_owner()
-    async def size(self, ctx, *, extras=None):
+    async def cloc(self, ctx, *, extras=None):
         """Get the line and file count of the source.
 
         Use the flag `--include-submodules` to count git submodules and site packages.
@@ -515,6 +515,9 @@ class Meta(commands.Cog):
         embed.add_field(name='Heartbeat', value=hb_fmt)
         embed.add_field(name='Response', value=response_fmt)
         embed.add_field(name='Database', value=db_fmt)
+        # again, this is due to fucked up perms in some mute roles
+        if message is None:
+            return
         await message.edit(content=None, embed=embed)
 
 
