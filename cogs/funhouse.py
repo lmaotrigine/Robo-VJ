@@ -426,6 +426,7 @@ class Funhouse(commands.Cog):
             canvas.multiline_text((5, 5), text, font=font)
             base.save(buffer, 'PNG', optimize=True)
         buffer.seek(0)
+        return buffer
 
     @commands.command(aliases=['tr'])
     async def typeracer(self, ctx):
@@ -438,11 +439,11 @@ class Funhouse(commands.Cog):
             quote = json.loads(await resp.read())
         to_wrap = random.choice(quote)['text']
         wrapped_text = textwrap.wrap(to_wrap, 30)
-        ctx.bot.loop.run_in_executor(None, self.process_typeracer, buffer, wrapped_text)
+        new_buf = ctx.bot.loop.run_in_executor(None, self.process_typeracer, buffer, wrapped_text)
         embed = discord.Embed(title='typeracer', description='See who is the fastest at typing.')
         embed.set_footer(text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar_url)
         embed.set_image(url='attachment://typeracer.png')
-        race = await ctx.send(file=discord.File(buffer, 'typeracer.png'), embed=embed)
+        race = await ctx.send(file=discord.File(new_buf, 'typeracer.png'), embed=embed)
         start = time.time()
         try:
             msg = self.bot.wait_for('message', check=lambda m: m.content == to_wrap, timeout=60.0)
