@@ -59,17 +59,17 @@ Make sure you have Git installed, and run
 ```shell
 git clone https://github.com/darthshittious/Robo-VJ.git
 ```
-2. **Set up venv**
+3. **Set up venv**
 
 Just do `python3.8 -m venv venv`
 
-3. **Install dependencies**
+4. **Install dependencies**
 
 This is `pip install -U -r requirements.txt`
 This might fail because one of the [dependencies][d20-permalink] is not OSS.
 You can delete this line and run the command again, and it should finish without errors.
 
-4. **Create the database in PostgreSQL**
+5. **Create the database in PostgreSQL**
 
 You will need PostgreSQL 12 or higher and type the following
 in the `psql` tool:
@@ -80,7 +80,7 @@ CREATE DATABASE robovj OWNER robovj;
 CREATE EXTENSION pg_trgm;
 ```
 
-5. **Setup configuration**
+6. **Setup configuration**
 
 The next step is just to create a `config.py` file in the root directory where
 the bot is with the following template:
@@ -98,15 +98,15 @@ postgresql = f"postgresql://user:{quote('password')}@host/database"
 # This is one important reason why I don't support self hosting.
 ```
 
-6. **Configuration of database**
+7. **Configuration of database**
 
 To configure the PostgreSQL database for use by the bot, go to the directory where `launcher.py` is located, and run the script by doing `python3.8 launcher.py db init`
 
-7. **Set up Lavalink server (for Music cog)**
+8. **Set up Lavalink server (for Music cog)**
 
 To set up a Lavalink server, download OpenJDK 13.0.2, and the latest release of Lavalink.jar, and run `java -jar Lavalink.jar`
 
-8. **Running the bot**
+9. **Running the bot**
 
 Running on Ubuntu 20.04 will be much easier as there are pre-written shell scripts [here](scripts) that do most of the work for you.
 
