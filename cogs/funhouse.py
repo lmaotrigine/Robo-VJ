@@ -385,7 +385,7 @@ class Funhouse(commands.Cog):
         async with self.bot.session.get('https://api.tsu.sh/google/ocr', headers=headers, params={'q': url}) as resp:
             if resp.status >= 400:
                 error = await resp.text()
-                raise OCRError(f'An error occurred: {error)')
+                raise OCRError(f'An error occurred: {error}')
             data = await resp.json()
         ocr_text = data.get('text')
         ocr_text = ocr_text if len(ocr_text) < 4000 else str(await self.bot.mb_client.post(ocr_text))
