@@ -49,7 +49,7 @@ class Tickets(commands.Cog):
             await con.execute("UPDATE tickets SET channel_id = $1 WHERE user_id = $2", chnl.id, user.id)
         await chnl.set_permissions(user, read_messages=True, send_messages=True, read_message_history=True)
         embed = discord.Embed(description=f'Thank you for opening a ticket {user.mention}, a moderator will be here momentarily.\n' \
-            f'Ticket ID: {_id}\nKeep a not of this ID for 7 days, if you wish to clarify anything later.')
+            f'Ticket ID: {_id}\nKeep a note of this ID for 7 days, if you wish to clarify anything later.')
 
         await chnl.send(f'{user.mention}, <@&{MOD_ROLE_ID}>', embed=embed)
         self.open[user.id] = chnl.id
