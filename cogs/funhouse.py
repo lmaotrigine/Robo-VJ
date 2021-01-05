@@ -417,7 +417,7 @@ class Funhouse(commands.Cog):
             await ctx.send(error)
 
     @staticmethod
-    def process_typeracer(self, buffer, wrapped_text):
+    def process_typeracer(buffer, wrapped_text):
         font = ImageFont.truetype('data/fonts/monoid.ttf', size=30)
         text = '\n'.join(wrapped_text)
         w, h = font.getsize(text)
