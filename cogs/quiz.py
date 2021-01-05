@@ -135,7 +135,7 @@ class Quiz(commands.Cog):
         """Pounce on a question. Pounces appear either in a designated channel (if available) or sent to the QM(s) via DM.
         This functionality is designed only for cases where each entity (team/member) has a dedicated text channel.
         """
-        if ctx.author.top_role == discord.utils.get(ctx.guild.roles, name="Approved") or ctx.author.top_role == ctx.guild.default_role:
+        if ctx.author.top_role == ctx.guild.default_role:
             return
         try:
             if not self.in_play[ctx.guild.id]:
@@ -164,7 +164,7 @@ class Quiz(commands.Cog):
         self.pounce_dict[ctx.guild.id][ctx.channel] = answer
         try:
             await self.bot.get_channel(self.pchannels[ctx.guild.id]).send(f"{ctx.channel.mention}: {answer}")  # send to pounce channel
-        except:
+        except (AttributeError, KeyError):
             if self.dm_pounces.get(ctx.guild.id, 'on') == 'on':
                 role = discord.utils.get(ctx.guild.roles, name="QM")  #if no pounce channel, DM QM(s)
                 for member in role.members:
@@ -316,6 +316,8 @@ class Quiz(commands.Cog):
     @is_qm()
     async def close(self, ctx):
         """Closes pounce for a question."""
+        if not self.in_play.get(ctx.guild.id):
+            return
         self.pounce_open[ctx.guild.id] = False
         if ctx.channel.id == self.pchannels.get(ctx.guild.id):
             embed = discord.Embed(title='Pounce closed. Final pounces:', colour=0xFF0000)
@@ -330,6 +332,8 @@ class Quiz(commands.Cog):
     @is_qm()
     async def open(self, ctx):
         """Open pounces for a question."""
+        if not self.in_play.get(ctx.guild.id):
+            return
         self.pounce_open[ctx.guild.id] = True
         self.pounce_dict[ctx.guild.id] = dict()
         await ctx.message.delete()
