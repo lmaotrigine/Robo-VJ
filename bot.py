@@ -28,6 +28,7 @@ os.environ['JISHAKU_HIDE'] = 'true'
 initial_extensions = {
     'cogs.tmdb',
     'cogs.admin',
+    'cogs.astronomy',
     'cogs.blackjack',
     'cogs.buttons',
     'cogs.chess',
