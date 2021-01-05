@@ -191,36 +191,39 @@ class Astronomy(commands.Cog):
 
         # Semi-major axis
         semi_major_axis = ''
-        if data['semi_major_axis']['value']:
-            semi_major_axis += str(data['semi_major_axis']['value'])
-        if data['semi_major_axis']['error_min'] or data['semi_major_axis']['error_max']:
-            if data['semi_major_axis']['error_min'] == data['semi_major_axis']['error_max']:
-                semi_major_axis += '±' + str(data['semi_major_axis']['error_min'])
-            else:
-                semi_major_axis += '(-{0[error_min]}/+{0[error_max]})'.format(data['semi_major_axis'])
-        if data['semi_major_axis']['value']:
-            semi_major_axis += ' AU' if data['semi_major_axis']['unit'] == 'astronomical unit' \
-                else f' {data["semi_major_axis"]["unit"]}'
-        if semi_major_axis:
-            embed.add_field(name='Semi-Major Axis', value=semi_major_axis)
+        if data.get('semi_major_axis'):
+            if data['semi_major_axis']['value']:
+                semi_major_axis += str(data['semi_major_axis']['value'])
+            if data['semi_major_axis']['error_min'] or data['semi_major_axis']['error_max']:
+                if data['semi_major_axis']['error_min'] == data['semi_major_axis']['error_max']:
+                    semi_major_axis += '±' + str(data['semi_major_axis']['error_min'])
+                else:
+                    semi_major_axis += '(-{0[error_min]}/+{0[error_max]})'.format(data['semi_major_axis'])
+            if data['semi_major_axis']['value']:
+                semi_major_axis += ' AU' if data['semi_major_axis']['unit'] == 'astronomical unit' \
+                    else f' {data["semi_major_axis"]["unit"]}'
+            if semi_major_axis:
+                embed.add_field(name='Semi-Major Axis', value=semi_major_axis)
 
         # Orbital Period
         # TODO: include orbital_period error_max + error_min?
-        if data['orbital_period']['value']:
-            embed.add_field(name='Orbital Period',
-                            value=f'{data["orbital_period"]["value"]} {data["orbital_period"]["unit"]}')
+        if data.get('orbital_period'):
+            if data['orbital_period']['value']:
+                embed.add_field(name='Orbital Period',
+                                value=f'{data["orbital_period"]["value"]} {data["orbital_period"]["unit"]}')
 
         # Eccentricity
         eccentricity = ''
-        if data['eccentricity']['value']:
-            eccentricity += str(data['eccentricity']['value'])
-        if data['eccentricity']['error_min'] or data['eccentricity']['error_max']:
-            if data['eccentricity']['error_min'] == data['eccentricity']['error_max']:
-                eccentricity += '±' + str(data['eccentricity']['error_min'])
-            else:
-                eccentricity += '(-{0[error_min]}/+{0[error_max]})'.format(data['eccentricity'])
-        if eccentricity:
-            embed.add_field(name='Eccentricity', value=eccentricity)
+        if data.get('eccentricity'):
+            if data['eccentricity']['value']:
+                eccentricity += str(data['eccentricity']['value'])
+            if data['eccentricity']['error_min'] or data['eccentricity']['error_max']:
+                if data['eccentricity']['error_min'] == data['eccentricity']['error_max']:
+                    eccentricity += '±' + str(data['eccentricity']['error_min'])
+                else:
+                    eccentricity += '(-{0[error_min]}/+{0[error_max]})'.format(data['eccentricity'])
+            if eccentricity:
+                embed.add_field(name='Eccentricity', value=eccentricity)
 
         # Lambda angle
         # Spin-Orbit misalignment
@@ -242,15 +245,16 @@ class Astronomy(commands.Cog):
         # Periastron time
         # https://exoplanetarchive.ipac.caltech.edu/docs/parhelp.html#Obs_Time_Periastron
         time_periastron = ''
-        if data['time_perastron']['value']:
-            time_periastron += str(data['time_periastron']['value'])
-        if data['time_periastron']['error_min'] or data['time_periastron']['error_max']:
-            if data['time_periastron']['error_min'] == data['time_periastron']['error_max']:
-                time_periastron += '±' + str(data['time_periastron']['error_min'])
-            else:
-                time_periastron += '(-{0[error_min]}/+{0[error_max]})'.format(data['time_periastron'])  # Necessary?
-        if time_periastron:
-            embed.add_field(name='Periastron Time', value=time_periastron)
+        if data.get('time_periastron'):
+            if data['time_perastron']['value']:
+                time_periastron += str(data['time_periastron']['value'])
+            if data['time_periastron']['error_min'] or data['time_periastron']['error_max']:
+                if data['time_periastron']['error_min'] == data['time_periastron']['error_max']:
+                    time_periastron += '±' + str(data['time_periastron']['error_min'])
+                else:
+                    time_periastron += '(-{0[error_min]}/+{0[error_max]})'.format(data['time_periastron'])  # Necessary?
+            if time_periastron:
+                embed.add_field(name='Periastron Time', value=time_periastron)
 
         # Conjunction time
         time_conjonction = ''
@@ -310,18 +314,19 @@ class Astronomy(commands.Cog):
 
         # Radial velocity semi-amplitude
         velocity_semiamplitude = ''
-        if data['velocity_semiamplitude']['value']:
-            velocity_semiamplitude += str(data['velocity_semiamplitude']['value'])
-        if data['velocity_semiamplitude']['error_min'] or data['velocity_semiamplitude']['error_max']:
-            if data['velocity_semiamplitude']['error_min'] == data['velocity_semiamplitude']['error_max']:
-                velocity_semiamplitude += '±' + str(data['velocity_semiamplitude']['error_min'])
-            else:
-                velocity_semiamplitude += '(-{0[error_min]}/+{0[error_max]})'.format(data['velocity_semiamplitude'])
-                # Necessary?
-        if data['velocity_semiamplitude']['value']:
-            velocity_semiamplitude += f' {data["velocity_semiamplitude"]["unit"]}'
-        if velocity_semiamplitude:
-            embed.add_field(name='Radial Velocity Semi-Amplitude', value=velocity_semiamplitude)
+        if data.get('velocity_semiamplitude'):
+            if data['velocity_semiamplitude']['value']:
+                velocity_semiamplitude += str(data['velocity_semiamplitude']['value'])
+            if data['velocity_semiamplitude']['error_min'] or data['velocity_semiamplitude']['error_max']:
+                if data['velocity_semiamplitude']['error_min'] == data['velocity_semiamplitude']['error_max']:
+                    velocity_semiamplitude += '±' + str(data['velocity_semiamplitude']['error_min'])
+                else:
+                    velocity_semiamplitude += '(-{0[error_min]}/+{0[error_max]})'.format(data['velocity_semiamplitude'])
+                    # Necessary?
+            if data['velocity_semiamplitude']['value']:
+                velocity_semiamplitude += f' {data["velocity_semiamplitude"]["unit"]}'
+            if velocity_semiamplitude:
+                embed.add_field(name='Radial Velocity Semi-Amplitude', value=velocity_semiamplitude)
 
         # Calculated Temperature
         calculated_temperature = ''
@@ -350,8 +355,9 @@ class Astronomy(commands.Cog):
 
         # Geometric Albedo
         # TODO: include geometric_albedo error_max + error_min?
-        if data['geometric_albedo']['value']:
-            embed.add_field(name='Geometric Albedo', value=f"{data['geometric_albedo']['value']}")
+        if data.get('geometric_albedo'):
+            if data['geometric_albedo']['value']:
+                embed.add_field(name='Geometric Albedo', value=f"{data['geometric_albedo']['value']}")
 
         # Detection method
         if data['detection_method'] != 'Unknown':
