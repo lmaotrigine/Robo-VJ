@@ -12,6 +12,7 @@ import d20
 from PIL import Image, ImageFont, ImageDraw
 import textwrap
 import time
+import json
 from .utils.dice import PersistentRollContext, VerboseMDStringifier
 
 
@@ -434,7 +435,7 @@ class Funhouse(commands.Cog):
         """
         buffer = io.BytesIO()
         async with ctx.session.get('https://type.fit/api/quotes') as resp:
-            quote = await resp.json()
+            quote = json.loads(await resp.read())
         to_wrap = random.choice(quote)['text']
         wrapped_text = textwrap.wrap(to_wrap, 30)
         ctx.bot.loop.run_in_executor(None, self.process_typeracer, buffer, wrapped_text)
