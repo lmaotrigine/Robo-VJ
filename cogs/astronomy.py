@@ -160,14 +160,14 @@ class Astronomy(commands.Cog):
         embed = discord.Embed(title=data['name'])
         embed.add_field(name='System', value=data['coordinates']['system'])
         if data['coordinates']['right_ascension']:
-            value = data['coordinates']['right_ascension']
+            value = str(data['coordinates']['right_ascension'])
             if data['coordinates']['right_ascension_units'] == 'degrees':
                 value += '°'
             else:
                 value += f' {data["coordinates"]["right_ascension_units"]}'
             embed.add_field(name='Right Ascension', value=value)
         if data['coordinates']['declination']:
-            value = data['coordinates']['declination']
+            value = str(data['coordinates']['declination'])
             if data['coordinates']['declination_units'] == 'degrees':
                 value += '°'
             else:
@@ -176,17 +176,18 @@ class Astronomy(commands.Cog):
 
         # Inclination
         inclination = ''
-        if data['inclination']['value']:
-            inclination += str(data['inclination']['value'])
-        if data['inclination']['error_min'] or data['inclination']['error_max']:
-            if data['inclination']['error_min'] == data['inclination']['error_max']:
-                inclination += '±' + str(data['inclination']['error_min'])
-            else:
-                inclination += '(-{0[error_min]}/+{0[error_max]})'.format(data['inclination'])
-        if data['inclination']['value']:
-            inclination += data['inclination']['unit']
-        if inclination:
-            embed.add_field(name='Inclination', value=inclination)
+        if data.get('inclination'):
+            if data['inclination']['value']:
+                inclination += str(data['inclination']['value'])
+            if data['inclination']['error_min'] or data['inclination']['error_max']:
+                if data['inclination']['error_min'] == data['inclination']['error_max']:
+                    inclination += '±' + str(data['inclination']['error_min'])
+                else:
+                    inclination += '(-{0[error_min]}/+{0[error_max]})'.format(data['inclination'])
+            if data['inclination']['value']:
+                inclination += data['inclination']['unit']
+            if inclination:
+                embed.add_field(name='Inclination', value=inclination)
 
         # Semi-major axis
         semi_major_axis = ''
