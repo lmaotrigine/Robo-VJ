@@ -426,7 +426,6 @@ class Funhouse(commands.Cog):
             canvas.multiline_text((5, 5), text, font=font)
             base.save(buffer, 'PNG', optimize=True)
         buffer.seek(0)
-        return buffer
 
     @commands.command(aliases=['tr'])
     async def typeracer(self, ctx):
