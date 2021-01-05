@@ -396,7 +396,7 @@ class Astronomy(commands.Cog):
             timestamp = datetime.datetime.utcfromtimestamp(data['timestamp'])
             map_icon = 'https://i.imgur.com/KPfeEcc.png'  # 64x64 satellite emoji png
             embed = discord.Embed(title='Current ISS Position', timestamp=timestamp,
-                                  url=f'https://www.google.com/maps/@{latitude},{longitude},10z')
+                                  url=f'https://www.google.com/maps/place/{latitude},{longitude}/@{latitude},{longitude},3.6z')
             embed.set_thumbnail(url=map_icon)
             embed.add_field(name='Latitude', value=latitude)
             embed.add_field(name='Longitude', value=longitude)
