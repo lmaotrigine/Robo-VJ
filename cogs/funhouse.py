@@ -446,7 +446,7 @@ class Funhouse(commands.Cog):
         race = await ctx.send(file=discord.File(buffer, 'typeracer.png'), embed=embed)
         start = time.time()
         try:
-            msg = self.bot.wait_for('message', check=lambda m: m.content == to_wrap, timeout=60.0)
+            msg = await self.bot.wait_for('message', check=lambda m: m.content == to_wrap, timeout=60.0)
             if not msg:
                 return
             end = time.time()
