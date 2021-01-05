@@ -147,7 +147,7 @@ class Meta(commands.Cog):
         await ctx.send(ctx.tick(True))
 
     @commands.command(aliases=['size'])
-    @commands.is_owner()
+    #@commands.is_owner()  # now OSS, not needed
     async def cloc(self, ctx, *, extras=None):
         """Get the line and file count of the source.
 
@@ -177,7 +177,7 @@ class Meta(commands.Cog):
         await ctx.send(f'{msg}\nYou can check the main repo source with `{ctx.prefix}source`.')
 
     @commands.command()
-    @commands.is_owner()
+    #@commands.is_owner()  # now OSS, not needed
     async def source(self, ctx, *, command: str = None):
         """Displays my full source code or for a specific command on GitHub.
         To display the source code of a subcommand you can separate it by

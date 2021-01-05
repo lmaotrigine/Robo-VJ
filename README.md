@@ -27,7 +27,7 @@ I will not provide any support for this.
 If you are planning to self-host the bot, here are some things to keep in mind:
 1. The source code is kept open so that people can see, learn, and if possible,
    help the project with features and bug fixes; and also because it contains code borrowed from [R. Danny][rdanny-repo]
-   which is licensed under the MPL.
+   which is licensed under the [MPL][rdanny-license].
   
 2. If you make changes to the source code, you need to follow the [MPL](LICENSE) and keep the changes open source.
 If you want to help in development, why not create a pull request?
@@ -130,7 +130,11 @@ To copy the remote database from source to target:
 - OpenJDK 13.0.2
 - Lavalink.jar
 
+## Credits
+[Danny](https://github.com/Rapptz) for code in stats, tags, stars, reminder, and utils.db
+
 
 [oauth2-invite]: https://discord.com/oauth2/authorize?client_id=743900453649252464&scope=bot&permissions=8
 [rdanny-repo]: https://github.com/Rapptz/RoboDanny
 [d20-permalink]: https://github.com/darthshittious/Robo-VJ/blob/9b5b3800d6bd5721032097539125104588be2d3d/requirements.txt#L3
+[rdanny-license]: https://github.com/Rapptz/RoboDanny/blob/rewrite/LICENSE.txt
