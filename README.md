@@ -1,5 +1,5 @@
 # Robo-VJ
-[![license](https://img.shields.io/github/license/darthshittious/Robo-VJ)](LICENSE)
+[![license][license-badge](LICENSE)
 [![discord.py Version](https://img.shields.io/badge/discord.py-1.6-blue)](https://github.com/Rapptz/discord.py)
 [![python version](https://img.shields.io/badge/python-3.8|3.9-blue)](https://www.python.org/downloads/)
 [![PostgreSQL version](https://img.shields.io/badge/psql-12|13-blue)](https://www.postgresql.org/download/)
@@ -138,3 +138,4 @@ To copy the remote database from source to target:
 [rdanny-repo]: https://github.com/Rapptz/RoboDanny
 [d20-permalink]: https://github.com/darthshittious/Robo-VJ/blob/9b5b3800d6bd5721032097539125104588be2d3d/requirements.txt#L3
 [rdanny-license]: https://github.com/Rapptz/RoboDanny/blob/rewrite/LICENSE.txt
+[license-badge]: https://img.shields.io/github/license/darthshittious/Robo-VJ
