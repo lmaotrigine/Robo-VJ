@@ -246,7 +246,7 @@ class Astronomy(commands.Cog):
         # https://exoplanetarchive.ipac.caltech.edu/docs/parhelp.html#Obs_Time_Periastron
         time_periastron = ''
         if data.get('time_periastron'):
-            if data['time_perastron']['value']:
+            if data['time_periastron']['value']:
                 time_periastron += str(data['time_periastron']['value'])
             if data['time_periastron']['error_min'] or data['time_periastron']['error_max']:
                 if data['time_periastron']['error_min'] == data['time_periastron']['error_max']:
