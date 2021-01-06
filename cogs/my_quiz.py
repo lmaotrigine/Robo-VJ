@@ -33,10 +33,16 @@ ANNOUNCEMENT_CHANNEL_ID = 743834763965759499
 TEAM_CATEGORY = 748851008666337351
 MESSAGE_LOGS = 757224879501344779
 
+GD_ROLE = 796381942106685448
+CY_ROLE = 796380639947259935
+GA_ROLE = 796383137666957323
+
+
 def is_qm():
     def predicate(ctx):
         return ctx.author._roles.has(QM_ROLE)
     return commands.check(predicate)
+
 
 def is_in_registration():
     def predicate(ctx):
@@ -449,6 +455,23 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         embed.title = self.honour_head
         embed.description = self.honour
         await ctx.send(embed=embed)
+
+    # Language roles
+
+    @commands.command(name='gàidhlig', aliases=['gaidhlig'])
+    async def gaidhlig(self, ctx):
+        """Ma tha thu airson pàirt a ghabhail ann an còmhradh Gàidhlig na h-Alba, gabh an suidheachadh seo."""
+        await self.toggle_role(ctx, GD_ROLE)
+
+    @commands.command()
+    async def gaeilge(self, ctx):
+        """Más mian leat páirt a ghlacadh i gcomhrá Gaeilge, glac an seasamh seo."""
+        await self.toggle_role(ctx, GA_ROLE)
+
+    @commands.command()
+    async def cymraeg(self, ctx):
+        """Os ydych chi am ymuno mewn sgwrs Gymraeg, cymerwch y sefyllfa hon."""
+        await self.toggle_role(ctx, CY_ROLE)
 
 
 def setup(bot):
