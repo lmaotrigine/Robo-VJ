@@ -230,6 +230,10 @@ class Markov(commands.Cog):
             model = await self.get_model(args, coro, order=3)
         await self.send_markov(ctx, model, 3, seed=seed.lower())
 
+    def cog_command_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send(error)
+
 
 def setup(bot):
     bot.add_cog(Markov(bot))
