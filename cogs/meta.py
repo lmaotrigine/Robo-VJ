@@ -459,7 +459,7 @@ class Meta(commands.Cog):
         owner = self.bot.get_user(self.bot.owner_id)
         await ctx.send(f"{greeting} I'm a robot! {str(owner)} made me.")
 
-    @commands.command(aliases=['invite'])
+    @commands.group(aliases=['invite'], invoke_without_command=True)
     async def join(self, ctx):
         """Get the invite link to add the bot to your server"""
         embed = discord.Embed(title="Click here to add me to your server", colour=discord.Colour(0xFF0000),
@@ -467,6 +467,12 @@ class Meta(commands.Cog):
         embed.set_author(name=self.bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name,
                          icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
+
+    @join.group(name='raw')
+    @commands.is_owner()
+    async def raw_invite(self, ctx):
+        """Returns the raw oauth url, to change permissions and scopes when needed."""
+        await ctx.send(f'<{discord.utils.oauth_url(self.bot.client_id, discord.Permissions(administrator=True))}>')
 
     # leave a guild
     @commands.command(hidden=True)
