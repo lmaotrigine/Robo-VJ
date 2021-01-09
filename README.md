@@ -37,7 +37,7 @@ I've tried to make the self-host process as painless as possible, but it is impo
    different issues you may find.
    
 4. Credit the original creators (myself and Danny), and release all files you use from here under the same license.
-5. Many API keys are required for some features to work. While they aren't required, you may face issues when trying to use some features.
+5. Many API keys are needed for some features to work. While they aren't required, you may face issues when trying to use some features.
 6. Most of the assets are not shipped with this source code, and at least one dependency is something I wrote on my own and isn't OSS.
 You will need to create and include your own assets. (Stockfish binaries have been included because I switched hosts a lot, and I needed the portability)
    
@@ -66,8 +66,10 @@ Just do `python3.8 -m venv venv`
 4. **Install dependencies**
 
 This is `pip install -U -r requirements.txt`
-This might fail because one of the [dependencies][d20-permalink] is not OSS.
-You can delete this line and run the command again, and it should finish without errors.
+
+This might fail because two [dependencies][dep-permalink] are not open source.
+These are used in [this file](cogs/funhouse.py) and [this file](cogs/markov.py) respectively.
+You may omit references to these dependencies, and either find workarounds, or just run the bot with limited functionality.
 
 5. **Create the database in PostgreSQL**
 
@@ -136,6 +138,6 @@ To copy the remote database from source to target:
 
 [oauth2-invite]: https://discord.com/oauth2/authorize?client_id=743900453649252464&scope=bot&permissions=8
 [rdanny-repo]: https://github.com/Rapptz/RoboDanny
-[d20-permalink]: https://github.com/darthshittious/Robo-VJ/blob/9b5b3800d6bd5721032097539125104588be2d3d/requirements.txt#L3
+[dep-permalink]: https://github.com/darthshittious/Robo-VJ/blob/main/requirements.txt#L3-L4
 [rdanny-license]: https://github.com/Rapptz/RoboDanny/blob/rewrite/LICENSE.txt
 [license-badge]: https://img.shields.io/github/license/darthshittious/Robo-VJ?style=flat

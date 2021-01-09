@@ -1,6 +1,7 @@
 git+https://github.com/Rapptz/discord.py@master
 git+https://github.com/Rapptz/discord-ext-menus@master
 git+https://github.com/darthshittious/d20@main
+git+https://github.com/darthshittious/rusty-markov@main
 asyncpg>=0.21.0
 Pillow>=8.0.1
 PTable>=0.9.2
