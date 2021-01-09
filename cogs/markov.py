@@ -57,7 +57,7 @@ class Markov(commands.Cog):
         # Generate the model
         data: List[str] = list()
         for coro in coros:
-            data.extend(await coro)
+            data.extend((await coro)[0])
         if not data:
             raise commands.BadArgument('There was not enough message log data, please try again later.')
 
