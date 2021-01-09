@@ -64,7 +64,7 @@ class Logging(commands.Cog):
         optin_status = await ctx.db.fetchrow("SELECT * FROM opt_in_status WHERE user_id = $1;", ctx.author.id)
         if optin_status:
             return await ctx.send('You have already opted in to logging.')
-        await ctx.db.execute('INSERT INTO opt_in_status (user_id) VALUES $1;', ctx.author.id)
+        await ctx.db.execute('INSERT INTO opt_in_status (user_id) VALUES ($1);', ctx.author.id)
         self._opted_in.add(ctx.author.id)
         await ctx.send(ctx.tick(True))
 
