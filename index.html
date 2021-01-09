@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <!-- If you're looking here, you probably have some ideas about making this better.
+      Hit me up on Discord (VJ#9010) if you're interested. -->
+      <meta charset="UTF-8" />
+      <title>Robo VJ</title>
+      <meta name="theme-color" content="#262627" />
+      <meta name="mobile-web-app-capable" content="yes">
+      <meta name="viewport" content="width=device-width, maximum-scale=1.0, minimum-scale=1.0, initial-scale=1.0, user-scalable=no" />
+      <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,700,300">
+      <style type="text/css">
+          body, html {
+              margin: 0px;
+              height: 100%;
+              width: 100%;
+              font-family: 'Roboto Slab';
+              background: #262627;
+              color: #FFF;
+              text-shadow: 1px 1px 1px #000;
+          }
+
+          .main {
+              position: relative;
+              top: 20%;
+              transform: translateY(-50%);
+              text-align: center;
+          }
+
+          .bg {
+              /* The image used */
+              background-image: url("https://cdn.discordapp.com/attachments/746771342774370354/797533302406905866/782538.jpg");
+
+              /* Full height */
+              height: 100%;
+
+              /* Center and scale the image nicely */
+              background-position: center;
+              background-repeat: no-repeat;
+              background-size: cover;
+              opacity: 70%;
+          }
+
+          h1 {
+              margin-top: 0px;
+              margin-bottom: 0px;
+              font-size: 60px;
+              font-weight: normal;
+          }
+
+          h3 {
+              font-weight: normal;
+              margin-top: 0px;
+              margin-bottom: 50px;
+          }
+
+          a {
+              font-weight: normal;
+              color: #6699FF;
+          }
+      </style>
+  </head>
+  <body>
+  <div class="bg">
+    <div class="main">
+        <h1>Robo VJ</h1>
+        <h3><i>A personal bot that runs on Discord.</i></h3>
+        <p>This is not a dashboard, just some useful links.</p>
+        <p>
+            Made with &#x2764&#xFE0F by <a href="https://github.com/darthshittious">VJ</a> (<a href="https://discord.com/users/411166117084528640">VJ#9010</a>)
+            <br>
+            <a href="https://github.com/darthshittious/Robo-VJ">GitHub</a> | <a href="https://discord.com/oauth2/authorize?client_id=743900453649252464&scope=bot&permissions=8">Invite Link</a> | <a href="https://discord.gg/rqgRyF8">Support Server</a>
+        </p>
+    </div>
+    </div>
+  </body>
+  <script>
+      var lr = 26, lg = 26, lb = 26;
+
+      function fadeColour() {
+          var r = Math.round(Math.random() * 127) + 127;
+          var g = Math.round(Math.random() * 127) + 127;
+          var b = Math.round(Math.random() * 127) + 127;
+
+          var fade = setInterval(function () {
+              if (lr > r) lr--;
+              if (lr < r) lr++;
+              if (lg > g) lg--;
+              if (lg < g) lg++;
+              if (lb > b) lb--;
+              if (lb < b) lb++;
+              if (lr == r && lg == g && lb == b) {
+                  clearInterval(fade);
+                  fadeColour();
+              }
+
+              document.body.style.background = "#" + lr.toString(16) + lg.toString(16) + lb.toString(16);
+          }, 50);
+      }
+
+      fadeColour();
+  </script>
+</html>
