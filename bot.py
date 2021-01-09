@@ -47,7 +47,6 @@ initial_extensions = {
     'cogs.hangman',
     'cogs.lichess',
     'cogs.location',
-    'cogs.logging',
     'cogs.markov',
     'cogs.maze',
     'cogs.meta',
