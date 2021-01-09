@@ -1,4 +1,5 @@
 from functools import partial
+import asyncpg
 from typing import Awaitable, Dict, List, Optional, Tuple
 
 import rusty_markov as markov
@@ -49,7 +50,7 @@ class Markov(commands.Cog):
         self.bot = bot
         self.model_cache: Dict[Tuple[int, ...], markov.Markov] = markov.LRUDict(max_size=12)  # idk about a good size
 
-    async def get_model(self, query: Tuple[int, ...], *coros: Awaitable[List[str]], order: int = 2) -> markov.Markov:
+    async def get_model(self, query: Tuple[int, ...], *coros: Awaitable[List[asyncpg.Record]], order: int = 2) -> markov.Markov:
         # Return cached model if one exists
         if query in self.model_cache:
             return self.model_cache[query]
@@ -57,7 +58,8 @@ class Markov(commands.Cog):
         # Generate the model
         data: List[str] = list()
         for coro in coros:
-            data.extend((await coro)[0])
+            records: List[asyncpg.Record] = await coro
+            data.extend([record['content'] for record in records])
         if not data:
             raise commands.BadArgument('There was not enough message log data, please try again later.')
 
