@@ -41,7 +41,7 @@ class Logging(commands.Cog):
             async with self.bot.pool.acquire(timeout=300.0) as con:
                 if self.bot._message_log:
                     query = "INSERT INTO message_log VALUES ($1, $2, $3, $4, $5, $6);"
-                    await con.executemany(query, *self.bot._message_log)
+                    await con.executemany(query, self.bot._message_log)
 
             self.bot._message_log.clear()
 
