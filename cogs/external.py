@@ -105,5 +105,10 @@ class External(commands.Cog):
             error.handled = True
             return await ctx.send("That package doesn't exist on PyPI.")
 
+    @commands.command()
+    async def pep(self, ctx, number: int):
+        """Generate Python Enhancement Proposal URL."""
+        await ctx.send(f'https://www.python.org/dev/peps/pep-{number:04}/')
+
 def setup(bot):
     bot.add_cog(External(bot))
