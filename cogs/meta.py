@@ -185,7 +185,7 @@ class Meta(commands.Cog):
         or by spaces.
         """
         source_url = 'https://github.com/darthshittious/Robo-VJ'
-        branch = 'master'
+        branch = 'main'
         if command is None:
             return await ctx.send(source_url)
 
@@ -518,7 +518,7 @@ class Meta(commands.Cog):
         hb_fmt = f'{ctx.bot.latency * 1000:,.2f}ms'
 
         embed = discord.Embed(color=discord.Colour.blurple())
-        embed.add_field(name='Heartbeat', value=hb_fmt)
+        embed.add_field(name='Websocket', value=hb_fmt)
         embed.add_field(name='Response', value=response_fmt)
         embed.add_field(name='Database', value=db_fmt)
         # again, this is due to fucked up perms in some mute roles
