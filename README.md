@@ -133,7 +133,8 @@ To copy the remote database from source to target:
 - Lavalink.jar
 
 ## Credits
-[Danny](https://github.com/Rapptz) for code in stats, tags, stars, reminder, and utils.db
+[Danny](https://github.com/Rapptz) for code in stats, tags, stars, reminder, mod, utils.db and the help menu utilities.
+[Eviee](https://github.com/EvieePy) for music
 
 
 [oauth2-invite]: https://discord.com/oauth2/authorize?client_id=743900453649252464&scope=bot&permissions=8
