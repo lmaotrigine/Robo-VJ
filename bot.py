@@ -434,7 +434,7 @@ class RoboVJ(commands.AutoShardedBot):
             del prefixes[1]
 
             e = discord.Embed(title='Prefixes', colour=discord.Colour.blurple())
-            e.set_footer(text=f'{len(prefixes)} prefixes')
+            e.set_footer(text=f'{len(prefixes)} prefixes  |  use <any-prefix>help for a list of commands.')
             e.description = '\n'.join(f'{index}. {elem}' for index, elem in enumerate(prefixes, 1))
             await message.channel.send(embed=e)
         await self.process_commands(message)
