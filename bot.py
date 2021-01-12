@@ -106,6 +106,7 @@ class RoboVJ(commands.AutoShardedBot):
 
         self.version = __version__
         self.client_id = config.client_id
+        self.bots_key = config.bots_key
         self.prefixes = {}
         self.blocklist = Config('blocklist.json')
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
