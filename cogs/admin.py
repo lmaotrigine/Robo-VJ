@@ -527,5 +527,12 @@ class Admin(commands.Cog):
         
         await ctx.send(f'Status: {ctx.tick(success)} Time: {(end - start) * 1000:.2f}ms')
 
+    # I don't want to copy-paste an entire message every time I fuck up
+    @commands.Cog.listener()
+    async def on_message_edit(self, before, after):
+        if after.author.id == self.bot.owner_id:
+            await self.bot.process_commands(after)
+
+
 def setup(bot):
     bot.add_cog(Admin(bot))
