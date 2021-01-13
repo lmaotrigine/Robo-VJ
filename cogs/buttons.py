@@ -441,6 +441,10 @@ class Buttons(commands.Cog):
         except menus.MenuError as e:
             await ctx.send(e)
 
+    async def cog_command_error(self, ctx, error):
+        if isinstance(error, commands.NSFWChannelRequired):
+            await ctx.send('This command cannot be used outside NSFW channels.')
+
 
 def setup(bot):
     bot.add_cog(Buttons(bot))
