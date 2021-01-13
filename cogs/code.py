@@ -102,7 +102,7 @@ class Code(commands.Cog, name='c++'):
     async def cog_check(self, ctx):
         return await self.bot.is_owner(ctx.author)
 
-    async def cog_unload(self):
+    def cog_unload(self):
         self.update_langs.cancel()
 
     @tasks.loop(hours=1)
