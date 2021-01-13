@@ -421,6 +421,7 @@ class Buttons(commands.Cog):
             await ctx.send(error)
 
     @commands.command(name='urban')
+    @commands.is_nsfw()
     async def _urban(self, ctx, *, word):
         """Searches urban dictionary."""
 
