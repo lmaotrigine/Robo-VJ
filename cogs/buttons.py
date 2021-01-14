@@ -520,7 +520,7 @@ class Buttons(commands.Cog):
                 break
 
             post = child['data']
-            if post['stickied'] or (post['over18'] and not ctx.channel.is_nsfw()):
+            if post['stickied'] or (post.get('over18') and not ctx.channel.is_nsfw()):
                 idx += 1
                 continue
 
