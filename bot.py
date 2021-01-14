@@ -140,6 +140,11 @@ class RoboVJ(commands.AutoShardedBot):
                 print(f'Failed to load extension {extension}.', file=sys.stderr)
                 traceback.print_exc()
 
+        try:
+            self.load_extension('assets.kannan')  # random inside joke stuff
+        except commands.ExtensionNotFound:
+            pass
+
         self.mb_client = MystbinClient(session=self.session)
 
         self._prev_events = deque(maxlen=10)
