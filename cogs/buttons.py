@@ -457,7 +457,7 @@ class Buttons(commands.Cog):
                 colour=random.randint(0, 0xFFFFFF),
                 url=item.url,
             )
-            embed.set_author(name=item.author)
+            embed.set_author(name=f'u/{item.author}', url=f'https://www.reddit.com/u/{item.author}')
 
             if item.image_link:
                 embed.set_image(url=item.image_link)
