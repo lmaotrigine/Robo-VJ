@@ -466,7 +466,7 @@ class Buttons(commands.Cog):
                 embed.add_field(name='Video', value=f'[Click Here]({item.video_link})', inline=False)
             embed.add_field(name='Updoots', value=item.upvotes, inline=True)
             page_counter = f'Result {iterable.index(item) + 1} of {len(iterable)}'
-            embed.set_footer(text=f'{page_counter} | {item.subreddit} | Requested by {requester}')
+            embed.set_footer(text=f'{page_counter} | r/{item.subreddit} | Requested by {requester}')
             embeds.append(embed)
         return embeds[:15]
 
