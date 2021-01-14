@@ -37,6 +37,7 @@ initial_extensions = {
     'cogs.config',
     'cogs.crypto',
     'cogs.dictionary',
+    'cogs.dbl',
     'cogs.docs',
     'cogs.emoji',
     'cogs.external',
