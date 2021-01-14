@@ -1,4 +1,4 @@
-__version__ = "8.1.2"
+__version__ = "9.0.0"
 __author__ = "Varun J"
 
 import aiohttp
@@ -91,7 +91,7 @@ def _prefix_callable(bot, msg):
     else:
         base.extend(bot.prefixes.get(msg.guild.id, ['?', '!']))
 
-    if msg.author.id == bot.owner_id:  # xP
+    if hasattr(msg, 'author') and msg.author.id == bot.owner_id:  # xP
         if 'hey babe ' not in base:
             base.append('hey babe ')
     return base
@@ -381,7 +381,7 @@ class RoboVJ(commands.AutoShardedBot):
                             f"for the bot owner. \n\nIf you have any questions, or want to report bugs or " \
                             f"request features, [click here](https://discord.gg/rqgRyF8) to join the support server."
         embed.set_footer(text=f"Made by {owner}", icon_url=owner.avatar_url)
-        if guild.system_channel is not None:
+        if guild.system_channel is not None and guild.system_channel.permissions_for(guild.me).send_messages:
             await guild.system_channel.send(embed=embed)
 
     async def on_guild_update(self, before, after):
