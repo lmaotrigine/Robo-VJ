@@ -146,6 +146,8 @@ class Music(commands.Cog):
             pass
         
         guild_djs = await self.bot.pool.fetchval("SELECT djs FROM music_channels WHERE guild_id = $1;", ctx.guild.id)
+        if guild_djs is None:
+            guild_djs = []
         for _id in guild_djs:
             if ctx.author._roles.has(_id):
                 return True
