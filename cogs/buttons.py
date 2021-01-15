@@ -454,14 +454,14 @@ class Buttons(commands.Cog):
                 colour=random.randint(0, 0xFFFFFF),
                 url=item.url,
             )
-            embed.set_author(name=item.author)
+            embed.set_author(name=f'u/{item.author}', url=f'https://www.reddit.com/u/{item.author}')
 
             if item.image_link:
                 embed.set_image(url=item.image_link)
 
             if item.video_link:
                 embed.add_field(
-                    name="Vidya!",
+                    name="Video",
                     value=f"[Click here!]({item.video_link})",
                     inline=False,
                 )
@@ -471,7 +471,7 @@ class Buttons(commands.Cog):
             )
             page_counter = f"Result {iterable.index(item)+1} of {len(iterable)}"
             embed.set_footer(
-                text=f"{page_counter} | {item.subreddit} | Requested by {requester}"
+                text=f"{page_counter} | r/{item.subreddit} | Requested by {requester}"
             )
 
             embeds.append(embed)
@@ -502,11 +502,14 @@ class Buttons(commands.Cog):
 
         posts = set()
 
+        if sub.lower().startswith('r/'):
+            sub = sub[2:]
+
         subr_url = f"https://www.reddit.com/r/{sub}/about.json"
         base_url = f"https://www.reddit.com/r/{sub}/{sort}.json"
 
         async with self.bot.session.get(
-                subr_url, headers={"User-Agent": "Yoink discord bot"}
+                subr_url, headers={"User-Agent": "discord bot"}
         ) as subr_resp:
             subr_deets = await subr_resp.json()
 
