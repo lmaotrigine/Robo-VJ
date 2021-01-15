@@ -8,6 +8,10 @@ from lru import LRU
 import yarl
 import io
 import re
+from collections import namedtuple
+from textwrap import shorten
+import contextlib
+import string
 
 
 log = logging.getLogger(__name__)
@@ -440,10 +444,174 @@ class Buttons(commands.Cog):
         except menus.MenuError as e:
             await ctx.send(e)
 
+    def _gen_embeds(self, requester: str, iterable: list) -> list:
+        embeds = []
+
+        for item in iterable:
+            embed = discord.Embed(
+                title=item.title,
+                description=item.self_text,
+                colour=random.randint(0, 0xFFFFFF),
+                url=item.url,
+            )
+            embed.set_author(name=item.author)
+
+            if item.image_link:
+                embed.set_image(url=item.image_link)
+
+            if item.video_link:
+                embed.add_field(
+                    name="Vidya!",
+                    value=f"[Click here!]({item.video_link})",
+                    inline=False,
+                )
+            embed.add_field(name="Updoots", value=item.upvotes, inline=True)
+            embed.add_field(
+                name="Total comments", value=item.comment_count, inline=True
+            )
+            page_counter = f"Result {iterable.index(item)+1} of {len(iterable)}"
+            embed.set_footer(
+                text=f"{page_counter} | {item.subreddit} | Requested by {requester}"
+            )
+
+            embeds.append(embed)
+
+        return embeds[:15]
+
+    @commands.command()
+    @commands.max_concurrency(1, commands.BucketType.channel, wait=False)
+    async def reddit(self, ctx, sub: str = "memes", sort: str = "hot"):
+        """Gets the <sub>reddits <amount> of posts sorted by <method>"""
+        if sort.lower() not in ("top", "hot", "best", "controversial", "new", "rising"):
+            return await ctx.send("Not a valid sort-by type.")
+
+        PostObj = namedtuple(
+            "PostObj",
+            [
+                "title",
+                "self_text",
+                "url",
+                "author",
+                "image_link",
+                "video_link",
+                "upvotes",
+                "comment_count",
+                "subreddit",
+            ],
+        )
+
+        posts = set()
+
+        subr_url = f"https://www.reddit.com/r/{sub}/about.json"
+        base_url = f"https://www.reddit.com/r/{sub}/{sort}.json"
+
+        async with self.bot.session.get(
+                subr_url, headers={"User-Agent": "Yoink discord bot"}
+        ) as subr_resp:
+            subr_deets = await subr_resp.json()
+
+        if "data" not in subr_deets:
+            raise commands.BadArgument("Subreddit does not exist.")
+        if subr_deets["data"].get("over18", None) and not ctx.channel.is_nsfw():
+            raise commands.NSFWChannelRequired(ctx.channel)
+
+        async with self.bot.session.get(base_url) as res:
+            page_json = await res.json()
+
+        idx = 0
+        for post_data in page_json["data"]["children"]:
+            image_url = None
+            video_url = None
+
+            if idx == 20:
+                break
+
+            post = post_data["data"]
+            if post["stickied"] or (post["over_18"] and not ctx.channel.is_nsfw()):
+                idx += 1
+                continue
+
+            title = shorten(post["title"], width=250)
+            self_text = shorten(post["selftext"], width=1500)
+            url = f"https://www.reddit.com{post['permalink']}"
+            author = post["author"]
+            image_url = (
+                post["url"]
+                if post["url"].endswith((".jpg", ".png", ".jpeg", ".gif", ".webp"))
+                else None
+            )
+            if "v.redd.it" in post["url"]:
+                image_url = post["thumbnail"]
+                if post.get("media", None):
+                    video_url = post["url"]
+                else:
+                    continue
+            upvotes = post["score"]
+            comment_count = post["num_comments"]
+            subreddit = post["subreddit"]
+
+            _post = PostObj(
+                title=title,
+                self_text=self_text,
+                url=url,
+                author=author,
+                image_link=image_url,
+                video_link=video_url,
+                upvotes=upvotes,
+                comment_count=comment_count,
+                subreddit=subreddit,
+            )
+
+            posts.add(_post)
+        embeds = self._gen_embeds(ctx.author, list(posts))
+        pages = RoboPages(PagedEmbedMenu(embeds))
+        try:
+            await pages.start(ctx)
+        except menus.MenuError as e:
+            await ctx.send(f'{e}')
+
+    @reddit.error
+    async def reddit_error(self, ctx, error):
+        """ Local Error handler for reddit command. """
+        error = getattr(error, "original", error)
+        if isinstance(error, commands.NSFWChannelRequired):
+            return await ctx.send("This ain't an NSFW channel.")
+        elif isinstance(error, commands.BadArgument):
+            msg = (
+                "There seems to be no Reddit posts to show, common cases are:\n"
+                "- Not a real subreddit.\n"
+            )
+            return await ctx.send(msg)
+
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.NSFWChannelRequired):
             await ctx.send(error)
 
+    @commands.command(name="mock")
+    async def _mock(self, ctx, *, message: str):
+        with contextlib.suppress(discord.Forbidden):
+            await ctx.message.delete()
+        output = ""
+        for counter, char in enumerate(message):
+            if char != string.whitespace:
+                if counter % 2 == 0:
+                    output += char.upper()
+                else:
+                    output += char
+            else:
+                output += string.whitespace
+
+        mentions = discord.AllowedMentions(everyone=False, users=False, roles=False)
+        await ctx.send(output, allowed_mentions=mentions)
+
+
+class PagedEmbedMenu(menus.ListPageSource):
+    def __init__(self, embeds: list):
+        self.embeds = embeds
+        super().__init__([*range(len(embeds))], per_page=1)
+
+    async def format_page(self, menu, page):
+        return self.embeds[page]
 
 
 def setup(bot):
