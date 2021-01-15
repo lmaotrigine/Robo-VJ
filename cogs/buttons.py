@@ -476,7 +476,7 @@ class Buttons(commands.Cog):
 
             embeds.append(embed)
 
-        return embeds[:15]
+        return embeds
 
     @commands.command()
     @commands.max_concurrency(1, commands.BucketType.channel, wait=False)
