@@ -18,7 +18,7 @@ class DBL(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.dbl_client = dbl.DBLClient(self.bot, self.bot.config.dbl_token, autopost=False,
-                                        webhook_port=5000, webhook_auth=self.bot.config.dbl_auth)
+                                        webhook_port=8080, webhook_auth=self.bot.config.dbl_auth)
         self.webhook = discord.Webhook.partial(*self.bot.config.dbl_webhook,
                                                adapter=discord.AsyncWebhookAdapter(session=self.bot.session))
 
@@ -77,7 +77,10 @@ class DBL(commands.Cog):
 
     @commands.Cog.listener()
     async def on_dbl_test(self, data):
-        await self.webhook.send(str(data))
+        try:
+            await self.webhook.send(str(data))
+        except Exception as e:
+            await self.webhook.send(traceback.format_exc())
 
 
 def setup(bot):
