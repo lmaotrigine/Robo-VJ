@@ -52,5 +52,6 @@ google-auth-httplib2
 google-auth-oauthlib
 emoji
 pycountry
+dblpy
 
 jishaku @ git+https://github.com/darthshittious/jishaku
