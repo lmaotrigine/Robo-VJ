@@ -21,6 +21,9 @@ class DBL(commands.Cog):
                                         webhook_port=8080, webhook_auth=self.bot.config.dbl_auth)
         self.webhook = discord.Webhook.partial(*self.bot.config.dbl_webhook,
                                                adapter=discord.AsyncWebhookAdapter(session=self.bot.session))
+    
+    def cog_unload(self):
+        self.bot.loop.create_task(sel.dbl_client.close())
 
     async def update(self):
         guild_count = len(self.bot.guilds)
