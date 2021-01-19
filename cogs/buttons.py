@@ -236,7 +236,7 @@ class Buttons(commands.Cog):
         if channel is None:
             return
 
-        e.set_author(name=str(ctx.author), icon_url=ctx.auhtor.avatar_url)
+        e.set_author(name=str(ctx.author), icon_url=ctx.author.avatar_url)
         e.description = content
         e.timestamp = ctx.message.created_at
 
