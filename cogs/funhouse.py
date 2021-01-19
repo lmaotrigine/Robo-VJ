@@ -13,6 +13,7 @@ from PIL import Image, ImageFont, ImageDraw
 import textwrap
 import time
 import json
+from typing import Union
 from .utils.dice import PersistentRollContext, VerboseMDStringifier
 
 
@@ -82,8 +83,18 @@ class Funhouse(commands.Cog):
         await ctx.send(embed=embed)
         
     @commands.group(hidden=True, invoke_without_command=True)
-    async def translate(self, ctx, *, message: commands.clean_content):
+    async def translate(self, ctx, *, message: Union[discord.Message, commands.clean_content]=None):
         """Translates a message to English using Google translate."""
+        ref = ctx.message.reference
+        if message is None:
+            if isinstance(getattr(ref, 'resolved', None), discord.Message):
+                message = ref.resolved.clean_content
+            else:
+                return await ctx.send('No message to translate.')
+
+        if isinstance(message, discord.Message):
+            message = message.clean_content
+
         await self.do_translate(ctx, message)
 
     @translate.command(name='src')
