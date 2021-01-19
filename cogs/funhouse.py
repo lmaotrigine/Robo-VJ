@@ -67,6 +67,15 @@ class Funhouse(commands.Cog):
         self.trans = googletrans.Translator()
 
     async def do_translate(self, ctx, message, *, from_='auto', to='en'):
+        ref = ctx.message.reference
+        if message is None:
+            if isinstance(getattr(ref, 'resolved', None), discord.Message):
+                message = ref.resolved.clean_content
+            else:
+                return await ctx.send('No message to translate.')
+
+        if isinstance(message, discord.Message):
+            message = message.clean_content
         loop = self.bot.loop
         try:
             ret = await loop.run_in_executor(None, self.trans.translate, message, to, from_)
@@ -80,21 +89,12 @@ class Funhouse(commands.Cog):
         embed.add_field(name=f'To {dest}', value=ret.text, inline=False)
         if ret.pronunciation and ret.pronunciation != ret.text:
             embed.add_field(name='Pronunciation', value=ret.pronunciation)
+        embed.set_footer(text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
         
     @commands.group(hidden=True, invoke_without_command=True)
     async def translate(self, ctx, *, message: Union[discord.Message, commands.clean_content]=None):
         """Translates a message to English using Google translate."""
-        ref = ctx.message.reference
-        if message is None:
-            if isinstance(getattr(ref, 'resolved', None), discord.Message):
-                message = ref.resolved.clean_content
-            else:
-                return await ctx.send('No message to translate.')
-
-        if isinstance(message, discord.Message):
-            message = message.clean_content
-
         await self.do_translate(ctx, message)
 
     @translate.command(name='src')
