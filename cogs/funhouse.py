@@ -98,19 +98,19 @@ class Funhouse(commands.Cog):
         await self.do_translate(ctx, message)
 
     @translate.command(name='src')
-    async def _src(self, ctx, lang, *, message):
+    async def _src(self, ctx, lang, *, message: Union[discord.Message, commands.clean_content]=None):
         if lang not in googletrans.LANGUAGES and lang not in googletrans.LANGCODES:
             return await ctx.send(f'`{lang}` is not a recognised language.')
         await self.do_translate(ctx, message, from_=lang)
 
     @translate.command(name='dest')
-    async def _dest(self, ctx, lang, *, message):
+    async def _dest(self, ctx, lang, *, message: Union[discord.Message, commands.clean_content]=None):
         if lang not in googletrans.LANGUAGES and lang not in googletrans.LANGCODES:
             return await ctx.send(f'`{lang}` is not a recognised language')
         await self.do_translate(ctx, message, to=lang)
 
     @translate.command()
-    async def src_and_dest(self, ctx, _src, _dest, *, message):
+    async def src_and_dest(self, ctx, _src, _dest, *, message: Union[discord.Message, commands.clean_content]=None):
         def valid(lang):
             return lang in googletrans.LANGUAGES or lang in googletrans.LANGCODES
         if not valid(_dest):
