@@ -23,6 +23,9 @@ class DBL(commands.Cog):
                                                adapter=discord.AsyncWebhookAdapter(session=self.bot.session))
         self.votes = None
 
+    def cog_unload(self):
+        self.bot.loop.create_task(self.dbl_client.close())
+
     async def update(self):
         guild_count = len(self.bot.guilds)
 
