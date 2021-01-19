@@ -21,6 +21,7 @@ class DBL(commands.Cog):
                                         webhook_port=5000, webhook_auth=self.bot.config.dbl_auth)
         self.webhook = discord.Webhook.partial(*self.bot.config.dbl_webhook,
                                                adapter=discord.AsyncWebhookAdapter(session=self.bot.session))
+        self.votes = None
 
     async def update(self):
         guild_count = len(self.bot.guilds)
@@ -51,6 +52,16 @@ class DBL(commands.Cog):
         async with self.bot.session.post(url, data=payload, headers=headers) as resp:
             log.info(f'Top.gg statistics returned {resp.status} for {payload}.')
 
+    async def get_votes(self):
+        headers = {
+            'Authorization': self.bot.config.dbl_token,
+            'Content-Type': 'application/json'
+        }
+        url = f'{TOP_GG_API}/bots/{self.bot.user.id}'
+        async with self.bot.session.get(url, headers=headers) as resp:
+            data = await resp.json()
+            self.votes = int(data['points'])
+
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         await self.update()
@@ -65,13 +76,18 @@ class DBL(commands.Cog):
 
     @commands.Cog.listener()
     async def on_dbl_vote(self, data):
-        user_id = data.get('user')
+        user_id = int(data.get('user'))
         user = self.bot.get_user(user_id)
         if user is None:
             user = await self.bot.fetch_user(user_id)
+        if self.votes is None:
+            await self.get_votes()
+        else:
+            self.votes += 1
+
         embed = discord.Embed(title='New upvote', colour=discord.Colour.blurple())
         embed.set_author(name=str(user), icon_url=user.avatar_url)
-        embed.add_field(name='Total Votes', value=(await self.dbl_client.get_bot_info())['points'])
+        embed.add_field(name='Total Votes', value=self.votes)
         embed.timestamp = datetime.datetime.utcnow()
         await self.webhook.send(embed=embed, avatar_url='https://top.gg/images/dblnew.png', username='Top.gg')
 
