@@ -49,7 +49,7 @@ def check_no_automusic():
 
 def check_in_voice():
     def predicate(ctx):
-        if not ctx.player.is_connected:
+        if not ctx.player.is_connected or ctx.guild.me.voice is None:  #this will fix for some reason, and code breaks without it.
             raise MusicError('I am not currently connected to voice!')
 
         if ctx.author.voice is None or ctx.author.voice.channel != ctx.guild.me.voice.channel:
