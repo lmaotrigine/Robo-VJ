@@ -89,8 +89,8 @@ class Funhouse(commands.Cog):
         embed = discord.Embed(title='Translated', colour=0x4284F3)
         src = googletrans.LANGUAGES.get(ret.src, '(auto-detected)').title()
         dest = googletrans.LANGUAGES.get(ret.dest, 'Unknown').title()
-        embed.add_field(name=f'From {languages.LANG_TO_FLAG[ret.src]} {src}', value=ret.origin, inline=False)
-        embed.add_field(name=f'To {languages.LANG_TO_FLAG[ret.dest]} {dest}', value=ret.text, inline=False)
+        embed.add_field(name=f'From {languages.LANG_TO_FLAG.get(ret.src, "")} {src}', value=ret.origin, inline=False)
+        embed.add_field(name=f'To {languages.LANG_TO_FLAG.get(ret.dest, "")} {dest}', value=ret.text, inline=False)
         if ret.pronunciation and ret.pronunciation != ret.text:
             embed.add_field(name='Pronunciation', value=ret.pronunciation)
 
@@ -507,9 +507,10 @@ class Funhouse(commands.Cog):
         embed = discord.Embed(colour=0x4284F3)
         src = googletrans.LANGUAGES.get(ret.src, '(auto-detected)').title()
         dest = googletrans.LANGUAGES.get(ret.dest, 'Unknown').title()
-        embed.title = f'Translation from {languages.LANG_TO_FLAG[ret.src]} `{src}` ' \
-                      f'to {languages.LANG_TO_FLAG[ret.dest]} `{dest}`'
+        embed.title = f'Translation from {languages.LANG_TO_FLAG.get(ret.src, "")} `{src}` ' \
+                      f'to {languages.LANG_TO_FLAG.get(ret.dest, "")} `{dest}`'
         embed.description = ret.text
+        embed.set_author(name=f'{message.author} said:', icon_url=message.author.avatar_url)
         if ret.pronunciation and ret.pronunciation != ret.text:
             embed.add_field(name='Pronunciation', value=ret.pronunciation)
         if payload.member is not None:
