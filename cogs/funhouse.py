@@ -23,12 +23,14 @@ class RPS(enum.Enum):
     PAPER = 1
     SCISSORS = 2
 
+
 class RPSLS(enum.Enum):
     ROCK = 0
     SPOCK = 1
     PAPER = 2
     LIZARD = 3
     SCISSORS = 4
+
 
 class HTTPCode(commands.Converter):
     async def convert(self, ctx, argument):
@@ -37,6 +39,7 @@ class HTTPCode(commands.Converter):
         except ValueError:
             raise commands.BadArgument(f'Status code `{argument}` does not exist.')
         return int(argument)
+
 
 RULE_DICT = {
     'rock': {
@@ -90,28 +93,28 @@ class Funhouse(commands.Cog):
         embed.add_field(name=f'To {languages.LANG_TO_FLAG[ret.dest]} {dest}', value=ret.text, inline=False)
         if ret.pronunciation and ret.pronunciation != ret.text:
             embed.add_field(name='Pronunciation', value=ret.pronunciation)
-        embed.set_footer(text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar_url)
+
         await ctx.send(embed=embed)
         
     @commands.group(hidden=True, invoke_without_command=True)
-    async def translate(self, ctx, *, message: Union[discord.Message, commands.clean_content]=None):
+    async def translate(self, ctx, *, message: Union[discord.Message, commands.clean_content] = None):
         """Translates a message to English using Google translate."""
         await self.do_translate(ctx, message)
 
     @translate.command(name='src')
-    async def _src(self, ctx, lang, *, message: Union[discord.Message, commands.clean_content]=None):
+    async def _src(self, ctx, lang, *, message: Union[discord.Message, commands.clean_content] = None):
         if lang not in googletrans.LANGUAGES and lang not in googletrans.LANGCODES:
             return await ctx.send(f'`{lang}` is not a recognised language.')
         await self.do_translate(ctx, message, from_=lang)
 
     @translate.command(name='dest')
-    async def _dest(self, ctx, lang, *, message: Union[discord.Message, commands.clean_content]=None):
+    async def _dest(self, ctx, lang, *, message: Union[discord.Message, commands.clean_content] = None):
         if lang not in googletrans.LANGUAGES and lang not in googletrans.LANGCODES:
             return await ctx.send(f'`{lang}` is not a recognised language')
         await self.do_translate(ctx, message, to=lang)
 
     @translate.command()
-    async def src_and_dest(self, ctx, _src, _dest, *, message: Union[discord.Message, commands.clean_content]=None):
+    async def src_and_dest(self, ctx, _src, _dest, *, message: Union[discord.Message, commands.clean_content] = None):
         def valid(lang):
             return lang in googletrans.LANGUAGES or lang in googletrans.LANGCODES
         if not valid(_dest):
@@ -121,7 +124,7 @@ class Funhouse(commands.Cog):
         await self.do_translate(ctx, message, from_=_src, to=_dest)
 
     @commands.command(hidden=True)
-    async def cat(self, ctx, code: HTTPCode=None):
+    async def cat(self, ctx, code: HTTPCode = None):
         """Gives you a random cat.
         
         You may also provide an optional HTTP Status code to get the appropriate status cat
@@ -135,6 +138,7 @@ class Funhouse(commands.Cog):
                 return await ctx.send('No cat found :(')
             js = await resp.json()
             await ctx.send(embed=discord.Embed(title='Random Cat').set_image(url=js[0]['url']))
+
     @cat.error
     async def cat_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
@@ -227,13 +231,13 @@ class Funhouse(commands.Cog):
     ## DICE
 
     @commands.command(name='2', hidden=True)
-    async def quick_roll(self, ctx, *, mod: str='0'):
+    async def quick_roll(self, ctx, *, mod: str = '0'):
         """Quickly rolls a d20."""
         rollstr = '1d20+' + mod
         await self.roll_cmd(ctx, rollstr=rollstr)
 
     @commands.command(name='roll', aliases=['r'], hidden=True)
-    async def roll_cmd(self, ctx, *, rollstr: str='1d20'):
+    async def roll_cmd(self, ctx, *, rollstr: str = '1d20'):
         """Roll is used to roll any combination of dice in the `XdY` format. (`1d6`, `2d8`, etc)
         
         Multiple rolls can be added together as an equation. Standard Math operators and Parentheses can be used: `() + - / *`
@@ -313,7 +317,7 @@ class Funhouse(commands.Cog):
         await self._roll_many(ctx, iterations, rollstr, adv=adv)
 
     @commands.command(name='iterroll', aliases=['rrr'], hidden=True)
-    async def rrr(self, ctx, iterations: int, rollstr, dc: int=None, *, args=''):
+    async def rrr(self, ctx, iterations: int, rollstr, dc: int = None, *, args=''):
         """Rolls dice in xdy format, given a set dc.
         Usage: !rrr <iterations> <xdy> <DC> [args]
         """
@@ -349,7 +353,7 @@ class Funhouse(commands.Cog):
         result_strs = '\n'.join([str(o) for o in results])
         if len(result_strs) > 1500:
             result_strs = str(results[0])[:100]
-            result_strs= f'{result_strs}...' if len(result_strs) > 100 else result_strs
+            result_strs = f'{result_strs}...' if len(result_strs) > 100 else result_strs
         
         embed = discord.Embed(title=header, description=result_strs, colour=discord.Colour.blurple())
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
@@ -369,7 +373,7 @@ class Funhouse(commands.Cog):
         return rollstr, adv
 
     @commands.command(hidden=True)
-    async def gay(self, ctx, *, user: discord.User=None):
+    async def gay(self, ctx, *, user: discord.User = None):
         """Returns your avatar with a rainbow overlay."""
         url = f"https://some-random-api.ml/canvas/gay"
         user = user or ctx.author
@@ -405,7 +409,7 @@ class Funhouse(commands.Cog):
         return ocr_text
 
     @commands.command(hidden=True)
-    async def ocr(self, ctx, *, image_url: str=None):
+    async def ocr(self, ctx, *, image_url: str = None):
         if not image_url and not ctx.message.attachments:
             return await ctx.send('URL or attachment required.')
         image_url = image_url or ctx.message.attachments[0].url
@@ -413,7 +417,7 @@ class Funhouse(commands.Cog):
         await ctx.send(embed=discord.Embed(title='OCR result', description=data, colour=discord.Colour.blurple()))
 
     @commands.command(hidden=True)
-    async def ocrt(self, ctx, *, image_url: str=None):
+    async def ocrt(self, ctx, *, image_url: str = None):
         if not image_url and not ctx.message.attachments:
             return await ctx.send('URL or attachment required.')
         image_url = image_url or ctx.message.attachments[0].url
@@ -477,7 +481,8 @@ class Funhouse(commands.Cog):
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if payload.guild_id in self.bot.blocklist or payload.user_id in self.bot.blocklist:
             return
-
+        if payload.member is not None and payload.member.bot:
+            return
         flag = str(payload.emoji)
         if flag not in languages.FLAG_TO_LANG:
             return
@@ -493,8 +498,24 @@ class Funhouse(commands.Cog):
                     return
 
         dest = languages.FLAG_TO_LANG[flag]
-        ctx = await self.bot.get_context(message)
-        await self.do_translate(ctx, message.clean_content, to=dest)
+        loop = self.bot.loop
+        try:
+            ret = await loop.run_in_executor(None, self.trans.translate, message, dest, 'auto')
+        except Exception as e:
+            return
+
+        embed = discord.Embed(colour=0x4284F3)
+        src = googletrans.LANGUAGES.get(ret.src, '(auto-detected)').title()
+        dest = googletrans.LANGUAGES.get(ret.dest, 'Unknown').title()
+        embed.title = f'Translation from {languages.LANG_TO_FLAG[ret.src]} `{src}` ' \
+                      f'to {languages.LANG_TO_FLAG[ret.dest]} `{dest}`'
+        embed.description = ret.text
+        if ret.pronunciation and ret.pronunciation != ret.text:
+            embed.add_field(name='Pronunciation', value=ret.pronunciation)
+        if payload.member is not None:
+            embed.set_footer(text=f'Requested by {payload.member} | {payload.user_id}',
+                             icon_url=payload.member.avatar_url)
+        await message.channel.send(embed=embed)
 
 
 # Probably should've defined this earlier but I have exams now yeet
