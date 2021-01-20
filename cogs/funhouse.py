@@ -511,8 +511,8 @@ class Funhouse(commands.Cog):
                       f'to {languages.LANG_TO_FLAG.get(ret.dest, "")} `{dest}`'
         embed.description = ret.text
         embed.set_author(name=f'{message.author} said:', icon_url=message.author.avatar_url)
-        if ret.pronunciation and ret.pronunciation != ret.text:
-            embed.add_field(name='Pronunciation', value=ret.pronunciation)
+        #if ret.pronunciation and ret.pronunciation != ret.text:
+        #    embed.add_field(name='Pronunciation', value=ret.pronunciation)
         if payload.member is not None:
             embed.set_footer(text=f'Requested by {payload.member} | {payload.user_id}',
                              icon_url=payload.member.avatar_url)
