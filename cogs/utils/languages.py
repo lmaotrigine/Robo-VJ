@@ -1,4 +1,5 @@
 FLAG_TO_LANG = {
+    '🇸🇦': 'ar',
     '🇦🇱': 'sq',
     '🇦🇲': 'hy',
     '🇦🇺': 'en',
@@ -90,3 +91,4 @@ LANG_TO_FLAG = {}
 for flag, lang in FLAG_TO_LANG.items():
     if lang not in LANG_TO_FLAG:
         LANG_TO_FLAG[lang] = flag
+LANG_TO_FLAG['en'] = '🇬🇧'
