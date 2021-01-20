@@ -500,7 +500,7 @@ class Funhouse(commands.Cog):
         dest = languages.FLAG_TO_LANG[flag]
         loop = self.bot.loop
         try:
-            ret = await loop.run_in_executor(None, self.trans.translate, message, dest, 'auto')
+            ret = await loop.run_in_executor(None, self.trans.translate, message.clean_content, dest, 'auto')
         except Exception as e:
             return
 
