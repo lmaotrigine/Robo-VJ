@@ -15,6 +15,7 @@ import time
 import json
 from typing import Union
 from .utils.dice import PersistentRollContext, VerboseMDStringifier
+from .utils import languages
 
 
 class RPS(enum.Enum):
@@ -85,8 +86,8 @@ class Funhouse(commands.Cog):
         embed = discord.Embed(title='Translated', colour=0x4284F3)
         src = googletrans.LANGUAGES.get(ret.src, '(auto-detected)').title()
         dest = googletrans.LANGUAGES.get(ret.dest, 'Unknown').title()
-        embed.add_field(name=f'From {src}', value=ret.origin, inline=False)
-        embed.add_field(name=f'To {dest}', value=ret.text, inline=False)
+        embed.add_field(name=f'From {languages.LANG_TO_FLAG[ret.src]} {src}', value=ret.origin, inline=False)
+        embed.add_field(name=f'To {languages.LANG_TO_FLAG[ret.dest]} {dest}', value=ret.text, inline=False)
         if ret.pronunciation and ret.pronunciation != ret.text:
             embed.add_field(name='Pronunciation', value=ret.pronunciation)
         embed.set_footer(text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar_url)
@@ -471,6 +472,29 @@ class Funhouse(commands.Cog):
                 await race.delete()
             except discord.HTTPException:
                 pass
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        if payload.guild_id in self.bot.blocklist or payload.user_id in self.bot.blocklist:
+            return
+
+        flag = str(payload.emoji)
+        if flag not in languages.FLAG_TO_LANG:
+            return
+        message = discord.utils.find(lambda m: m.channel.id == payload.channel_id and m.id == payload.message_id,
+                                     self.bot.cached_messages)
+        if message is None:
+            channel = self.bot.get_channel(payload.channel_id)
+            message = await channel.fetch_message(payload.message_id)
+
+        for reaction in message.reactions:
+            if str(reaction.emoji) == flag:
+                if reaction.count > 1:
+                    return
+
+        dest = languages.FLAG_TO_LANG[flag]
+        ctx = await self.bot.get_context(message)
+        await self.do_translate(ctx, message.clean_content, to=dest)
 
 
 # Probably should've defined this earlier but I have exams now yeet
