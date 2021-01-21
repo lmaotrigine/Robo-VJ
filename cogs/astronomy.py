@@ -541,7 +541,7 @@ class Astronomy(commands.Cog):
         async with ctx.session.get('https://api.arcsecond.io/telescopes/', params={'format': 'json'}) as resp:
             data = await resp.json()
         embed = discord.Embed()
-        for _telescope in data:
+        for _telescope in data['results']:
             if telescope.lower() in _telescope['name'].lower():
                 embed.title = _telescope['name']
                 async with ctx.session.get(_telescope['observing_site']) as resp:
