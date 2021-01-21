@@ -46,7 +46,8 @@ class LinePaginator(Paginator):
         suffix: str = '```',
         max_size: int = 2000,
         scale_to_size: int = 2000,
-        max_lines: t.Optional[int] = None
+        max_lines: t.Optional[int] = None,
+        linesep='\n',
     ) -> None:
         """
         This function overrides the Paginator.__init__ from inside discord.ext.commands.
@@ -54,6 +55,7 @@ class LinePaginator(Paginator):
         """
         self.prefix = prefix
         self.suffix = suffix
+        self.linesep = linesep
 
         # Embeds that exceed 2048 characters will result in an HTTPException
         # (Discord API limit), so we've set a limit of 2000
