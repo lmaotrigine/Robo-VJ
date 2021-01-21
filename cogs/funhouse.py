@@ -544,7 +544,7 @@ class Funhouse(commands.Cog):
         try:
             self.noreact.remove(channel.id)
         except KeyError:
-            return await ctx.send('React to translate is not disabled for this channel.', delete_after=15.0))
+            return await ctx.send('React to translate is not disabled for this channel.', delete_after=15.0)
         await ctx.send(ctx.tick(True))
 
 
