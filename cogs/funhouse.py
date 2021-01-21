@@ -15,7 +15,8 @@ import time
 import json
 from typing import Union
 from .utils.dice import PersistentRollContext, VerboseMDStringifier
-from .utils import languages
+from .utils import checks, languages
+from .utils.config import Config
 
 
 class RPS(enum.Enum):
@@ -69,6 +70,7 @@ class Funhouse(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.trans = googletrans.Translator()
+        self.noreact = Config('noreact.json')
 
     async def do_translate(self, ctx, message, *, from_='auto', to='en'):
         ref = ctx.message.reference
@@ -481,6 +483,8 @@ class Funhouse(commands.Cog):
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if payload.guild_id in self.bot.blocklist or payload.user_id in self.bot.blocklist:
             return
+        if payload.channel_id in self.noreact:
+            return
         if payload.member is not None and payload.member.bot:
             return
         flag = str(payload.emoji)
@@ -516,7 +520,32 @@ class Funhouse(commands.Cog):
         if payload.member is not None:
             embed.set_footer(text=f'Requested by {payload.member} | {payload.user_id}',
                              icon_url=payload.member.avatar_url)
-        await message.channel.send(embed=embed)
+        if message.guild is not None and message.channel.permissions_for(message.guild.me).send_messages:
+            await message.channel.send(embed=embed)
+
+    @commands.command()
+    @checks.is_mod()
+    @commands.guild_only()
+    async def noreact(self, ctx, channel: discord.TextChannel = None):
+        """Disable auto-translate on reaction add for this channel.
+
+        Alternatively, you can revoke `Send Messages` permissions for the bot in this channel.
+        """
+        channel = channel or ctx.channel
+        self.noreact.put(channel.id, True)
+        await ctx.send(ctx.tick(True))
+
+    @commands.command()
+    @checks.is_mod()
+    @commands.guild_only()
+    async def react(self, ctx, channel: discord.TextChannel = None):
+        """Re enable auto-translate on reaction add for this channel."""
+        channel = channel or ctx.channel
+        try:
+            self.noreact.remove(channel.id)
+        except KeyError:
+            return await ctx.send('React to translate is not disabled for this channel.', delete_after=15.0))
+        await ctx.send(ctx.tick(True))
 
 
 # Probably should've defined this earlier but I have exams now yeet
