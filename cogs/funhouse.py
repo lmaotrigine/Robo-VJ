@@ -107,7 +107,7 @@ class Funhouse(commands.Cog):
         
     @commands.command(hidden=True, invoke_without_command=True)
     async def translate(self, ctx, *, message: Union[discord.Message, commands.clean_content] = None):
-        """Translates a message to using Google translate.
+        """Translates a message using Google translate.
 
         The following optional flags are allowed:
 
