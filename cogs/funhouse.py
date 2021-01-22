@@ -118,7 +118,7 @@ class Funhouse(commands.Cog):
         parser.add_argument('--source', '-s', '-src', default='auto')
         src = 'auto'
         dest = 'en'
-        if not isinstance(message, discord.Message):
+        if not isinstance(message, discord.Message) and message is not None:
             args = parser.parse_args(shlex.split(message))
             message = args.text
             src = args.source
