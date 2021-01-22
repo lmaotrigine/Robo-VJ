@@ -1,4 +1,5 @@
 import asyncio
+from argparse import ArgumentParser
 import enum
 from http import HTTPStatus
 import discord
@@ -10,6 +11,7 @@ import random
 import re
 import d20
 from PIL import Image, ImageFont, ImageDraw
+import shlex
 import textwrap
 import time
 import json
@@ -17,6 +19,11 @@ from typing import Union
 from .utils.dice import PersistentRollContext, VerboseMDStringifier
 from .utils import checks, languages
 from .utils.config import Config
+
+
+class Arguments(ArgumentParser):
+    def error(self, message):
+        raise RuntimeError(message)
 
 
 class RPS(enum.Enum):
@@ -98,32 +105,39 @@ class Funhouse(commands.Cog):
 
         await ctx.send(embed=embed)
         
-    @commands.group(hidden=True, invoke_without_command=True)
+    @commands.command(hidden=True, invoke_without_command=True)
     async def translate(self, ctx, *, message: Union[discord.Message, commands.clean_content] = None):
-        """Translates a message to English using Google translate."""
-        await self.do_translate(ctx, message)
+        """Translates a message to using Google translate.
 
-    @translate.command(name='src')
-    async def _src(self, ctx, lang, *, message: Union[discord.Message, commands.clean_content] = None):
-        if lang not in googletrans.LANGUAGES and lang not in googletrans.LANGCODES:
-            return await ctx.send(f'`{lang}` is not a recognised language.')
-        await self.do_translate(ctx, message, from_=lang)
+        You can also specify the source and destination languages using the
+        `--source|-s` and/or `--dest/-d` flags, both of which are optional.
 
-    @translate.command(name='dest')
-    async def _dest(self, ctx, lang, *, message: Union[discord.Message, commands.clean_content] = None):
-        if lang not in googletrans.LANGUAGES and lang not in googletrans.LANGCODES:
-            return await ctx.send(f'`{lang}` is not a recognised language')
-        await self.do_translate(ctx, message, to=lang)
+        The flags must be specified __before__ the message.
+        """
+        parser = Arguments(add_help=False, allow_abbrev=False)
+        parser.add_argument('text', default=None)
+        parser.add_argument('--dest', '-d', default='en')
+        parser.add_argument('--source', '-s', '-src', default='auto')
+        src = 'auto'
+        dest = 'en'
+        if not isinstance(message, discord.Message):
+            args = parser.parse_args(shlex.split(message))
+            message = args.text
+            src = args.source
+            dest = args.dest
+            if src not in googletrans.LANGUAGES and src not in googletrans.LANGCODES:
+                return await ctx.send('Invalid source language: {}'.format(src))
+            if dest not in googletrans.LANGUAGES and dest not in googletrans.LANGCODES:
+                return await ctx.send('Invalid destination language: {}'.format(dest))
+            try:
+                message = await commands.MessageConverter().convert(ctx, message)
+            except commands.BadArgument:
+                pass
+            else:
+                message = message.clean_content
 
-    @translate.command()
-    async def src_and_dest(self, ctx, _src, _dest, *, message: Union[discord.Message, commands.clean_content] = None):
-        def valid(lang):
-            return lang in googletrans.LANGUAGES or lang in googletrans.LANGCODES
-        if not valid(_dest):
-            return await ctx.send(f'Cannot translate to `{_dest}`: Not a recognised language.')
-        if not valid(_src):
-            return await ctx.send(f'`{_src}` is not a recognised language.')
-        await self.do_translate(ctx, message, from_=_src, to=_dest)
+        await self.do_translate(ctx, message, from_=src, to=dest)
+
 
     @commands.command(hidden=True)
     async def cat(self, ctx, code: HTTPCode = None):
@@ -532,7 +546,7 @@ class Funhouse(commands.Cog):
         Alternatively, you can revoke `Send Messages` permissions for the bot in this channel.
         """
         channel = channel or ctx.channel
-        self.noreact.put(channel.id, True)
+        await self.noreact.put(channel.id, True)
         await ctx.send(ctx.tick(True))
 
     @commands.command()
@@ -542,7 +556,7 @@ class Funhouse(commands.Cog):
         """Re enable auto-translate on reaction add for this channel."""
         channel = channel or ctx.channel
         try:
-            self.noreact.remove(channel.id)
+            await self.noreact.remove(channel.id)
         except KeyError:
             return await ctx.send('React to translate is not disabled for this channel.', delete_after=15.0)
         await ctx.send(ctx.tick(True))
