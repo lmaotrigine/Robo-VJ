@@ -115,14 +115,14 @@ class Funhouse(commands.Cog):
         `--dest`  or `-d`: The language to translate to, defaults to English.
         """
         parser = Arguments(add_help=False, allow_abbrev=False)
-        parser.add_argument('text', nargs='?', default=None)
+        parser.add_argument('text', nargs='*', default=None)
         parser.add_argument('--dest', '-d', default='en')
         parser.add_argument('--source', '-s', '-src', default='auto')
         src = 'auto'
         dest = 'en'
         if not isinstance(message, discord.Message) and message is not None:
             args = parser.parse_args(shlex.split(message))
-            message = args.text
+            message = ' '.join(args.text)
             src = args.source
             dest = args.dest
             if src.lower() not in googletrans.LANGUAGES and src.lower() not in googletrans.LANGCODES and src.lower() != 'auto':
@@ -434,13 +434,25 @@ class Funhouse(commands.Cog):
         await ctx.send(embed=discord.Embed(title='OCR result', description=data, colour=discord.Colour.blurple()))
 
     @commands.command(hidden=True)
-    async def ocrt(self, ctx, *, image_url: str = None):
+    async def ocrt(self, ctx, *, image=None):
+        parser = Arguments(add_help=False, allow_abbrev=False)
+        parser.add_argument('url', nargs='?', default=None)
+        parser.add_argument('--source','-s', '--src', default='auto')
+        parser.add_argument('--dest', '-d', default='en')
+        args = parser.parse_args(shlex.split(image))
+        image_url = args.url
+        src = args.source
+        dest = args.dest
         if not image_url and not ctx.message.attachments:
             return await ctx.send('URL or attachment required.')
         image_url = image_url or ctx.message.attachments[0].url
         data = await self.do_ocr(image_url)
         if data:
-            return await self.translate(ctx, message=data)
+            if src.lower() not in googletrans.LANGUAGES and src.lower() not in googletrans.LANGCODES and src.lower() != 'auto':
+                return await ctx.send('Invalid source language: {}'.format(src))
+            if dest.lower() not in googletrans.LANGUAGES and dest.lower() not in googletrans.LANGCODES:
+                return await ctx.send('Invalid destination language: {}'.format(dest))
+            return await self.do_translate(ctx, message=data, from_=src.lower(), to=dest.lower())
         return await ctx.send('No text returned.')
 
     @ocr.error
