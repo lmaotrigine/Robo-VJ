@@ -127,12 +127,13 @@ class Funhouse(commands.Cog):
                 return await ctx.send('Invalid source language: {}'.format(src))
             if dest.lower() not in googletrans.LANGUAGES and dest.lower() not in googletrans.LANGCODES:
                 return await ctx.send('Invalid destination language: {}'.format(dest))
-            try:
-                message = await commands.MessageConverter().convert(ctx, message)
-            except commands.BadArgument:
-                pass
-            else:
-                message = message.clean_content
+            if message is not None:
+                try:
+                    message = await commands.MessageConverter().convert(ctx, message)
+                except commands.BadArgument:
+                    pass
+                else:
+                    message = message.clean_content
 
         await self.do_translate(ctx, message, from_=src.lower(), to=dest.lower())
 
