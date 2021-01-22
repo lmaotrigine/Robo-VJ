@@ -111,8 +111,6 @@ class Funhouse(commands.Cog):
 
         You can also specify the source and destination languages using the
         `--source|-s` and/or `--dest/-d` flags, both of which are optional.
-
-        The flags must be specified __before__ the message.
         """
         parser = Arguments(add_help=False, allow_abbrev=False)
         parser.add_argument('text', nargs='?', default=None)
@@ -125,9 +123,9 @@ class Funhouse(commands.Cog):
             message = args.text
             src = args.source
             dest = args.dest
-            if src not in googletrans.LANGUAGES and src not in googletrans.LANGCODES:
+            if src.lower() not in googletrans.LANGUAGES and src.lower() not in googletrans.LANGCODES and src.lower() != 'auto':
                 return await ctx.send('Invalid source language: {}'.format(src))
-            if dest not in googletrans.LANGUAGES and dest not in googletrans.LANGCODES:
+            if dest.lower() not in googletrans.LANGUAGES and dest.lower() not in googletrans.LANGCODES:
                 return await ctx.send('Invalid destination language: {}'.format(dest))
             try:
                 message = await commands.MessageConverter().convert(ctx, message)
@@ -136,7 +134,7 @@ class Funhouse(commands.Cog):
             else:
                 message = message.clean_content
 
-        await self.do_translate(ctx, message, from_=src, to=dest)
+        await self.do_translate(ctx, message, from_=src.lower(), to=dest.lower())
 
 
     @commands.command(hidden=True)
