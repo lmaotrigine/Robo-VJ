@@ -115,7 +115,7 @@ class Funhouse(commands.Cog):
         The flags must be specified __before__ the message.
         """
         parser = Arguments(add_help=False, allow_abbrev=False)
-        parser.add_argument('text', default=None)
+        parser.add_argument('text', nargs='?', default=None)
         parser.add_argument('--dest', '-d', default='en')
         parser.add_argument('--source', '-s', '-src', default='auto')
         src = 'auto'
