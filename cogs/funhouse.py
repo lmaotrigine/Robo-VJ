@@ -109,8 +109,10 @@ class Funhouse(commands.Cog):
     async def translate(self, ctx, *, message: Union[discord.Message, commands.clean_content] = None):
         """Translates a message to using Google translate.
 
-        You can also specify the source and destination languages using the
-        `--source|-s` and/or `--dest/-d` flags, both of which are optional.
+        The following optional flags are allowed:
+
+        `--source` or `-s`: The language to translate from, defaults to auto-detect.
+        `--dest`  or `-d`: The language to translate to, defaults to English.
         """
         parser = Arguments(add_help=False, allow_abbrev=False)
         parser.add_argument('text', nargs='?', default=None)
