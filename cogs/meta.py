@@ -10,6 +10,7 @@ from .utils import formats, time
 import os, datetime
 from collections import Counter
 import asyncio
+from functools import partial
 import codecs
 import pathlib
 import random
@@ -147,7 +148,6 @@ class Meta(commands.Cog):
         await ctx.send(ctx.tick(True))
 
     @commands.command(aliases=['size'])
-    #@commands.is_owner()  # now OSS, not needed
     async def cloc(self, ctx, *, extras=None):
         """Get the line and file count of the source.
 
@@ -156,25 +156,30 @@ class Meta(commands.Cog):
         if extras and extras.lower().strip() not in ('--include-submodules',):
             return await ctx.send('Invalid flag/subcommand.')
         async with ctx.typing():
-            total = 0
-            file_amount = 0
-            for path, subdirs, files in os.walk('.'):
-                if extras is None:
-                    if path.startswith('./venv/'):
-                        continue
-                for name in files:
-                    if name.endswith('.py'):
-                        file_amount += 1
-                        with codecs.open('./' + str(pathlib.PurePath(path, name)), 'r', 'utf-8') as f:
-                            for i, l in enumerate(f):
-                                if l.strip().startswith('#') or len(l.strip()) is 0:  # skip commented lines.
-                                    pass
-                                else:
-                                    total += 1
-            msg = f'I am made of {total:,} lines of Python, spread across {file_amount:,} files!'
-            if extras and extras.lower().strip() in ('--include-submodules',):
-                msg += ' (including all subpackages)'
-        await ctx.send(f'{msg}\nYou can check the main repo source with `{ctx.prefix}source`.')
+            func = partial(self.do_cloc, extras)
+            msg = await self.bot.loop.run_in_executor(None, func)
+            await ctx.send(f'{msg}\nYou can check out the core source using `{ctx.prefix}source`.')
+
+    def do_cloc(self, extras=None):
+        total = 0
+        file_amount = 0
+        for path, subdirs, files in os.walk('.'):
+            if extras is None:
+                if path.startswith('./venv/'):
+                    continue
+            for name in files:
+                if name.endswith('.py'):
+                    file_amount += 1
+                    with codecs.open('./' + str(pathlib.PurePath(path, name)), 'r', 'utf-8') as f:
+                        for i, l in enumerate(f):
+                            if l.strip().startswith('#') or len(l.strip()) is 0:  # skip commented lines.
+                                pass
+                            else:
+                                total += 1
+        msg = f'I am made of {total:,} lines of Python, spread across {file_amount:,} files!'
+        if extras and extras.lower().strip() in ('--include-submodules',):
+            msg += ' (including all subpackages)'
+        return msg
 
     @commands.command()
     #@commands.is_owner()  # now OSS, not needed
