@@ -260,27 +260,29 @@ class PaginatedHelpCommand(commands.HelpCommand):
         return f'{alias} {command.signature}'
 
     async def send_bot_help(self, mapping):
-        bot = self.context.bot
-        entries = await self.filter_commands(bot.commands, sort=True)
+        async with self.context.typing():
+            bot = self.context.bot
+            entries = await self.filter_commands(bot.commands, sort=True)
 
-        all_commands = {}
-        for command in entries:
-            if command.cog is None:
-                continue
-            try:
-                all_commands[command.cog].append(command)
-            except KeyError:
-                all_commands[command.cog] = [command]
+            all_commands = {}
+            for command in entries:
+                if command.cog is None:
+                    continue
+                try:
+                    all_commands[command.cog].append(command)
+                except KeyError:
+                    all_commands[command.cog] = [command]
 
 
-        menu = HelpMenu(BotHelpPageSource(self, all_commands))
-        await self.context.release()
+            menu = HelpMenu(BotHelpPageSource(self, all_commands))
+            await self.context.release()
         await menu.start(self.context)
 
     async def send_cog_help(self, cog):
-        entries = await self.filter_commands(cog.get_commands(), sort=True)
-        menu = HelpMenu(GroupHelpPageSource(cog, entries, prefix=self.clean_prefix))
-        await self.context.release()
+        async with self.context.typing():
+            entries = await self.filter_commands(cog.get_commands(), sort=True)
+            menu = HelpMenu(GroupHelpPageSource(cog, entries, prefix=self.clean_prefix))
+            await self.context.release()
         await menu.start(self.context)
 
     def common_command_formatting(self, embed_like, command):
