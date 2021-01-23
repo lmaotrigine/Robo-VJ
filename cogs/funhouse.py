@@ -545,7 +545,7 @@ class Funhouse(commands.Cog):
         #if ret.pronunciation and ret.pronunciation != ret.text:
         #    embed.add_field(name='Pronunciation', value=ret.pronunciation)
         if payload.member is not None:
-            embed.set_footer(text=f'Requested by {payload.member} | {payload.user_id}',
+            embed.set_footer(text=f'Requested by {payload.member} | {payload.message_id}',
                              icon_url=payload.member.avatar_url)
         if message.guild is not None and message.channel.permissions_for(message.guild.me).send_messages:
             await message.channel.send(embed=embed)
