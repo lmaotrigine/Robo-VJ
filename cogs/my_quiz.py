@@ -66,6 +66,7 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         self.bot.loop.create_task(self.init_wh())
 
     async def init_wh(self):
+        await self.bot.wait_until_ready()
         try:
             self.wh = discord.utils.get((await self.bot.get_channel(MESSAGE_LOGS).webhooks()),
                                         user=self.bot.user)
