@@ -530,7 +530,7 @@ class Admin(commands.Cog):
     # I don't want to copy-paste an entire message every time I fuck up
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
-        if after.author.id == self.bot.owner_id:
+        if after.author.id == self.bot.owner_id and before.content != after.content:
             await self.bot.process_commands(after)
 
 
