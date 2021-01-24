@@ -306,8 +306,9 @@ class RTFX(commands.Cog):
             location = module.replace('.', '/') + '.py'
         except AttributeError:
             location = get.__name__.replace('.', '/') + '.py'
-
-        ret = f'https://github.com/Rapptz/discord.py/blob/v{discord.__version__}'
+        
+        version = 'master' if discord.__version__.endswith('a') else f'v{discord.__version__}'
+        ret = f'https://github.com/Rapptz/discord.py/blob/{version}'
         final = f'{overhead}[{location}]({ret}/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1})'
         embed.description = final
         return await ctx.send(embed=embed)
