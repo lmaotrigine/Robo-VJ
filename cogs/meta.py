@@ -529,7 +529,7 @@ class Meta(commands.Cog):
         # again, this is due to fucked up perms in some mute roles
         if message is None:
             return
-        await message.edit(content=None, embed=embed)
+        await message.edit(content='Pong!', embed=embed)
 
 
 def setup(bot):
