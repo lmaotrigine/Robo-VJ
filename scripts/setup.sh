@@ -12,10 +12,10 @@ git config --global user.email varunj26012001@gmail.com
 
 sudo apt update && sudo apt upgrade -y
 sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt install python3.9 python3.9-venv python3.9-dev libjpeg-dev libtiff-dev libcairo2-dev
+sudo apt install python3.9 python3.9-pip python3.9-venv python3.9-dev libjpeg-dev libtiff-dev libcairo2-dev
+python3.9 -m pip install -U psutil
 
 curl https://sh.rustup.rs -sSf | sh
-source $HOME/.cargo/env
 
 if [[ -n $SSH_CONNECTION ]] ; then
     bash -i ./get_postgres.sh
@@ -24,6 +24,7 @@ if [[ -n $SSH_CONNECTION ]] ; then
 fi
 cd ..
 venv
+source $HOME/.cargo/env
 pip install -U -r requirements.txt
 
 if [[ -n $SSH_CONNECTION ]] ; then

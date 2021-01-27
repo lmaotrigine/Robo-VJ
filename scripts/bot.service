@@ -2,10 +2,10 @@
 Description=Discord Bot
 After=network-online.target
 [Service]
-WorkingDirectory=/home/ubuntu/Robo-VJ 
+WorkingDirectory=/home/ubuntu/bots/Robo-VJ 
 User=ubuntu
 Group=ubuntu
-ExecStart=/home/ubuntu/Robo-VJ/venv/bin/python launcher.py
+ExecStart=/home/ubuntu/bots/Robo-VJ/venv/bin/python launcher.py
 Type=simple
 Restart=always
 
