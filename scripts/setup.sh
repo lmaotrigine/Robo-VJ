@@ -49,6 +49,9 @@ source $HOME/.cargo/env
 # Install bot requirements
 pip install -U -r requirements.txt
 
+# Clone assets. I'm not making this a submodule because it rarely changes, and I want to avoid detached HEADs
+git clone https://github.com/darthshittious/Robo-VJ-assets.git ./assets
+
 # Get things rolling
 if [[ -n $SSH_CONNECTION ]] ; then
   sudo systemctl enable bot 
