@@ -22,10 +22,11 @@ sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt install python3.9 python3.9-pip python3.9-venv python3.9-dev libjpeg-dev libtiff-dev libcairo2-dev
 python3.9 -m pip install -U psutil
 
-# I like emacs, so I will install it. You can comment these lines out if you wish
+# I like emacs, so I will install it. You can comment these lines out if you wish.
+# I also choose to install Neofetch and mlocate
 # emacs 27: Current version as of January 2021
 sudo add-apt-repository ppa:kelleyk/emacs
-sudo apt install emacs27
+sudo apt install emacs27 neofetch mlocate
 
 # Install PostgreSQL, and add .service file to systemd, if on remote server
 if [[ -n $SSH_CONNECTION ]] ; then
@@ -52,10 +53,13 @@ pip install -U -r requirements.txt
 # Clone assets. I'm not making this a submodule because it rarely changes, and I want to avoid detached HEADs
 git clone https://github.com/darthshittious/Robo-VJ-assets.git ./assets
 
+echo 'Set up PostgreSQL by editing pg_hba.conf and creating the role and database, and adding the trgm extension as shown in the README, and then enable and start the bot service.'
+
+# TODO: Find some way to automate the above.
 # Get things rolling
-if [[ -n $SSH_CONNECTION ]] ; then
-  sudo systemctl enable bot 
-  sudo systemctl start bot
-  sudo systemctl status bot
-fi
+#if [[ -n $SSH_CONNECTION ]] ; then
+#  sudo systemctl enable bot 
+#  sudo systemctl start bot
+#  sudo systemctl status bot
+#fi
 
