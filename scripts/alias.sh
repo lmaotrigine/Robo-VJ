@@ -20,7 +20,14 @@ function yoink {
 export -f yoink
 
 function yeet {
-  git commit -a -m "$@"
-  git push
+  git push "$@"
 }
 export -f yeet
+
+function gitpush {
+  git commit -a -m "$*"
+  git push
+}
+export -f gitpush
+alias gp=gitpush
+
