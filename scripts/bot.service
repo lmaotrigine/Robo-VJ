@@ -1,5 +1,5 @@
 [Unit]
-Description=Discord Bot
+Description=Robo VJ Discord Bot
 After=network-online.target
 [Service]
 WorkingDirectory=/home/ubuntu/bots/Robo-VJ 

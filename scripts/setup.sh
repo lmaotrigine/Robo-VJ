@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Must be run in an interactive shell
+# If you're not me, don't blindly run this. Most of it will fail without the right credentials.
 
 # Set up aliases for git and venv
 cat ./alias.sh >> ~/.bashrc
@@ -32,6 +33,33 @@ sudo apt install emacs27 neofetch mlocate
 if [[ -n $SSH_CONNECTION ]] ; then
     bash -i ./get_postgres.sh
     sudo cp bot.service /etc/systemd/system/bot.service
+    # PostgreSQL 13: Latest as of 28-01-2021
+
+    # Add md5 authentication for all users on localhost
+    sudo sed -i "s/\(local\s*all\s*all\s*)peer/\1md5/" /etc/postgresql/13/main/pg_hba.conf
+    sudo systemctl restart postgresql
+
+    # Setup robovj role and database
+    echo 'Enter the password for robovj role in PostgreSQL and hit [ENTER]:'
+    read passwordd
+    echo 'Creating role with password...'
+    sudo -u postgres psql -c "CREATE ROLE robovj WITH LOGIN PASSWORD $passwordd;"
+    echo 'Done.'
+    echo 'Creating database...'
+    sudo -u postgres psql -c "CREATE DATABASE robovj WITH OWNER robovj;"
+    echo 'Done.'
+    
+    # Add pg_trgm extension for similarity ordering
+    echo 'Creating pg_trgm extension...'
+    sudo -u postgres psql -c "CREATE EXTENSION pg_trgm;"
+    echo 'Done.'
+
+    # Import records from SQL file, if present
+    if test -f "$HOME/robovj.sql"; then
+	echo 'SQL file found. Importing records...'
+        psql -U robovj -d robovj -f $HOME/robovj.sql
+	echo 'Done. You may now delete this file.'
+    fi
     sudo systemctl daemon-reload
 fi
 
@@ -53,13 +81,10 @@ pip install -U -r requirements.txt
 # Clone assets. I'm not making this a submodule because it rarely changes, and I want to avoid detached HEADs
 git clone https://github.com/darthshittious/Robo-VJ-assets.git ./assets
 
-echo 'Set up PostgreSQL by editing pg_hba.conf and creating the role and database, and adding the trgm extension as shown in the README, and then enable and start the bot service.'
-
-# TODO: Find some way to automate the above.
 # Get things rolling
-#if [[ -n $SSH_CONNECTION ]] ; then
-#  sudo systemctl enable bot 
-#  sudo systemctl start bot
-#  sudo systemctl status bot
-#fi
+if [[ -n $SSH_CONNECTION ]] ; then
+  sudo systemctl enable bot 
+  sudo systemctl start bot
+  sudo systemctl status bot
+fi
 
