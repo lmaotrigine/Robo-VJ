@@ -31,6 +31,7 @@ initial_extensions = {
     'cogs.astronomy',
     'cogs.blackjack',
     'cogs.bots',
+    'cogs.bottom',
     'cogs.buttons',
     'cogs.chess',
     'cogs.code',
