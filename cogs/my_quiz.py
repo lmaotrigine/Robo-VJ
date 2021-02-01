@@ -459,7 +459,7 @@ class PubQuiz(commands.Cog, name="The Red Lion"):
         embed.add_field(name='\u200b', value=f'Use `{ctx.prefix}voicelist` for more details.', inline=False)
         if solo.members:
             inside = sum(m in voice.members for m in solo.members)
-            embed.description = f'`{inside}/{solo.members}` participants in voice.'
+            embed.description = f'`{inside}/{len(solo.members)}` participants in voice.'
             return await ctx.send(embed=embed)
         out = []
         total = 0
@@ -467,7 +467,7 @@ class PubQuiz(commands.Cog, name="The Red Lion"):
             team = ctx.guild.get_role(team_id)
             inside = sum(m in voice.members for m in team.members)
             total += len(team.members)
-            out.append(f'{team.mention}: {inside}/{team.members} members in voice.')
+            out.append(f'{team.mention}: {inside}/{len(team.members)} members in voice.')
         embed.description = '\n'.join(out)
         embed.insert_field_at(0, name='Total', value=f'{len(voice.members)}/{total} members in voice.', inline=False)
         await ctx.send(embed=embed)
