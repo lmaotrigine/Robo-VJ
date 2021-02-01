@@ -14,7 +14,7 @@ BOUNCE_VOICE_ID = 718378272337166396
 INTRO_ID = 744131093568946229
 SPECTATOR_ROLE = 720192447900286996
 QM_ROLE = 718379489503215736
-TEAMS = {
+TEAMS = [
     718379776280231959,
     718379819498209290,
     718379874217230337,
@@ -25,7 +25,7 @@ TEAMS = {
     718380278527295510,
     718380316024242206,
     718380354339340358
-}
+]
 SOLO_PARTICIPANT_ROLE = 766590219814043648
 REGISTRATION_CHANNEL_ID = 766223209938419712
 ANNOUNCEMENT_CHANNEL_ID = 743834763965759499
@@ -50,8 +50,8 @@ def is_in_registration():
     return commands.check(predicate)
 
 
-class PubQuiz(commands.Cog, name="Pub Quiz"):
-    """Commands exclusive to VJ's Pub Quiz Server"""
+class PubQuiz(commands.Cog, name="The Red Lion"):
+    """Commands exclusive to The Red Lion."""
     def __init__(self, bot):
         self.bot = bot
         self.reg_open = False
@@ -396,8 +396,78 @@ class PubQuiz(commands.Cog, name="Pub Quiz"):
         teams = [ctx.guild.get_role(team) for team in TEAMS]
         teams.append(ctx.guild.get_role(SPECTATOR_ROLE))
         teams.append(ctx.guild.get_role(QM_ROLE))
+        teams.append(ctx.guild.get_role(SOLO_PARTICIPANT_ROLE))
         await self.bot.get_command('purgeroles')(ctx, *teams)
         await ctx.send("Cleanup complete.")
+
+    @commands.command()
+    @is_qm()
+    @commands.guild_only()
+    async def voicelist(self, ctx):
+        """Gives a list of team members in voice."""
+        voice = ctx.guild.get_channel(BOUNCE_VOICE_ID)
+        solo = ctx.guild.get_role(SOLO_PARTICIPANT_ROLE)
+        if solo.members:
+            inside = []
+            outside = []
+            embed = discord.Embed(title='Current Voice Status')
+            for m in solo.members:
+                if m in voice.members:
+                    inside.append(m.mention)
+                else:
+                    outside.append(m.mention)
+            if inside:
+                embed.add_field(name='In Voice', value='\n'.join(inside))
+            if outside:
+                embed.add_field(name='Outside Voice', value='\n'.join(outside))
+            return await ctx.send(embed=embed)
+
+        for i in range(0, len(TEAMS), 25):
+            embed = discord.Embed(title='Current Voice Status')
+            for team_id in TEAMS[i:i + 25]:
+                inside = []
+                outside = []
+                team = ctx.guild.get_role(team_id)
+                for m in team.members:
+                    if m in voice.members:
+                        inside.append(m.mention)
+                    else:
+                        outside.append(m.mention)
+                val = ''
+                if inside:
+                    val += '**Inside**\n'
+                    val += '\n'.join(inside)
+                    val += '\n'
+                if outside:
+                    val += '**Outside**\n'
+                    val += '\n'.join(outside)
+                    val += '\n'
+                if val:
+                    embed.add_field(name=team.name.title(), value=val)
+            await ctx.send(embed=embed)
+
+    @commands.command()
+    @commands.guild_only()
+    @is_qm()
+    async def voicecheck(self, ctx):
+        """Gives the number of people in voice, by team."""
+        voice = ctx.guild.get_channel(BOUNCE_VOICE_ID)
+        solo = ctx.guild.get_role(SOLO_PARTICIPANT_ROLE)
+        embed = discord.Embed()
+        embed.set_footer(text='Use `{ctx.prefix}voicelist` for more details.')
+        if solo.members:
+            inside = sum(m in voice.members for m in solo.members)
+            embed.description = f'`{inside}/{solo.members}` participants in voice.'
+            return await ctx.send(embed=embed)
+        out = []
+        total = 0
+        for team_id in TEAMS:
+            team = ctx.guild.get_role(team_id)
+            inside = sum(m in voice.members for m in team.members)
+            total += len(team.members)
+            out.append(f'{team.mention}: {inside}/{team.members} members in voice.')
+        embed.add_field(name='Total', value=f'{len(voice.members)}/{total} members in voice.')
+        await ctx.send(embed=embed)
 
     @commands.command(hidden=True)
     @commands.guild_only()
