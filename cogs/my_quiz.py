@@ -39,7 +39,7 @@ GA_ROLE = 796383137666957323
 
 
 def is_qm():
-    def predicate(ctx):
+    async def predicate(ctx):
         if await ctx.bot.is_owner(ctx.author):
             return True
         return ctx.author._roles.has(QM_ROLE)
