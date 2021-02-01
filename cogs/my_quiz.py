@@ -399,8 +399,13 @@ class PubQuiz(commands.Cog, name="The Red Lion"):
         teams.append(ctx.guild.get_role(SPECTATOR_ROLE))
         teams.append(ctx.guild.get_role(QM_ROLE))
         teams.append(ctx.guild.get_role(SOLO_PARTICIPANT_ROLE))
-        await self.bot.get_command('purgeroles')(ctx, *teams)
-        await ctx.send("Cleanup complete.")
+        async with ctx.typing():
+            mems = set()
+            for t in teams:
+                mems.update(t.members)
+            for m in mems:
+                await m.remove_roles(*teams)
+        await ctx.send('Cleanup complete.')
 
     @commands.command()
     @is_qm()

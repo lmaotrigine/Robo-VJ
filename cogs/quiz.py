@@ -429,28 +429,28 @@ class Quiz(commands.Cog):
         roles = set()
         if len(entities) > 10:
             return await ctx.send("Too many arguments. Split these up and try again.")
-        for entity in entities:
-            try:
-                members.add(await commands.MemberConverter().convert(ctx, entity))
-            except commands.BadArgument:
+        async with ctx.typing():
+            for entity in entities:
                 try:
-                    roles.add(await commands.RoleConverter().convert(ctx, entity))
+                    members.add(await commands.MemberConverter().convert(ctx, entity))
                 except commands.BadArgument:
-                    await ctx.send(f"Unable to find role or member matching '{entity}'")
-        
-        for role in roles:
-            if role >= ctx.author.top_role:
-                continue
-            if len(role.members) > 10:
-                await ctx.send(f'{role} has more than 10 members. Skipping...')
-                continue
-            for member in role.members:
-                await member.remove_roles(role)
+                    try:
+                        roles.add(await commands.RoleConverter().convert(ctx, entity))
+                    except commands.BadArgument:
+                        await ctx.send(f"Unable to find role or member matching '{entity}'")
 
-        for member in members:
-            _roles = [role for role in member.roles if role < ctx.author.top_role]
-            await member.remove_roles(*_roles)
+            roles = [role for role in roles if role < ctx.author.top_role]
+            mems = set()
+            for role in roles:
+                mems.update(role.members)
+            for member in mems:
+                await member.remove_roles(*roles)
+
+            for member in members:
+                _roles = [role for role in member.roles if role < ctx.author.top_role]
+                await member.remove_roles(*_roles)
         await ctx.send('\N{OK HAND SIGN}')
+
 
 def setup(bot):
     bot.add_cog(Quiz(bot))
