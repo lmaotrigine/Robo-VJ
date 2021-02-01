@@ -40,6 +40,8 @@ GA_ROLE = 796383137666957323
 
 def is_qm():
     def predicate(ctx):
+        if await ctx.bot.is_owner(ctx.author):
+            return True
         return ctx.author._roles.has(QM_ROLE)
     return commands.check(predicate)
 
@@ -454,7 +456,7 @@ class PubQuiz(commands.Cog, name="The Red Lion"):
         voice = ctx.guild.get_channel(BOUNCE_VOICE_ID)
         solo = ctx.guild.get_role(SOLO_PARTICIPANT_ROLE)
         embed = discord.Embed()
-        embed.set_footer(text='Use `{ctx.prefix}voicelist` for more details.')
+        embed.set_footer(text=f'Use `{ctx.prefix}voicelist` for more details.')
         if solo.members:
             inside = sum(m in voice.members for m in solo.members)
             embed.description = f'`{inside}/{solo.members}` participants in voice.'
