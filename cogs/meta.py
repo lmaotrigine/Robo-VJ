@@ -465,8 +465,12 @@ class Meta(commands.Cog):
         await ctx.send(f"{greeting} I'm a robot! {str(owner)} made me.")
 
     @commands.group(aliases=['invite'], invoke_without_command=True)
-    async def join(self, ctx):
-        """Get the invite link to add the bot to your server"""
+    async def join(self, ctx, bot: discord.User = None):
+        """Get the invite link to add the bot (or any bot, if you pass a valid client ID) to your server"""
+        if bot is not None:
+            if not bot.bot:
+                return await ctx.send('That was not a bot.')
+            return await ctx.send(f'<{discord.utils.oauth_url(bot.id)}>')
         embed = discord.Embed(title="Click here to add me to your server", colour=discord.Colour(0xFF0000),
                               url=discord.utils.oauth_url(self.bot.client_id, discord.Permissions(administrator=True)))
         embed.set_author(name=self.bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name,
@@ -478,6 +482,11 @@ class Meta(commands.Cog):
     async def raw_invite(self, ctx):
         """Returns the raw oauth url, to change permissions and scopes when needed."""
         await ctx.send(f'<{discord.utils.oauth_url(self.bot.client_id, discord.Permissions(administrator=True))}>')
+
+    @join.error
+    async def join_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send('That was not a valid client ID.')
 
     # leave a guild
     @commands.command(hidden=True)
