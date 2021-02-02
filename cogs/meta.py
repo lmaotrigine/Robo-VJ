@@ -466,7 +466,11 @@ class Meta(commands.Cog):
 
     @commands.group(aliases=['invite'], invoke_without_command=True)
     async def join(self, ctx, bot: discord.User = None):
-        """Get the invite link to add the bot (or any bot, if you pass a valid client ID) to your server"""
+        """Get the invite link to add the bot (or any bot) to your server.
+
+        Only works for bot accounts created post 2018 ish, when user IDs and client IDs match.
+        """
+
         if bot is not None:
             if not bot.bot:
                 return await ctx.send('That was not a bot.')
