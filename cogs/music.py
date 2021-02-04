@@ -71,7 +71,7 @@ class Music(commands.Cog):
     """
     def __init__(self, bot):
         self.bot = bot
-
+        self.spotify = self.bot.spotify_client
         if not hasattr(self.bot, 'wavelink'):
             self.bot.wavelink = wavelink.Client(bot=bot)
         if not hasattr(self.bot, 'cached_always_play'):
