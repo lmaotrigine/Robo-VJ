@@ -36,6 +36,7 @@ initial_extensions = {
     'cogs.chess',
     'cogs.code',
     'cogs.config',
+    'cogs.connect_four',
     'cogs.crypto',
     'cogs.dictionary',
     'cogs.dbl',
