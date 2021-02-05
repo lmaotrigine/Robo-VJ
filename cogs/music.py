@@ -384,7 +384,11 @@ class Music(commands.Cog):
             return tracks, None
         
         else:
-            track = tracks[0]
+            if isinstance(tracks, list):
+                track = tracks[0]
+            else:
+                track = tracks
+                tracks = [track]
             return Track(track.id, track.info, ctx=ctx), tracks
 
     @commands.command(name='np', aliases=['current', 'currentsong'])
