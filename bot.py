@@ -102,10 +102,12 @@ def _prefix_callable(bot, msg):
 
 class RoboVJ(commands.AutoShardedBot):
     def __init__(self):
+        allowed_mentions = discord.AllowedMentions.all()
+        allowed_mentions.replied_user = False
         super().__init__(command_prefix=_prefix_callable, status=discord.Status.online, activity=discord.Activity(
             name=f"you | mention for help", type=discord.ActivityType.watching), owner_id=411166117084528640,
                          help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
-                         case_insensitive=True, intents=discord.Intents.all())
+                         case_insensitive=True, intents=discord.Intents.all(), allowed_mentions = allowed_mentions)
 
         self.version = __version__
         self.client_id = config.client_id
