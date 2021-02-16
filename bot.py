@@ -59,6 +59,7 @@ initial_extensions = {
     'cogs.music',
     'cogs.my_quiz',
     'cogs.poll',
+    'cogs.pronouns',
     'cogs.quiz',
     'cogs.reminder',
     'cogs.rng',
