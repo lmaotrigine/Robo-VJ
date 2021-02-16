@@ -33,6 +33,9 @@ class Pronouns(commands.Cog, command_attrs=dict(hidden=True)):
         user = user or ctx.author
         embed = discord.Embed(title=f'{user.display_name}\'s pronouns').set_footer(text='Powered by PronounDB.org') \
             .set_thumbnail(url=user.avatar_url)
+        if user.bot:
+            embed.description = '`beep/boop`'
+            return await ctx.send(embed=embed)
         params = {'platform': 'discord', 'id': user.id}
         async with ctx.session.get('https://pronoundb.org/api/v1/lookup', params=params) as resp:
             if resp.status == 404:
