@@ -28,7 +28,7 @@ _LOOKUP = {
 
 
 class Pronouns(commands.Cog, command_attrs=dict(hidden=True)):
-    @commands.command(aliases='whatpronouns')
+    @commands.command(aliases=['whatpronouns'])
     async def pronouns(self, ctx, *, user: discord.User = None):
         user = user or ctx.author
         embed = discord.Embed(title=f'{user.display_name}\'s pronouns').set_footer(text='Powered by PronounDB.org') \
