@@ -29,6 +29,12 @@ python3.9 -m pip install -U psutil
 sudo add-apt-repository ppa:kelleyk/emacs
 sudo apt install emacs27 neofetch mlocate
 
+# Install and update locales
+# This relies on interactive shell but it's fine cause it's one time
+sudo apt install language-pack-en
+export LC_ALL="en_GB.UTF-8"
+sudo dpkg-reconfigure locales
+
 # Install PostgreSQL, and add .service file to systemd, if on remote server
 if [[ -n $SSH_CONNECTION ]] ; then
     bash -i ./get_postgres.sh
