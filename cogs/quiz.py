@@ -45,7 +45,7 @@ class Quiz(commands.Cog):
 
     team_regex = re.compile(r"<@&([0-9]+)>")
     member_regex = re.compile(r"<@!?([0-9]+)>")
-    points_regex = re.compile(r"(\d*\.?\d*)\s<@[!&]?([0-9]+)>")
+    points_regex = re.compile(r"(-?\d*\.?\d*)\s<@[!&]?([0-9]+)>")
     
     def __init__(self, bot):
         self.bot = bot
@@ -221,6 +221,10 @@ class Quiz(commands.Cog):
         if self.mode_dict[ctx.guild.id] == "SOLO":
             if re.search(self.team_regex, args):
                 return await ctx.send("Mention members, not roles.")
+        if not re.findall(self.points_regex, args):
+            return await ctx.send('Error while parsing scores. Follow the correct format')
+        if re.sub(self.points_regex, '', args).strip():
+            return await ctx.send('Error while parsing scores. Follow the correct format')
         for points, id in re.findall(self.points_regex, args):
             if self.mode_dict[ctx.guild.id] == 'SOLO':
                 self.score_dict[ctx.guild.id][ctx.guild.get_member(int(id))] = self.score_dict[ctx.guild.id].get(ctx.guild.get_member(id), 0) + float(points)
