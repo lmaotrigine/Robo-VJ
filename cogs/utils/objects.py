@@ -36,7 +36,7 @@ class SpotifyTrack:
 
     def __init__(self, title, artists, *, ctx=None, requester=None):
         self.title = title
-        self.artists = ', '.join(a.name for a in artists)
+        self.author = self.artists = ', '.join(a.name for a in artists)
         self.requester = requester or ctx.author
         self.ctx = ctx
         self.wl = ctx.bot.wavelink
