@@ -36,10 +36,11 @@ class SpotifyTrack:
 
     def __init__(self, title, artists, *, ctx=None, requester=None):
         self.title = title
-        self.author = self.artists = ', '.join(a.name for a in artists)
+        self.artists = ', '.join(a.name for a in artists)
         self.requester = requester or ctx.author
         self.ctx = ctx
         self.wl = ctx.bot.wavelink
+        self.author = self.artists
 
     async def find_wavelink_track(self):
         query = f"ytsearch:{self.title} {self.artists}"
