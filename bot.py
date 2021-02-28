@@ -1,4 +1,4 @@
-__version__ = "9.1.0"
+__version__ = "10.0.0"
 __author__ = "Varun J"
 
 import aiohttp
@@ -117,6 +117,7 @@ class RoboVJ(commands.AutoShardedBot):
         self.blocklist = Config('blocklist.json')
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
         self._auto_spam_count = Counter()
+        self.guild_allowlist = Config('guild_allowlist.json')
 
         self.session = aiohttp.ClientSession(loop=self.loop)
 
@@ -203,6 +204,15 @@ class RoboVJ(commands.AutoShardedBot):
     async def remove_from_blocklist(self, object_id):
         try:
             await self.blocklist.remove(object_id)
+        except KeyError:
+            pass
+
+    async def add_to_guild_allowlist(self, guild_id):
+        await self.guild_allowlist.put(guild_id, True)
+
+    async def remove_from_guild_allowlist(self, guild_id):
+        try:
+            await self.guild_allowlist.remove(guild_id)
         except KeyError:
             pass
 
@@ -372,7 +382,18 @@ class RoboVJ(commands.AutoShardedBot):
     async def on_guild_join(self, guild):
         owner = self.get_user(self.owner_id)
         if guild.id in self.blocklist:
-            await guild.leave()
+            return await guild.leave()
+
+        if guild.id not in self.guild_allowlist:
+            if not guild.chunked:
+                await guild.chunk()
+            if guild.member_count < 10:
+                return await guild.leave()
+            bots = len([m for m in guild.members if m.bot])
+            humans = guild.member_count - bots
+            if bots > humans:
+                return await guild.leave()
+
         async with self.pool.acquire() as con:
             await con.execute("INSERT INTO guild_prefixes (id, name) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING;",
                               guild.id, guild.name)
@@ -381,16 +402,9 @@ class RoboVJ(commands.AutoShardedBot):
 
         pfx = self.get_raw_guild_prefixes(guild.id)[0]
         embed = discord.Embed(title="Thanks for adding me to your server! :blush:", colour=discord.Colour.blurple())
-        embed.description = f"Robo VJ was originally made to keep scores during online quizzes, " \
-                            f"but has since evolved to support moderation commands and some fun here and there.\n\n" \
-                            f"For a full list of commands, use `{pfx}help`. " \
-                            f"Be mindful of hierarchy while using commands that involve assigning or removing roles, " \
-                            f"or editing nicknames.\n\nIt is advisable to give the bot the highest role in the server " \
-                            f"if you are unfamiliar with Discord hierarchy and permission flow.\n\n" \
-                            f"Some easter egg commands are not included in the help page. " \
-                            f"Others like the `utils` group have been deliberately hidden because they are reserved " \
-                            f"for the bot owner. \n\nIf you have any questions, or want to report bugs or " \
-                            f"request features, [click here](https://discord.gg/rqgRyF8) to join the support server."
+        embed.description = f"For a list of commands, use `{pfx}help`.\n\n" \
+                            f"If you have any questions, or want to report bugs or request features, " \
+                            f"[click here](https://discord.gg/rqgRyF8) to join the support server."
         embed.set_footer(text=f"Made by {owner}", icon_url=owner.avatar_url)
         if guild.system_channel is not None and guild.system_channel.permissions_for(guild.me).send_messages:
             await guild.system_channel.send(embed=embed)

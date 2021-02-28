@@ -510,5 +510,24 @@ class Config(commands.Cog):
         await self.bot.remove_from_blocklist(object_id)
         await ctx.send(ctx.tick(True))
 
+    @config.group(name='allowlist', aliases=['whitelist'])
+    @commands.is_owner()
+    async def _allowlist(self, ctx):
+        """Handles server whitelist configuration."""
+        pass
+
+    @_allowlist.command(name='add')
+    async def allowlist_add(self, ctx, guild_id: int):
+        """Adds a server to the allowlist. This allows it to bypass the requirements that apply normally."""
+        await self.bot.add_to_guild_allowlist(guild_id)
+        await ctx.send(ctx.tick(True))
+
+    @_allowlist.command(name='remove')
+    async def allowlist_remove(self, ctx, guild_id: int):
+        """Removes a server from the allowlist."""
+        await self.bot.remove_from_guild_allowlist(guild_id)
+        await ctx.send(ctx.tick(True))
+
+
 def setup(bot):
     bot.add_cog(Config(bot))

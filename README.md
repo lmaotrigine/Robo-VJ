@@ -8,7 +8,19 @@ A personal bot that runs on Discord, originally designed for online quizzes.
 
 ## Adding the bot
 
-To use Robo VJ on your server, you can add my public instance by [clicking here][oauth2-invite]
+To use Robo VJ on your server, you can add my public instance by [clicking here][oauth2-invite].
+
+Make sure your server meets the following conditions, or the bot will leave automatically.
+This is because I am not going to verify with Discord and hence the bot is limited to 100 servers. I would like the bot
+to reach as many legitimate communities as possible.
+- At least 10 human members
+  - This bot generally has no use for servers with a smaller member count, and whatever features you would find useful
+    will be available in another bot, more often than not.
+- At least as many humans as bots
+  - Adding a lot of bots to a server just wastes resources, and making 'bot collection' servers is generally frowned
+    upon. No server should need more bots than humans.
+
+I can make exceptions for this on request (rarely). Ask in the [Support Server](https://discord.gg/rqgRyF8).
 
 You can also host the bot yourself, however I don't provide support for people that try to self-host.
 I don't want to spend time trying to troubleshoot issues that happen only with self-hosting,
@@ -113,16 +125,6 @@ To set up a Lavalink server, download OpenJDK 13.0.2, and the latest release of 
 Running on Ubuntu 20.04 will be much easier as there are pre-written shell scripts [here](scripts) that do most of the work for you.
 
 Essentially you would need to use a process manager to run `launcher.py`
-
-## [Additional information] Migrating between database instances
-
-To copy the remote database from source to target:
-  - Quick setup: `$ pg_dump -C -h source_host -U user source_db | psql -h target_host -U user target_db`
-  - Recommended setup for large databases:
-    - on source: `$ pg_dump -U user -O -d source_db -f source_db.sql`
-    - copy `source_db.sql` to target server
-    - on target: `$ psql -U user -d target_db -f source_db.sql` (You should have target_db created already)
-
 
 ## Requirements
 
