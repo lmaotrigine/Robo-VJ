@@ -387,11 +387,11 @@ class RoboVJ(commands.AutoShardedBot):
         if guild.id not in self.guild_allowlist:
             if not guild.chunked:
                 await guild.chunk()
-            if guild.member_count < 10:
-                return await guild.leave()
             bots = len([m for m in guild.members if m.bot])
             humans = guild.member_count - bots
             if bots > humans:
+                return await guild.leave()
+            if humans < 10:
                 return await guild.leave()
 
         async with self.pool.acquire() as con:
