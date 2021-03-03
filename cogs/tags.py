@@ -954,7 +954,7 @@ class Tags(commands.Cog):
         else:
             await ctx.send('No tags found.')
 
-    tag.command()
+    @tag.command()
     @suggest_box()
     async def claim(self, ctx, *, tag: TagName):
         """Claims an unclaimed tag.
@@ -967,7 +967,10 @@ class Tags(commands.Cog):
         query = "SELECT id, owner_id FROM tags WHERE location_id=$1 AND LOWER(name)=$2;"
         row = await ctx.db.fetchrow(query, ctx.guild.id, tag.lower())
         if row is None:
-            return await ctx.send(f'A tag with the name of "{tag}" does not exist.')
+            alias_query = "SELECT tag_id, owner_id FROM tag_lookup WHERE location_id = $1 AND LOWER(name) = $2;"
+            row = await ctx.db.fetchrow(alias_query, ctx.guild.id, tag.lower())
+            if row is None:
+                return await ctx.send(f'A tag with the name of "{tag}" does not exist.')
 
         member = await self.bot.get_or_fetch_member(ctx.guild, row[1])
         if member is not None:
