@@ -50,10 +50,10 @@ I've tried to make the self-host process as painless as possible, but it is impo
    
 4. Credit the original creators (myself and Danny), and release all files you use from here under the same license.
 5. Many API keys are needed for some features to work. While they aren't required, you may face issues when trying to use some features.
-6. Most of the assets are not shipped with this source code, and at least one dependency is something I wrote on my own and isn't OSS.
+6. Most of the assets are not shipped with this source code, and at least three dependencies are not OSS.
 You will need to create and include your own assets. (Stockfish binaries have been included because I switched hosts a lot, and I needed the portability)
    
-7. I run the bot on Ubuntu focal (20.04), [setup](scripts/setup.sh) script assume that this is the OS.
+7. I run the bot on Ubuntu focal (20.04), the [setup](scripts/setup.sh) script assume that this is the OS.
 However, it may work on other Linux distros, and will require extra work on Windows.
    
 8. To avoid confusion, you are **not allowed** to use the name "Robo VJ" or anything similar for your self-hosted version.
