@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 
 DISCORD_BOTS_API = 'https://discord.bots.gg/api/v1'
 TOP_GG_API = 'https://top.gg/api'
+DISCORD_BOATS_API = 'https://discord.boats/api'
 
 
 class DBL(commands.Cog):
@@ -17,8 +18,7 @@ class DBL(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.dbl_client = dbl.DBLClient(self.bot, self.bot.config.dbl_token, autopost=False,
-                                        webhook_port=8080, webhook_auth=self.bot.config.dbl_auth)
+        self.dbl_client = dbl.DBLClient(self.bot, self.bot.config.dbl_token, autopost=False)
         self.webhook = discord.Webhook.partial(*self.bot.config.dbl_webhook,
                                                adapter=discord.AsyncWebhookAdapter(session=self.bot.session))
         self.votes = None
@@ -54,6 +54,17 @@ class DBL(commands.Cog):
         url = f'{TOP_GG_API}/bots/{self.bot.user.id}/stats'
         async with self.bot.session.post(url, data=payload, headers=headers) as resp:
             log.info(f'Top.gg statistics returned {resp.status} for {payload}.')
+
+        headers = {
+            'Authorization': self.bot.config.discord_boats_token,
+            'Content-Type': 'application/json'
+        }
+        payload = json.dumps({
+            'server_count': guild_count
+        })
+        url = f'{DISCORD_BOTS_API}/bot/{self.bot.user.id}'
+        async with self.bot.session.post(url, data=payload, headers=headers) as resp:
+            log.info(f'discord.boats API returned {resp.status} for {payload}.')
 
     async def get_votes(self):
         headers = {
