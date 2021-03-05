@@ -482,10 +482,10 @@ class Meta(commands.Cog):
                             f'- Has more humans than bots.\n' \
                             f'  - Bot collection servers are frowned upon.\n```\n' \
                             f'If you want to add me to a server that does not meet these requirements, make your ' \
-                            f'case in the [support server](https://discord.gg/rqgRyF8) and you __*might*__ be ' \
-                            f'whitelisted.\n\nThe link below lazily asks for admin perms. You can edit this to your ' \
-                            f'liking. The bot needs no additional permissions to perform actions than what Discord ' \
-                            f'requires it to have. No commands require the bot to have more permissions than ' \
+                            f'case in the [support server](https://discord.gg/rqgRyF8) and your server __*might*__ ' \
+                            f'be whitelisted.\n\nThe link below lazily asks for admin perms. You can edit this to ' \
+                            f'your liking. The bot needs no additional permissions to perform actions than what ' \
+                            f'Discord requires it to have. No commands require the bot to have more permissions than ' \
                             f'necessary. The link will be updated once the exact permissions requirements has been ' \
                             f'identified and stabilised.'
         embed.add_field(name='Invite link', value=discord.utils.oauth_url(self.bot.client_id,
