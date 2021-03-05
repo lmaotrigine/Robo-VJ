@@ -475,17 +475,24 @@ class Meta(commands.Cog):
             if not bot.bot:
                 return await ctx.send('That was not a bot.')
             return await ctx.send(f'<{discord.utils.oauth_url(bot.id)}>')
-        embed = discord.Embed(title="Click here to add me to your server", colour=discord.Colour(0xFF0000),
-                              url=discord.utils.oauth_url(self.bot.client_id, discord.Permissions(administrator=True)))
+        embed = discord.Embed(colour=discord.Colour.blurple())
+        embed.description = f'To add me to your server, please ensure it meets the following requirements:\n' \
+                            f'```\n- Has at least 10 human members.\n' \
+                            f'  - I don\'t think I would be very useful in servers smaller than this honestly.\n' \
+                            f'- Has more humans than bots.\n' \
+                            f'  - Bot collection servers are frowned upon.\n```\n' \
+                            f'If you want to add me to a server that does not meet these requirements, make your ' \
+                            f'case in the [support server](https://discord.gg/rqgRyF8) and you __*might*__ be ' \
+                            f'whitelisted.\n\nThe link below lazily asks for admin perms. You can edit this to your ' \
+                            f'liking. The bot needs no additional permissions to perform actions than what Discord ' \
+                            f'requires it to have. No commands require the bot to have more permissions than ' \
+                            f'necessary. The link will be updated once the exact permissions requirements has been ' \
+                            f'identified and stabilised.'
+        embed.add_field(name='Invite link', value=discord.utils.oauth_url(self.bot.client_id,
+                                                                          discord.Permissions(administrator=True)))
         embed.set_author(name=self.bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name,
                          icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
-
-    @join.group(name='raw')
-    @commands.is_owner()
-    async def raw_invite(self, ctx):
-        """Returns the raw oauth url, to change permissions and scopes when needed."""
-        await ctx.send(f'<{discord.utils.oauth_url(self.bot.client_id, discord.Permissions(administrator=True))}>')
 
     @join.error
     async def join_error(self, ctx, error):
