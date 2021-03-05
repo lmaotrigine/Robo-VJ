@@ -62,7 +62,7 @@ class DBL(commands.Cog):
         payload = json.dumps({
             'server_count': guild_count
         })
-        url = f'{DISCORD_BOTS_API}/bot/{self.bot.user.id}'
+        url = f'{DISCORD_BOATS_API}/bot/{self.bot.user.id}'
         async with self.bot.session.post(url, data=payload, headers=headers) as resp:
             log.info(f'discord.boats API returned {resp.status} for {payload}.')
 
