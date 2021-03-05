@@ -478,7 +478,7 @@ class Meta(commands.Cog):
         embed = discord.Embed(colour=discord.Colour.blurple())
         embed.description = f'To add me to your server, please ensure it meets the following requirements:\n' \
                             f'```\n- Has at least 10 human members.\n' \
-                            f'  - Servers smaller than this won\'t find me too useful.' \
+                            f'  - Servers smaller than this won\'t find me too useful.\n' \
                             f'- Has more humans than bots.\n' \
                             f'  - Bot collection servers are frowned upon.\n```\n' \
                             f'If you want to add me to a server that does not meet these requirements, make your ' \
