@@ -1,6 +1,7 @@
 import discord
 import base64
 import datetime
+import itertools
 import random
 from discord.ext import commands
 from collections import namedtuple
@@ -145,6 +146,44 @@ class Miscellaneous(commands.Cog):
         embed = discord.Embed.from_dict(embed_dict)
         embed.set_footer(text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar_url)
         await ctx.reply(embed=embed)
+
+    @commands.command(aliases=['find_type', 'findtypes', 'idtype', 'id_type', 'idtypes'])
+    @commands.cooldown(1, 60, commands.BucketType.user)
+    async def findtype(self, ctx, id: discord.Object):
+        """Try to find the type of an ID."""
+        bot = self.bot
+
+        async def found_message(type_id):
+            await ctx.send(embed=discord.Embed(title='Type Finder',
+                                               description=f'**ID:** `{id.id}`\n'
+                                                           f'**Type:** `{type_id.capitalize()}`\n'
+                                                           f'**Created:** `{id.created_at}`'))
+
+        async def find(w, t):
+            try:
+                method = getattr(bot, f'{w}_{t}')
+                if result := await discord.utils.maybe_coroutine(method, id.id):
+                    return result is not None
+            except discord.Forbidden:
+                return ('fetch', 'guild') != (w, t)
+            except (discord.NotFound, AttributeError):
+                pass
+
+        m = await bot.http._HTTPClient__session.get(f'https://cdn.discordapp.com/emojis/{id.id}')
+        if m.status == 200:
+            return await found_message('emoji')
+
+        try:
+            await commands.MessageConverter().convert(ctx, str(id.id))
+        except commands.MessageNotFound:
+            pass
+        else:
+            return await found_message('message')
+
+        for way, type_obj in itertools.product(('get', 'fetch'), ('channel', 'user', 'webhook', 'guild')):
+            if await find(way, type_obj):
+                return await found_message(type_obj)
+        await ctx.reply('idk')
 
 
 def setup(bot):
