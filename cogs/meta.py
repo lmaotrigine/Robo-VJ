@@ -487,12 +487,43 @@ class Meta(commands.Cog):
                             f'your liking. The bot needs no additional permissions to perform actions than what ' \
                             f'Discord requires it to have. No commands require the bot to have more permissions than ' \
                             f'necessary. The link will be updated once the exact permissions requirements has been ' \
-                            f'identified and stabilised.'
+                            f'identified and stabilised.\n\nYou can use `{ctx.prefix}{ctx.command} min` to get a ' \
+                            f'link with the current minimum requirements, though this can change.'
         embed.add_field(name='Invite link', value=discord.utils.oauth_url(self.bot.client_id,
                                                                           discord.Permissions(administrator=True)))
         embed.set_author(name=self.bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name,
                          icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
+
+    @join.command(name='min')
+    async def join_min(self, ctx):
+        """Sends an invite link with the current minimum permissions requirements to function completely."""
+        permissions = discord.Permissions(
+            view_audit_log=True,
+            manage_guild=True,
+            manage_roles=True,
+            manage_channels=True,
+            kick_members=True,
+            ban_members=True,
+            change_nickname=True,
+            manage_nicknames=True,
+            manage_emojis=True,
+            manage_webhooks=True,
+            read_messages=True,
+            send_messages=True,
+            manage_messages=True,
+            embed_links=True,
+            attach_files=True,
+            read_message_history=True,
+            use_external_emojis=True,
+            add_reactions=True,
+            connect=True,
+            speak=True,
+            mute_members=True,
+            deafen_members=True,
+            move_members=True
+        )
+        return await ctx.send(f'<{discord.utils.oauth_url(self.bot.client_id, permissions)}>')
 
     @join.error
     async def join_error(self, ctx, error):
