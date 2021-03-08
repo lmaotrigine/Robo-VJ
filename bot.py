@@ -1,4 +1,4 @@
-__version__ = "10.0.0"
+__version__ = "10.1.0"
 __author__ = "Varun J"
 
 import aiohttp
@@ -57,6 +57,7 @@ initial_extensions = {
     'cogs.misc',
     'cogs.mod',
     'cogs.music',
+    'cogs.my_api',
     'cogs.my_quiz',
     'cogs.poll',
     'cogs.pronouns',
