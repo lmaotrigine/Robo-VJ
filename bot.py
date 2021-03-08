@@ -33,6 +33,7 @@ initial_extensions = {
     'cogs.bots',
     'cogs.bottom',
     'cogs.buttons',
+    'cogs.cdn_upload',
     'cogs.chess',
     'cogs.code',
     'cogs.config',
