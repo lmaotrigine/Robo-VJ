@@ -123,7 +123,7 @@ class RTFX(commands.Cog):
             async with self.bot.session.get(page + '/objects.inv') as resp:
                 if resp.status != 200:
                     raise RuntimeError(
-                        'Cannot build rtfm lookup table, try again later.')
+                        'Cannot build rtfm lookup table, try again later. Code {} page {}'.format(resp.status, resp.url))
 
                 stream = SphinxObjectFileReader(await resp.read())
                 cache[key] = self.parse_object_inv(stream, page)
@@ -132,14 +132,14 @@ class RTFX(commands.Cog):
 
     async def do_rtfm(self, ctx, key, obj):
         page_types = {
-            'discord.py': 'https://discordpy.readthedocs.io/en/latest/',
-            'discord.py-jp': 'https://discordpy.readthedocs.io/ja/latest/',
+            'discord.py': 'https://discordpy.readthedocs.io/en/latest',
+            'discord.py-jp': 'https://discordpy.readthedocs.io/ja/latest',
             'python': 'https://docs.python.org/3',
             'python-jp': 'https://docs.python.org/ja/3',
-            'asyncpg': 'https://magicstack.github.io/asyncpg/current/',
-            'twitchio': 'https://twitchio.readthedocs.io/en/rewrite/',
-            'aiohttp': 'https://docs.aiohttp.org/en/stable/',
-            'wavelink': 'https://wavelink.readthedocs.io/en/latest/'
+            'asyncpg': 'https://magicstack.github.io/asyncpg/current',
+            'twitchio': 'https://twitchio.readthedocs.io/en/latest',
+            'aiohttp': 'https://docs.aiohttp.org/en/stable',
+            'wavelink': 'https://wavelink.readthedocs.io/en/latest'
         }
 
         if obj is None:
