@@ -110,18 +110,18 @@ class Naarivad(commands.Cog):
     @is_admin()
     async def notify(self, ctx, post_id: PostConverter):
         try:
-            await ctx.db.execute('INSERT INTO naarivad_posts (id, languages) VALUES ($1, $2);', post_id.id, [])
+            await ctx.db.execute('INSERT INTO naarivad_posts (id, translated_into) VALUES ($1, $2);', post_id.id, [])
         except asyncpg.UniqueViolationError:
             return await ctx.send('This post already exists in the database.')
         await ctx.send(ctx.tick(True))
 
     async def update(self, post):
         async with self.bot.pool.acquire() as con:
-            query = "SELECT languages FROM naarivad_posts WHERE id = $1;"
+            query = "SELECT translated_into FROM naarivad_posts WHERE id = $1;"
             langs = await con.fetchrow(query, post.id)
             if post.language not in langs:
                 langs.append(post.language)
-            query = 'UPDATE naarivad_posts SET languages = $1 WHERE id = $2;'
+            query = 'UPDATE naarivad_posts SET translated_into = $1 WHERE id = $2;'
             await con.execute(query, langs, post.id)
 
 
