@@ -115,6 +115,8 @@ class Naarivad(commands.Cog):
     async def notify(self, ctx, *post_urls: PostConverter):
         """Add the ID of an uploaded post to the database so that translation auto-uploads validate for it.
 
+        This takes an arbitrary number of valid Instagram URLs.
+
         Any post that is not notified to the bot through this command will not pass the filename validator and uploads
         of translations will fail.
         """
