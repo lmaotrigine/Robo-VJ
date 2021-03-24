@@ -31,19 +31,7 @@ class PostConverter(commands.Converter):
         _id = argument
         if match := URL_REGEX.match(argument):
             _id = match.group('id')
-        if await cls.validate_id(ctx.bot, _id):
-            return cls(_id)
-
-    @classmethod
-    async def validate_id(cls, bot, _id):
-        rec = await bot.pool.fetchrow('SELECT * FROM naarivad_posts WHERE id = $1;', _id)
-        if not rec:
-            url = f'https://instagram.com/naarivad.in/p/{_id}'
-            async with bot.session.get(url) as resp:
-                if resp.status == 200:
-                    raise commands.BadArgument(f'The post `{_id}` was found, but not added to the database. Take this '
-                                               f'up with the admins.')
-        return True
+        return cls(_id)
 
 
 class FileConverter(PostConverter):
@@ -55,6 +43,17 @@ class FileConverter(PostConverter):
         if await cls.validate_id(ctx.bot, _id):
             return cls(_id, language)
         raise commands.BadArgument(f'Filename `{argument}` is not valid.')
+
+    @classmethod
+    async def validate_id(cls, bot, _id):
+        rec = await bot.pool.fetchrow('SELECT * FROM naarivad_posts WHERE id = $1;', _id)
+        if not rec:
+            url = f'https://instagram.com/naarivad.in/p/{_id}'
+            async with bot.session.get(url) as resp:
+                if resp.status == 200:
+                    raise commands.BadArgument(f'The post `{_id}` was found, but not added to the database. Take this '
+                                               f'up with the admins.')
+        return True
 
 
 class NaarivadPosts(db.Table, table_name='naarivad_posts'):
