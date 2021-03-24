@@ -72,7 +72,7 @@ class Naarivad(commands.Cog):
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
-            return await ctx.send('Only page admins can run this command.')
+            return
         if isinstance(error, commands.MissingRequiredArgument):
             return await ctx.send(str(error))
         if isinstance(error, commands.BadArgument):
