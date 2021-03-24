@@ -27,12 +27,10 @@ class PostConverter(commands.Converter):
         self.language = language
 
     async def convert(self, ctx, argument):
-        self.id = argument
         if match := URL_REGEX.match(argument):
             self.id = match.group('id')
-        async with ctx.bot.session.get(f'https://instagram.com/p/{self.id}') as resp:
-            if resp.status == 404:
-                raise commands.BadArgument(f'The post ID {self.id} is invalid.')
+        else:
+            raise commands.BadArgument('This is not a valid Instagram post URL.')
         return self
 
 
@@ -114,13 +112,13 @@ class Naarivad(commands.Cog):
 
     @commands.command(name='notify_upload')
     @is_admin()
-    async def notify(self, ctx, *post_ids: PostConverter):
+    async def notify(self, ctx, *post_urls: PostConverter):
         """Add the ID of an uploaded post to the database so that translation auto-uploads validate for it.
 
         Any post that is not notified to the bot through this command will not pass the filename validator and uploads
         of translations will fail.
         """
-        for post_id in post_ids:
+        for post_id in post_urls:
             try:
                 await ctx.db.execute('INSERT INTO naarivad_posts (id, translated_into) VALUES ($1, $2);', post_id.id, [])
             except asyncpg.UniqueViolationError:
