@@ -10,7 +10,7 @@ UPLOADS_ID = 824236694210478121
 ADMINS_ID = 824321929812508724
 
 FILE_REGEX = re.compile(r'^(?P<id>\w+)_(?P<language>TA|UR|HI|BN|KA|PA)\.(?P<extension>pdf|odt|doc|docx)$')
-URL_REGEX = re.compile(r'^<?https?://(www\.)?instagram\.com/p/(?P<id>[^\W/]+)/?>?$')
+URL_REGEX = re.compile(r'^<?https?://(www\.)?instagram\.com/(naarivad\.in/)?p/(?P<id>[^\W/]+)/?>?$')
 
 
 def is_admin():
