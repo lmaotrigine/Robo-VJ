@@ -40,12 +40,9 @@ class PostConverter(commands.Converter):
         if not rec:
             url = f'https://instagram.com/naarivad.in/p/{_id}'
             async with bot.session.get(url) as resp:
-                if resp.status == 200 and resp.url == url:
+                if resp.status == 200:
                     raise commands.BadArgument(f'The post `{_id}` was found, but not added to the database. Take this '
                                                f'up with the admins.')
-                else:
-                    raise commands.BadArgument(f'The post `{_id}` does not seem to be valid, or belong to the right '
-                                               f'account. Make sure you copied the right ID.')
         return True
 
 
