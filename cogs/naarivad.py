@@ -58,7 +58,7 @@ class FileConverter(PostConverter):
 
 class NaarivadPosts(db.Table, table_name='naarivad_posts'):
     id = db.Column(db.String, primary_key=True)
-    translated_into = db.Array(db.String(length=3))
+    translated_into = db.Column(db.Array(db.String(length=3)))
 
 
 class Naarivad(commands.Cog):
