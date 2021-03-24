@@ -12,8 +12,9 @@ ADMINS_ID = 0
 FILE_REGEX = re.compile(r'^(?P<id>\w+)_(?P<language>TA|UR|HI|BN|KA|PA)\.(?P<extension>pdf|odt|doc|docx)$')
 URL_REGEX = re.compile(r'^https?://(www\.)?instagram\.com/p/(?P<id>[^\W/]+)/?$')
 
+
 def is_admin():
-    def predicate(ctx):
+    async def predicate(ctx):
         if await ctx.bot.is_owner(ctx.author):
             return True
         return ctx.author._roles.has(ADMINS_ID)
