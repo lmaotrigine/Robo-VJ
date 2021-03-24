@@ -3,11 +3,11 @@ import discord
 from discord.ext import commands
 import re
 
-GUILD_ID = 0
-UPLOADS_ID = 0
+GUILD_ID = 824219708827369512
+UPLOADS_ID = 824236694210478121 
 ADMINS_ID = 0
 
-FILE_REGEX = re.compile(r'^(?P<id>\w+)_(?P<language>TA|UR|HI|BN|KA)\.(?P<extension>pdf|odt|doc|docx)$')
+FILE_REGEX = re.compile(r'^(?P<id>\w+)_(?P<language>TA|UR|HI|BN|KA|PA)\.(?P<extension>pdf|odt|doc|docx)$')
 
 
 class Naarivad(commands.Cog):

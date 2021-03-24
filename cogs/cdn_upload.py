@@ -15,7 +15,7 @@ class Upload(commands.Cog):
             return
         if not message.attachments:
             return
-        if not message.attachments[0].filename.endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif')):
+        if not message.attachments[0].filename.endswith(('.pdf', '.mp4', '.png', '.jpg', '.jpeg', '.webp', '.gif')):
             return
         bytes_ = await message.attachments[0].read()
         headers = {'Authorization': self.bot.config.cdn_upload_token}
