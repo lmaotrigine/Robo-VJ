@@ -30,6 +30,9 @@ class PostConverter(commands.Converter):
         self.id = argument
         if match := URL_REGEX.match(argument):
             self.id = match.group('id')
+        async with ctx.bot.session.get(f'https://instagram.com/p/{self.id}') as resp:
+            if resp.status == 404:
+                raise commands.BadArgument(f'The post ID {self.id} is invalid.')
         return self
 
 
@@ -52,6 +55,8 @@ class FileConverter(PostConverter):
                 if resp.status == 200:
                     raise commands.BadArgument(f'The post `{_id}` was found, but not added to the database. Take this '
                                                f'up with the admins.')
+                else:
+                    raise commands.BadArgument(f'The post `{_id}` was not found. Check the ID once again.')
         return True
 
 
