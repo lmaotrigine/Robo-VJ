@@ -77,6 +77,8 @@ class Naarivad(commands.Cog):
 
     @commands.Cog.listener('on_message')
     async def auto_upload(self, message):
+        if message.author.bot:
+            return
         if message.guild is None or message.guild.id != GUILD_ID:
             return
         if message.channel.id != UPLOADS_ID:
