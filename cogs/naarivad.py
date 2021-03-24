@@ -26,26 +26,25 @@ class PostConverter(commands.Converter):
         self.id = id
         self.language = language
 
-    @classmethod
-    async def convert(cls, ctx, argument):
-        _id = argument
+    async def convert(self, ctx, argument):
+        self.id = argument
         if match := URL_REGEX.match(argument):
-            _id = match.group('id')
-        return cls(_id)
+            self.id = match.group('id')
+        return self
 
 
 class FileConverter(PostConverter):
-    @classmethod
-    async def convert(cls, ctx, argument):
+    async def convert(self, ctx, argument):
         if match := FILE_REGEX.match(argument):
             _id = match.group('id')
             language = match.group('language')
-        if await cls.validate_id(ctx.bot, _id):
-            return cls(_id, language)
+        if await self.validate_id(ctx.bot, _id):
+            self.id = _id
+            self.language = language
+            return self
         raise commands.BadArgument(f'Filename `{argument}` is not valid.')
 
-    @classmethod
-    async def validate_id(cls, bot, _id):
+    async def validate_id(self, bot, _id):
         rec = await bot.pool.fetchrow('SELECT * FROM naarivad_posts WHERE id = $1;', _id)
         if not rec:
             url = f'https://instagram.com/naarivad.in/p/{_id}'
