@@ -7,7 +7,7 @@ from .utils import db
 
 GUILD_ID = 824219708827369512
 UPLOADS_ID = 824236694210478121 
-ADMINS_ID = 0
+ADMINS_ID = 824321929812508724
 
 FILE_REGEX = re.compile(r'^(?P<id>\w+)_(?P<language>TA|UR|HI|BN|KA|PA)\.(?P<extension>pdf|odt|doc|docx)$')
 URL_REGEX = re.compile(r'^https?://(www\.)?instagram\.com/p/(?P<id>[^\W/]+)/?$')
