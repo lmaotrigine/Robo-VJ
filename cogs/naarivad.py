@@ -86,7 +86,7 @@ class Naarivad(commands.Cog):
         statuses = {}
         for attachment in message.attachments:
             try:
-                post = await FileConverter.convert(await self.bot.get_context(message), attachment.filename)
+                post = await FileConverter().convert(await self.bot.get_context(message), attachment.filename)
             except commands.BadArgument as e:
                 await message.channel.send(f'{e}. Skipping upload.')
                 continue
