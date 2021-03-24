@@ -118,7 +118,7 @@ class Naarivad(commands.Cog):
     async def update(self, post):
         async with self.bot.pool.acquire() as con:
             query = "SELECT translated_into FROM naarivad_posts WHERE id = $1;"
-            langs = await con.fetchrow(query, post.id)
+            langs = await con.fetchval(query, post.id)
             if post.language not in langs:
                 langs.append(post.language)
             query = 'UPDATE naarivad_posts SET translated_into = $1 WHERE id = $2;'
