@@ -138,7 +138,7 @@ class Naarivad(commands.Cog):
         for record in records:
             text = f'**<https://instagram.com/p/{record["id"]}>:**\n'
             if record['translated_into']:
-                text += ", ".join(record["translated_to"])
+                text += ", ".join(record["translated_into"])
             else:
                 text += 'None'
             res.append(text)
