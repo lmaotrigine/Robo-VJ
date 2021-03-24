@@ -131,6 +131,17 @@ class Naarivad(commands.Cog):
             query = 'UPDATE naarivad_posts SET translated_into = $1 WHERE id = $2;'
             await con.execute(query, langs, post.id)
 
+    @commands.command()
+    async def status(self, ctx):
+        records = await ctx.db.fetch("SELECT * FROM naarivad_posts;")
+        res = []
+        for record in records:
+            text = f'**<https://instagram.com/p/{record["id"]}>:**\n{", ".join(record["translated_to"])}'
+            res.append(text)
+        embed = discord.Embed(colour=discord.Colour.blurple(), title='Completed Translations')
+        embed.description = '\n\n'.join(res)
+        await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Naarivad(bot))
