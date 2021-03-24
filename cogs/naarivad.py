@@ -22,7 +22,7 @@ def is_admin():
 
 
 class PostConverter(commands.Converter):
-    def __init__(self, _id, language=None):
+    def __init__(self, _id=None, language=None):
         self.id = id
         self.language = language
 
