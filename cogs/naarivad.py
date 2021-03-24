@@ -136,7 +136,11 @@ class Naarivad(commands.Cog):
         records = await ctx.db.fetch("SELECT * FROM naarivad_posts;")
         res = []
         for record in records:
-            text = f'**<https://instagram.com/p/{record["id"]}>:**\n{", ".join(record["translated_to"])}'
+            text = f'**<https://instagram.com/p/{record["id"]}>:**\n'
+            if record['translated_into']:
+                text += ", ".join(record["translated_to"])
+            else:
+                text += 'None'
             res.append(text)
         embed = discord.Embed(colour=discord.Colour.blurple(), title='Completed Translations')
         embed.description = '\n\n'.join(res)
