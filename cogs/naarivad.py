@@ -107,11 +107,12 @@ class Naarivad(commands.Cog):
 
     @commands.command(name='notify_upload')
     @is_admin()
-    async def notify(self, ctx, post_id: PostConverter):
-        try:
-            await ctx.db.execute('INSERT INTO naarivad_posts (id, translated_into) VALUES ($1, $2);', post_id.id, [])
-        except asyncpg.UniqueViolationError:
-            return await ctx.send('This post already exists in the database.')
+    async def notify(self, ctx, *post_ids: PostConverter):
+        for post_id in post_ids:
+            try:
+                await ctx.db.execute('INSERT INTO naarivad_posts (id, translated_into) VALUES ($1, $2);', post_id.id, [])
+            except asyncpg.UniqueViolationError:
+                await ctx.send(f'The post {post_id.id} already exists in the database. Skipping.')
         await ctx.send(ctx.tick(True))
 
     async def update(self, post):
