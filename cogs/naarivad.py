@@ -89,7 +89,7 @@ class Naarivad(commands.Cog):
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CheckFailure):
-            return await ctx.send('Only page admins can run this command.')
+            return
         if isinstance(error, commands.MissingRequiredArgument):
             return await ctx.send(str(error))
         if isinstance(error, commands.BadArgument):
@@ -127,7 +127,7 @@ class Naarivad(commands.Cog):
             await self.update(post)
         return stat
 
-    @commands.command(name='notify_upload')
+    @commands.command(aliases=['notify_upload'])
     @is_admin()
     async def notify(self, ctx, *post_urls: PostConverter):
         """Add the ID of an uploaded post to the database so that translation auto-uploads validate for it.
@@ -138,6 +138,8 @@ class Naarivad(commands.Cog):
         of translations will fail.
         """
         posts = list(post_urls)
+        if not post_urls:
+            return await ctx.send_help(ctx.command)
         for post_id in post_urls:
             try:
                 await ctx.db.execute('INSERT INTO naarivad_posts (id, translated_into) VALUES ($1, $2);', post_id.id, [])
@@ -159,6 +161,7 @@ class Naarivad(commands.Cog):
 
     @commands.command()
     async def status(self, ctx):
+        """Fetch translation status of posts in the database."""
         records = await ctx.db.fetch("SELECT * FROM naarivad_posts;")
         res = []
         for record in records:
