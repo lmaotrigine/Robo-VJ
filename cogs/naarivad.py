@@ -110,7 +110,7 @@ class Naarivad(commands.Cog):
             await self.update(post)
         return stat
 
-    @commands.command(name='notify_upload')
+    @commands.command(aliases=['notify_upload'])
     @is_admin()
     async def notify(self, ctx, *post_urls: PostConverter):
         """Add the ID of an uploaded post to the database so that translation auto-uploads validate for it.
@@ -120,6 +120,8 @@ class Naarivad(commands.Cog):
         Any post that is not notified to the bot through this command will not pass the filename validator and uploads
         of translations will fail.
         """
+        if not post_urls:
+            return await ctx.send_help(ctx.command)
         for post_id in post_urls:
             try:
                 await ctx.db.execute('INSERT INTO naarivad_posts (id, translated_into) VALUES ($1, $2);', post_id.id, [])
