@@ -146,8 +146,9 @@ class Naarivad(commands.Cog):
             except asyncpg.UniqueViolationError:
                 await ctx.send(f'The post {post_id.id} already exists in the database. Skipping.')
                 posts.remove(post_id)
-        await ctx.send(f'{ctx.tick(True)} post{"s" if len(posts) != 1 else ""} have been updated in the database\n'
-                       f'{chr(10).join(f"https://instagram.com/p/{post_url}" for post_url in posts)}\n'
+        await ctx.send(f'{ctx.tick(True)} post{"s" if len(posts) != 1 else ""} ha{"ve" if len(posts) != 1 else "s"} '
+                       f'been updated in the database\n'
+                       f'{chr(10).join(f"https://instagram.com/p/{post_url.id}" for post_url in posts)}\n'
                        f'<@&{TRANSLATORS_ID}>')
 
     async def update(self, post):
