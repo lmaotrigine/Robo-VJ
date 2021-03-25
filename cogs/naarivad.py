@@ -8,6 +8,7 @@ from .utils import db
 GUILD_ID = 824219708827369512
 UPLOADS_ID = 824236694210478121 
 ADMINS_ID = 824321929812508724
+TRANSLATORS_ID = 824583293562388500
 
 FILE_REGEX = re.compile(r'^(?P<id>\w+)_(?P<language>TA|UR|HI|BN|KA|PA)\.(?P<extension>pdf|odt|doc|docx)$')
 URL_REGEX = re.compile(r'^<?https?://(www\.)?instagram\.com/(naarivad\.in/)?p/(?P<id>[^\W/]+)/?>?$')
@@ -18,6 +19,22 @@ def is_admin():
         if await ctx.bot.is_owner(ctx.author):
             return True
         return ctx.author._roles.has(ADMINS_ID)
+    return commands.check(predicate)
+
+
+def is_translator():
+    async def predicate(ctx):
+        if await ctx.bot.is_owner(ctx.author):
+            return True
+        return ctx.author._roles.has(TRANSLATORS_ID)
+    return commands.check(predicate)
+
+
+def is_translator_or_admin():
+    async def predicate(ctx):
+        if await ctx.bot.is_owner(ctx.author):
+            return True
+        return ctx.author._roles.has(TRANSLATORS_ID) or ctx.author._roles.has(ADMINS_ID)
     return commands.check(predicate)
 
 
@@ -120,12 +137,16 @@ class Naarivad(commands.Cog):
         Any post that is not notified to the bot through this command will not pass the filename validator and uploads
         of translations will fail.
         """
+        posts = list(post_urls)
         for post_id in post_urls:
             try:
                 await ctx.db.execute('INSERT INTO naarivad_posts (id, translated_into) VALUES ($1, $2);', post_id.id, [])
             except asyncpg.UniqueViolationError:
                 await ctx.send(f'The post {post_id.id} already exists in the database. Skipping.')
-        await ctx.send(ctx.tick(True))
+                posts.remove(post_id)
+        await ctx.send(f'{ctx.tick(True)} post{"s" if len(posts) != 1 else ""} have been updated in the database\n'
+                       f'{chr(10).join(f"https://instagram.com/p/{post_url}" for post_url in posts)}\n'
+                       f'<@&{TRANSLATORS_ID}>')
 
     async def update(self, post):
         async with self.bot.pool.acquire() as con:
