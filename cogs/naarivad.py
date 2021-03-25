@@ -140,6 +140,7 @@ class Naarivad(commands.Cog):
 
     @commands.command()
     async def status(self, ctx):
+        """Fetch translation status of posts in the database."""
         records = await ctx.db.fetch("SELECT * FROM naarivad_posts;")
         res = []
         for record in records:
