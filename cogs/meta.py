@@ -487,7 +487,7 @@ class Meta(commands.Cog):
                             f'your liking. The bot needs no additional permissions to perform actions than what ' \
                             f'Discord requires it to have. No commands require the bot to have more permissions than ' \
                             f'necessary. The link will be updated once the exact permissions requirements has been ' \
-                            f'identified and stabilised.\n\nYou can use `{ctx.prefix}{ctx.command} min` to get a ' \
+                            f'identified and stabilised.\n\nYou can use `{ctx.prefix}{ctx.invoked_with} min` to get a ' \
                             f'link with the current minimum requirements, though this can change.'
         embed.add_field(name='Invite link', value=discord.utils.oauth_url(self.bot.client_id,
                                                                           discord.Permissions(administrator=True)))
