@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 BASE_URL = 'https://kanjiapi.dev/v1'
 HIRAGANA = 'あいうえおかきくけこがぎぐげごさしすせそざじずぜぞたちつてとだぢづでどなにぬねのはひふへほばびぶべぼぱぴぷぺぽまみむめもやゆよらりるれろわを'
 KATAKANA = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポ'
-JISHO_WORDS_URL = 'https://jisho.org.api/v1/search/words'
+JISHO_WORDS_URL = 'https://jisho.org/api/v1/search/words'
 JISHO_KANJI_URL = 'https://jisho.org/api/v1/search/{}%23kanji'
 JISHO_REPLACEMENTS = {
     'english_definitions': 'Definitions',
