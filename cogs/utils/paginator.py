@@ -4,8 +4,8 @@ from discord.ext.commands import Paginator as CommandPaginator, CommandError
 from discord.ext import menus
 
 class RoboPages(menus.MenuPages):
-    def __init__(self, source):
-        super().__init__(source=source, check_embeds=True)
+    def __init__(self, source,  **kwargs):
+        super().__init__(source=source, check_embeds=True, **kwargs)
         self.input_lock = asyncio.Lock()
 
     async def finalize(self, timed_out):

@@ -6,19 +6,20 @@ import discord
 from discord.ext import commands
 import googletrans
 import io
-from typing import Optional
+from typing import Optional, List
 import random
 import re
 import d20
-from PIL import Image, ImageFont, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 import shlex
 import textwrap
 import time
 import json
 from typing import Union
 from .utils.dice import PersistentRollContext, VerboseMDStringifier
-from .utils import checks, languages
+from .utils import checks, languages, formats
 from .utils.config import Config
+from functools import partial
 
 
 class Arguments(ArgumentParser):
@@ -461,51 +462,6 @@ class Funhouse(commands.Cog):
         if isinstance(error, OCRError):
             await ctx.send(error)
 
-    @staticmethod
-    def process_typeracer(buffer, wrapped_text):
-        font = ImageFont.truetype('data/fonts/monoid.ttf', size=30)
-        text = '\n'.join(wrapped_text)
-        w, h = font.getsize(text)
-        with Image.new('RGB', (525, h * len(wrapped_text))) as base:
-            canvas = ImageDraw.Draw(base)
-            canvas.multiline_text((5, 5), text, font=font)
-            base.save(buffer, 'PNG', optimize=True)
-        buffer.seek(0)
-
-    @commands.command(aliases=['tr'])
-    async def typeracer(self, ctx):
-        """Typeracer. Compete with others.
-
-        Returns: Average WPM of the winner, time spent to type, and original text.
-        """
-        buffer = io.BytesIO()
-        async with ctx.session.get('https://type.fit/api/quotes') as resp:
-            quote = json.loads(await resp.read())
-        to_wrap = random.choice(quote)['text']
-        wrapped_text = textwrap.wrap(to_wrap, 30)
-        await ctx.bot.loop.run_in_executor(None, self.process_typeracer, buffer, wrapped_text)
-        embed = discord.Embed(title='typeracer', description='See who is the fastest at typing.')
-        embed.set_footer(text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar_url)
-        embed.set_image(url='attachment://typeracer.png')
-        race = await ctx.send(file=discord.File(buffer, 'typeracer.png'), embed=embed)
-        start = time.time()
-        try:
-            msg = await self.bot.wait_for('message', check=lambda m: m.content == to_wrap, timeout=60.0)
-            if not msg:
-                return
-            end = time.time()
-            final = round(end - start, 2)
-            wpm = len(to_wrap.split()) * (60.0 / final)
-            await ctx.send(embed=discord.Embed(title=f'{ctx.author.display_name} won!',
-                                               description=f'**Done in**: {final}s\n'
-                                                           f'**Average WPM**: {round(wpm)} words\n'
-                                                           f'**Original text**:```diff\n+ {to_wrap}\n```'))
-        except asyncio.TimeoutError:
-            try:
-                await race.delete()
-            except discord.HTTPException:
-                pass
-
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         if payload.guild_id in self.bot.blocklist or payload.user_id in self.bot.blocklist:
@@ -573,6 +529,92 @@ class Funhouse(commands.Cog):
         except KeyError:
             return await ctx.send('React to translate is not disabled for this channel.', delete_after=15.0)
         await ctx.send(ctx.tick(True))
+
+
+    # Typeracer
+    def _draw_words(self, text: str):
+        """."""
+        text = textwrap.fill(text, 25)
+        font = ImageFont.truetype('data/fonts/W6.ttc', 60)
+        padding = 50
+
+        images = [Image.new('RGBA', (1, 1), color=0) for _ in range(2)]
+        for index, (image, colour) in enumerate(zip(images, ((47, 49, 54), 'white'))):
+            draw = ImageDraw.Draw(image)
+            w, h  = draw.multiline_textsize(text, font=font)
+            images[index] = image = image.resize((w + padding, h + padding))
+            draw = ImageDraw.Draw(image)
+            draw.multiline_text((padding / 2, padding / 2), text=text, fill=colour, font=font)
+        background, foreground = images
+        background = background.filter(ImageFilter.GaussianBlur(radius=7))
+        background.paste(foreground, (0, 0), foreground)
+        buf = io.BytesIO()
+        background.save(buf, 'png')
+        buf.seek(0)
+        return buf
+
+    def random_words(self, amount: int) -> List[str]:
+        with open('data/words.txt', 'r') as fp:
+            words = fp.readlines()
+
+        return random.sample(words, amount)
+
+    @commands.command()
+    @commands.cooldown(1, 10, commands.BucketType.channel)
+    @commands.max_concurrency(1, commands.BucketType.channel, wait=False)
+    async def typeracer(self, ctx, amount: int = 5):
+        """Type racing.
+
+        This command will send an image of words of [amount] length.
+        Please type and send this in the same channel to qualify.
+        """
+
+        amount = max(min(amount, 50), 1)
+
+        await ctx.send('Type-racing begins in 5 seconds.')
+        await asyncio.sleep(5)
+
+        words = self.random_words(amount)
+        randomised_words = (' '.join(words)).replace('\n', '').strip().lower()
+
+        func = partial(self._draw_words, randomised_words)
+        image = await ctx.bot.loop.run_in_executor(None, func)
+        file = discord.File(fp=image, filename='typerace.png')
+        await ctx.send(file=file)
+
+        winners = dict()
+        is_ended = asyncio.Event()
+
+        start = time.time()
+
+        def check(message: discord.Message):
+            if (
+                    message.channel == ctx.channel
+                    and not message.author.bot
+                    and message.content.lower() == randomised_words
+                    and message.author not in winners
+            ):
+                winners[message.author] = time.time() - start
+                is_ended.set()
+                ctx.bot.loop.create_task(message.add_reaction(ctx.tick(True)))
+
+        task = ctx.bot.loop.create_task(ctx.bot.wait_for('message', check=check))
+
+        try:
+            await asyncio.wait_for(is_ended.wait(), timeout=60)
+        except asyncio.TimeoutError:
+            await ctx.send('No participants matched the output.')
+        else:
+            await ctx.send('Input accepted... Other players have 10 seconds left.')
+            await asyncio.sleep(10)
+            embed = discord.Embed(title=f'{formats.plural(len(winners)):Winner}', colour=discord.Colour.random())
+            embed.description = '\n'.join(
+                f'{idx}: {person.mention} - {time:.4f} seconds for {amount / time * 60:.2f}WPM'
+                for idx, (person, time) in enumerate(winners.items(), start=1)
+            )
+            await ctx.send(embed=embed)
+        finally:
+            task.cancel()
 
 
 # Probably should've defined this earlier but I have exams now yeet
