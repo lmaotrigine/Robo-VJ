@@ -17,7 +17,7 @@ class API(commands.Cog, command_attrs=dict(hidden=True)):
 
     async def cog_before_invoke(self, ctx):
         if not hasattr(self, 'token_handler'):
-            pool = await asyncpg.create_pool(**ctx.bot.config.api_db)
+            pool = await asyncpg.create_pool(ctx.bot.config.api_db)
             self.token_handler = tokens.TokenUtils(pool)
 
     def cog_unload(self):
