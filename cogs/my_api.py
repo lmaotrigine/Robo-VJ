@@ -1,44 +1,73 @@
 import asyncio
+import asyncpg
 import discord
 import datetime
 import aiohttp
 import bisect
 from discord.ext import commands
+from .utils import tokens
 
 
 class API(commands.Cog, command_attrs=dict(hidden=True)):
     """Cog to wrap around my personal API."""
     BASE = 'https://api.varunj.tk/'
 
+    def __init__(self, bot):
+        self.bot = bot
+
+    async def cog_before_invoke(self, ctx):
+        if not hasattr(self, 'token_handler'):
+            pool = await asyncpg.create_pool(**ctx.bot.config.api_db)
+            self.token_handler = tokens.TokenUtils(pool)
+
+    def cog_unload(self):
+        self.bot.loop.create_task(self.close_db())
+
+    async def close_db(self):
+        await self.token_handler.pool.close()
+
     async def cog_command_error(self, ctx, error):
         if isinstance(error, (commands.MissingRequiredArgument, commands.BadArgument)):
             return await ctx.send_help(ctx.command)
-    
-    @commands.command(aliases=['gest'])
-    async def gestation(self, ctx, *, lmp):
-        """/gestation?lmp=<lmp>"""
-        colours = [discord.Colour.green(), discord.Colour.orange(), discord.Colour.dark_orange(), discord.Colour.red()]
-        async with ctx.session.get(self.BASE + 'gestation', params=dict(lmp=lmp)) as resp:
-            if resp.status >= 500:
-                return await ctx.send('Server is down.')
-            if resp.status == 400:
-                try:
-                    js = await resp.json()
-                except aiohttp.ContentTypeError:
-                    return await ctx.send('Server responded with 400: Bad Request')
-                else:
-                    return await ctx.send(f'{js["message"]}: `{js["parsed_date"]}`')
-            js = await resp.json()
-        
-        embed = discord.Embed(
-                colour=colours[bisect.bisect([15, 28, 40], int(js['gestation_age']))],
-               # timestamp=datetime.datetime.strptime(js['edd'], '%d %b %Y')
-            )
-        embed.add_field(name='Date of last menstrual period', value=js['lmp'], inline=False)
-        embed.add_field(name='Gestation age', value='{0[0]} weeks {0[1]} days'.format(str(js['gestation_age']).split('.')))
-       # embed.set_footer(text='Expected date of delivery')
-        embed.add_field(name='Expected date of delivery', value=js['edd'])
-        await ctx.send(embed=embed)
+
+    @commands.group(name='api_token')
+    @commands.is_owner()
+    async def api_token(self, ctx):
+        if ctx.invoked_subcommand is None:
+            await ctx.send_help(ctx.command)
+
+    @api_token.command(name='new')
+    async def api_token_new(self, ctx, user: discord.User, *, app_name=None):
+        app_name = app_name or f'{user}\'s application'
+        token = await self.token_handler.new_token(user.id, app_name)
+        try:
+            await user.send(f'Your token for `{app_name}` is `{token}`. Do not share this with anyone.')
+        except discord.Forbidden:
+            await ctx.author.send(f'{user}\'s token for `{app_name}`:\n`{token}`')
+
+    @api_token.command(name='regenerate', aliases=['regen'])
+    async def api_token_regenerate(self, ctx, user: discord.User, app_id: int):
+        token = await self.token_handler.regenerate_token(user.id, app_id)
+        try:
+            await user.send(f'Your new token is `{token}`. Do not share this with anyone.')
+        except discord.Forbidden:
+            await ctx.author.send(f'{user}\'s new token for app ID {app_id}:\n`{token}`')
+
+    @api_token.group(name='delete')
+    @commands.is_owner()
+    async def api_token_delete(self, ctx):
+        if ctx.invoked_subcommand is None:
+            await ctx.send_help(ctx.command)
+
+    @api_token_delete.command(name='user')
+    async def api_token_delete_user(self, ctx, user: discord.User):
+        await self.token_handler.delete_user_account(user.id)
+        await ctx.send(ctx.tick(True))
+
+    @api_token_delete.command(name='app', aliases=['application'])
+    async def api_token_delete_app(self, ctx, user: discord.User, app_id: int):
+        await self.token_handler.delete_app(user.id, app_id)
+        await ctx.send(ctx.tick(True))
 
     @commands.command(name='antidepressant-or-tolkien', aliases=['antidepressant-tolkien',
         'drug-or-tolkien', 'drug-tolkien', 'tolkien-or-antidepressant', 'tolkien-or-drug',
@@ -71,5 +100,4 @@ class API(commands.Cog, command_attrs=dict(hidden=True)):
 
 
 def setup(bot):
-    bot.add_cog(API())
-
+    bot.add_cog(API(bot))
