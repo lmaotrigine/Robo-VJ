@@ -33,11 +33,16 @@ class API(commands.Cog, command_attrs=dict(hidden=True)):
     @commands.group(name='api_token')
     @commands.is_owner()
     async def api_token(self, ctx):
+        """Manages tokens used for authorisation on the API."""
         if ctx.invoked_subcommand is None:
             await ctx.send_help(ctx.command)
 
     @api_token.command(name='new')
     async def api_token_new(self, ctx, user: discord.User, *, app_name=None):
+        """Creates a new API token for a user.
+
+        Supports multiple apps per user using the optional app_name parameter.
+        """
         app_name = app_name or f'{user}\'s application'
         token = await self.token_handler.new_token(user.id, app_name)
         try:
@@ -47,6 +52,7 @@ class API(commands.Cog, command_attrs=dict(hidden=True)):
 
     @api_token.command(name='regenerate', aliases=['regen'])
     async def api_token_regenerate(self, ctx, user: discord.User, app_id: int):
+        """Regenerate a token for a specific app."""
         token = await self.token_handler.regenerate_token(user.id, app_id)
         try:
             await user.send(f'Your new token is `{token}`. Do not share this with anyone.')
@@ -56,16 +62,19 @@ class API(commands.Cog, command_attrs=dict(hidden=True)):
     @api_token.group(name='delete')
     @commands.is_owner()
     async def api_token_delete(self, ctx):
+        """Delete tokens for an app, or an entire user account."""
         if ctx.invoked_subcommand is None:
             await ctx.send_help(ctx.command)
 
     @api_token_delete.command(name='user')
     async def api_token_delete_user(self, ctx, user: discord.User):
+        """Deletes all tokens associated with this user account."""
         await self.token_handler.delete_user_account(user.id)
         await ctx.send(ctx.tick(True))
 
     @api_token_delete.command(name='app', aliases=['application'])
     async def api_token_delete_app(self, ctx, user: discord.User, app_id: int):
+        """Delete the token for a particular app."""
         await self.token_handler.delete_app(user.id, app_id)
         await ctx.send(ctx.tick(True))
 
