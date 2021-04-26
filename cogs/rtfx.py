@@ -134,8 +134,8 @@ class RTFX(commands.Cog):
         page_types = {
             'discord.py': 'https://discordpy.readthedocs.io/en/latest',
             'discord.py-jp': 'https://discordpy.readthedocs.io/ja/latest',
-            'master': 'https://discordpy.readthedocs.io/en/master',
-            'master-jp': 'https://discordpy.readthedocs.io/ja/master',
+            'discord.py-master': 'https://discordpy.readthedocs.io/en/master',
+            'discord.py-master-jp': 'https://discordpy.readthedocs.io/ja/master',
             'python': 'https://docs.python.org/3',
             'python-jp': 'https://docs.python.org/ja/3',
             'asyncpg': 'https://magicstack.github.io/asyncpg/current',
@@ -193,12 +193,12 @@ class RTFX(commands.Cog):
     @rtfm.command(name='master', aliases=['2.0'])
     async def rtfm_master(self, ctx, *, obj: str = None):
         """Gives you a documentation link for a discord.py entity (master branch)."""
-        await self.do_rtfm(ctx, 'master', obj)
+        await self.do_rtfm(ctx, 'discord.py-master', obj)
 
     @rtfm.command(name='master-jp', aliases=['2.0-jp'])
     async def rtfm_master_jp(self, ctx, *, obj: str = None):
         """Gives you a documentation link for a discord.py entity (master branch) (Japanese)."""
-        await self.do_rtfm(ctx, 'master-jp', obj)
+        await self.do_rtfm(ctx, 'discord.py-master-jp', obj)
 
     @rtfm.command(name='python', aliases=['py'])
     async def rtfm_python(self, ctx, *, obj: str = None):
