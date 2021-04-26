@@ -83,7 +83,8 @@ class NaarivadPosts(db.Table, table_name='naarivad_posts'):
 class Naarivad(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.webhook = discord.Webhook.partial(*self.bot.config.naarivad_webhook)
+        self.webhook = discord.Webhook.partial(*bot.config.naarivad_webhook,
+                adapter=discord.AsyncWebhookAdapter(session=bot.session))
 
     def cog_check(self, ctx):
         return ctx.guild and ctx.guild.id == GUILD_ID
