@@ -83,6 +83,7 @@ class NaarivadPosts(db.Table, table_name='naarivad_posts'):
 class Naarivad(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.webhook = discord.Webhook.partial(*self.bot.config.naarivad_webhook)
 
     def cog_check(self, ctx):
         return ctx.guild and ctx.guild.id == GUILD_ID
@@ -114,7 +115,7 @@ class Naarivad(commands.Cog):
                 continue
             stat = await self.upload(attachment, post)
             statuses[attachment.filename] = stat
-        await message.channel.send('\n'.join(f'`{key}`: status {val}' for key, val in statuses.items()))
+        await self.webhook.send('\n'.join(f'[`{key}`](https://docs.naarivad.in/{key}): status {val}' for key, val in statuses.items()))
 
     async def upload(self, attachment, post):
         bytes_ = await attachment.read()
