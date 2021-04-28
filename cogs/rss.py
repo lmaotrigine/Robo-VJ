@@ -40,7 +40,7 @@ class RSSEntries(db.Table, table_name='rss.entries'):
 
 
 class RSSErrors(db.Table, table_name='rss.errors'):
-    timestamp = db.Column(db.Time(timezone=True), primary_key=True, default='NOW()')
+    timestamp = db.Column(db.Time(timezone=True), primary_key=True)
     feed = db.Column(db.String)
     type = db.Column(db.String)
     message = db.Column(db.String)
