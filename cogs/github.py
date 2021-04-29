@@ -66,7 +66,7 @@ class Github(commands.Cog):
                     await asyncio.sleep(delta)
                     self._req_lock.release()
                     return await self.github_request(method, url, params=params, data=data, headers=headers)
-                elif 300 > r.status >=200:
+                elif 300 > r.status >= 200:
                     return js
                 else:
                     raise GithubError(js['message'])
@@ -202,7 +202,7 @@ class Github(commands.Cog):
             if 'message' in user_data:
                 return await ctx.send(f'User `{username}` not found.')
 
-            org_data = await self.github_request('GET', user_data['organizations_url'])
+            org_data = await self.github_request('GET', user_data['organizations_url'].replace('https://api.github.com', ''))
             orgs = [f'[{org["login"]}](https://github.com/{org["login"]})' for org in org_data]
             orgs_to_add = ' | '.join(orgs)
 

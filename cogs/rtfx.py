@@ -135,7 +135,7 @@ class RTFX(commands.Cog):
             'discord.py': 'https://discordpy.readthedocs.io/en/latest',
             'discord.py-jp': 'https://discordpy.readthedocs.io/ja/latest',
             'discord.py-master': 'https://discordpy.readthedocs.io/en/master',
-            'discord.py-master-jp': 'https://discordpy.readthedocs.io/ja/master',
+            #'discord.py-master-jp': 'https://discordpy.readthedocs.io/ja/master',
             'python': 'https://docs.python.org/3',
             'python-jp': 'https://docs.python.org/ja/3',
             'asyncpg': 'https://magicstack.github.io/asyncpg/current',
