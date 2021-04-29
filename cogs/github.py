@@ -4,8 +4,12 @@ from cogs.utils.formats import human_join
 import asyncio
 import base64
 import binascii
+import datetime
 import re
+from urllib.parse import quote
 import yarl
+
+from .utils.formats import plural
 
 TOKEN_REGEX = re.compile(r'[a-zA-z0-9_-]{23,28}\.[a-zA-Z0-9_-]{6,7}\.[a-zA-Z0-9_-]{27}')
 ROBO_VJ_GUILD = 746769944774967440
@@ -188,6 +192,92 @@ class Github(commands.Cog):
             await ctx.send("Missing labels to assign.")
         js = await self.edit_issue(number, labels=labels)
         await ctx.send(f'Successfully labelled <{js["html_url"]}>')
+
+    @github.command(name='user', aliases=['userinfo'])
+    async def github_user(self, ctx, username: str):
+        async with ctx.typing():
+            user_data = await self.github_request('GET', f'users/{username}')
+
+            # user_data will not have a 'message' key if the user exists
+            if 'message' in user_data:
+                return await ctx.send(f'User `{username}` not found.')
+
+            org_data = await self.github_request('GET', user_data['organizations_url'])
+            orgs = [f'[{org["login"]}](https://github.com/{org["login"]})' for org in org_data]
+            orgs_to_add = ' | '.join(orgs)
+
+            gists = user_data['public_gists']
+
+            # Forming the blog link
+            if user_data['blog'].startswith('http'):  # Blog link is complete
+                blog = user_data['blog']
+            elif user_data['blog']:  # Blog exists but the link is incomplete
+                blog = f'https://{user_data["blog"]}'
+            else:
+                blog = 'No website link available.'
+
+            embed = discord.Embed(title=f'`{user_data["login"]}`\'s GitHub profile info',
+                                  description=f'```{user_data["bio"]}```\n' if user_data['bio'] is not None else '',
+                                  colour=discord.Colour.blurple(), url=user_data['html_url'],
+                                  timestamp=datetime.datetime.strptime(user_data['created_at'], '%Y-%m-%dT%H:%M:%SZ'))
+            embed.set_thumbnail(url=user_data['avatar_url'])
+            embed.set_footer(text='Account created at')
+
+            if user_data['type'] == 'User':
+                embed.add_field(name='Followers',
+                                value=f'[{user_data["followers"]}]({user_data["html_url"]}?tab-followers)')
+                embed.add_field(name='Following',
+                                value=f'[{user_data["following"]}]({user_data["html_url"]}?tab=following)')
+
+            embed.add_field(name='Public repos',
+                            value=f'[{user_data["public_repos"]}]({user_data["html_url"]}?tab=repositories')
+
+            if user_data['type'] == 'User':
+                embed.add_field(name='Gists', value=f'[{gists}](https://gist.github.com/{quote(username, safe="")})')
+                embed.add_field(name=f'{plural(len(orgs)):Organisation}', value=orgs_to_add if orgs else 'No organisations')
+
+            embed.add_field(name='Website', value=blog)
+
+        await ctx.send(embed=embed)
+
+    @github.command(name='repository', aliases=['repo'], usage='<repo>')
+    async def github_repo(self, ctx, *repo:str):
+        """Fetches a repository's GitHub information.
+
+        The repository should look like `user/reponame` or `user reponame`
+        """
+        repo = '/'.join(repo)
+        if repo.count('/') != 1:
+            return await ctx.send('The repository should look like `user/reponame` or `user reponame`.')
+
+        async with ctx.typing():
+            repo_data = await self.github_request('GET', f'repos/{quote(repo)}')
+
+            # There won't be a 'message' key if this repo exists
+            if 'message' in repo_data:
+                return await ctx.send('The requested repository was not found.')
+
+        embed = discord.Embed(title=repo_data['name'], description=repo_data['description'],
+                              colour=discord.Colour.blurple(), url=repo_data['html_url'])
+
+        # If it's a fork, it will have a 'parent' key
+        try:
+            parent = repo_data['parent']
+            embed.description += f'\n\nForked from [{parent["full_name"]}]({parent["html_url"]})'
+        except KeyError:
+            pass
+
+        repo_owner = repo_data['owner']
+
+        embed.set_author(name=repo_owner['login'], url=repo_owner['html_url'], icon_url=repo_owner['avatar_url'])
+        repo_created_at = datetime.datetime.strptime(repo_data['created_at'], '%Y-%m-%dT%H:%M:%SZ').strftime('%d%m%Y')
+        last_pushed = datetime.datetime.strptime(repo_data['pushed_at'], '%y-%m-%dT%H:%M:%SZ')
+
+        embed.set_footer(text=f'{repo_data["forks_count"]} ⑂ • {repo_data["stargazers_count"]} ⭐ '
+                              f'• Created at {repo_created_at} • Last commit')
+        embed.timestamp = last_pushed
+        await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Github(bot))
