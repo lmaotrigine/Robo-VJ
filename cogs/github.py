@@ -225,7 +225,7 @@ class Github(commands.Cog):
 
             if user_data['type'] == 'User':
                 embed.add_field(name='Followers',
-                                value=f'[{user_data["followers"]}]({user_data["html_url"]}?tab-followers)')
+                                value=f'[{user_data["followers"]}]({user_data["html_url"]}?tab=followers)')
                 embed.add_field(name='Following',
                                 value=f'[{user_data["following"]}]({user_data["html_url"]}?tab=following)')
 
