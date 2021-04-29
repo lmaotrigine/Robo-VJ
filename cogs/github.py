@@ -202,7 +202,7 @@ class Github(commands.Cog):
             if 'message' in user_data:
                 return await ctx.send(f'User `{username}` not found.')
 
-            org_data = await self.github_request('GET', user_data['organizations_url'].replace('https://api.github.com', ''))
+            org_data = await self.github_request('GET', user_data['organizations_url'].replace('https://api.github.com/', ''))
             orgs = [f'[{org["login"]}](https://github.com/{org["login"]})' for org in org_data]
             orgs_to_add = ' | '.join(orgs)
 
