@@ -271,7 +271,7 @@ class Github(commands.Cog):
 
         embed.set_author(name=repo_owner['login'], url=repo_owner['html_url'], icon_url=repo_owner['avatar_url'])
         repo_created_at = datetime.datetime.strptime(repo_data['created_at'], '%Y-%m-%dT%H:%M:%SZ').strftime('%d%m%Y')
-        last_pushed = datetime.datetime.strptime(repo_data['pushed_at'], '%y-%m-%dT%H:%M:%SZ')
+        last_pushed = datetime.datetime.strptime(repo_data['pushed_at'], '%Y-%m-%dT%H:%M:%SZ')
 
         embed.set_footer(text=f'{repo_data["forks_count"]} ⑂ • {repo_data["stargazers_count"]} ⭐ '
                               f'• Created at {repo_created_at} • Last commit')
