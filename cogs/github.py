@@ -230,7 +230,7 @@ class Github(commands.Cog):
                                 value=f'[{user_data["following"]}]({user_data["html_url"]}?tab=following)')
 
             embed.add_field(name='Public repos',
-                            value=f'[{user_data["public_repos"]}]({user_data["html_url"]}?tab=repositories')
+                            value=f'[{user_data["public_repos"]}]({user_data["html_url"]}?tab=repositories)')
 
             if user_data['type'] == 'User':
                 embed.add_field(name='Gists', value=f'[{gists}](https://gist.github.com/{quote(username, safe="")})')
