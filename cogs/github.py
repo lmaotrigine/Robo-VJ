@@ -66,7 +66,7 @@ class Github(commands.Cog):
                     await asyncio.sleep(delta)
                     self._req_lock.release()
                     return await self.github_request(method, url, params=params, data=data, headers=headers)
-                elif 300 > r.status >=200:
+                elif 300 > r.status >= 200:
                     return js
                 else:
                     raise GithubError(js['message'])
@@ -270,7 +270,7 @@ class Github(commands.Cog):
         repo_owner = repo_data['owner']
 
         embed.set_author(name=repo_owner['login'], url=repo_owner['html_url'], icon_url=repo_owner['avatar_url'])
-        repo_created_at = datetime.datetime.strptime(repo_data['created_at'], '%Y-%m-%dT%H:%M:%SZ').strftime('%d%m%Y')
+        repo_created_at = datetime.datetime.strptime(repo_data['created_at'], '%Y-%m-%dT%H:%M:%SZ').strftime('%d/%m/%Y')
         last_pushed = datetime.datetime.strptime(repo_data['pushed_at'], '%Y-%m-%dT%H:%M:%SZ')
 
         embed.set_footer(text=f'{repo_data["forks_count"]} ⑂ • {repo_data["stargazers_count"]} ⭐ '
