@@ -202,7 +202,7 @@ class Github(commands.Cog):
             if 'message' in user_data:
                 return await ctx.send(f'User `{username}` not found.')
 
-            org_data = await self.github_request('GET', user_data['organizations_url'])
+            org_data = await self.github_request('GET', user_data['organizations_url'].replace('https://api.github.com/', ''))
             orgs = [f'[{org["login"]}](https://github.com/{org["login"]})' for org in org_data]
             orgs_to_add = ' | '.join(orgs)
 
@@ -225,12 +225,12 @@ class Github(commands.Cog):
 
             if user_data['type'] == 'User':
                 embed.add_field(name='Followers',
-                                value=f'[{user_data["followers"]}]({user_data["html_url"]}?tab-followers)')
+                                value=f'[{user_data["followers"]}]({user_data["html_url"]}?tab=followers)')
                 embed.add_field(name='Following',
                                 value=f'[{user_data["following"]}]({user_data["html_url"]}?tab=following)')
 
             embed.add_field(name='Public repos',
-                            value=f'[{user_data["public_repos"]}]({user_data["html_url"]}?tab=repositories')
+                            value=f'[{user_data["public_repos"]}]({user_data["html_url"]}?tab=repositories)')
 
             if user_data['type'] == 'User':
                 embed.add_field(name='Gists', value=f'[{gists}](https://gist.github.com/{quote(username, safe="")})')

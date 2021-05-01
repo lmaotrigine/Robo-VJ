@@ -275,12 +275,12 @@ class RSS(commands.Cog):
             except discord.DiscordServerError as e:
                 log.exception(f'RSS Task Discord Server Error: {e}')
                 await asyncio.sleep(60)
-            except Exception as e:
-                print('Exception in RSS task')
-                traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr)
-                log.error('Uncaught RSS task exception\n', exc_info=(type(e), e, e.__traceback__))
-                print(f' (feed: {feed})')
-                await asyncio.sleep(60)
+            #except Exception as e:
+            #    print('Exception in RSS task')
+            #    traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr)
+            #    log.error('Uncaught RSS task exception\n', exc_info=(type(e), e, e.__traceback__))
+            #    print(f' (feed: {feed})')
+            #    await asyncio.sleep(60)
 
     @check_feeds.before_loop
     async def before_check_feeds(self):
