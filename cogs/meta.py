@@ -185,6 +185,7 @@ class Meta(commands.Cog):
     #@commands.is_owner()  # now OSS, not needed
     async def source(self, ctx, *, command: str = None):
         """Displays my full source code or for a specific command on GitHub.
+    
         To display the source code of a subcommand you can separate it by
         periods, e.g. modlog.assign for the assign subcommand of the modlog group,
         or by spaces.
@@ -225,6 +226,13 @@ class Meta(commands.Cog):
 
         final_url = f'<{source_url}/blob/{branch}/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'
         await ctx.send(final_url)
+
+    @commands.command(name='quit', aliases=['restart', 'logout', 'shutdown'], hidden=True)
+    @commands.is_owner()
+    async def _quit(self, ctx):
+        """Quits the bot."""
+        await ctx.send('Logging out now...')
+        await self.bot.close()
 
     @commands.command()
     async def avatar(self, ctx, *, user: Union[discord.Member, discord.User] = None):
