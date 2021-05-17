@@ -1530,7 +1530,7 @@ class Moderation(commands.Cog):
         role = discord.Object(id=ctx.guild_config.mute_role_id)
         total = len(members)
         if total == 0:
-            return await ctx.send('Missing members to mute.')
+            return await ctx.send('Missing members to unmute.')
 
         failed = 0
         for member in members:
