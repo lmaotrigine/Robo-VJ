@@ -106,6 +106,7 @@ class Tools(commands.Cog):
 
     # TODO: Fix/Improve
     @commands.command(aliases=["calc", "calculator"])
+    @commands.is_owner()
     async def calculate(self, ctx, *, equation: str):
         """Calculator"""
         # _equation = re.sub("[^[0-9]+-/*^%\.]", "", equation).replace('^', "**") #words

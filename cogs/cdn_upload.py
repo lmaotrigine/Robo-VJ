@@ -24,7 +24,8 @@ class Upload(commands.Cog):
         async with self.bot.session.post('https://cdn.varunj.me/upload', data=data, headers=headers,
                                          params={'randomise': 'true'}) as resp:
             stat = resp.status
-        await message.channel.send(f'Upload returned `{stat}`.\n<{await resp.read()}>\n{await resp.read()}')
+            url = await resp.text()
+        await message.channel.send(f'Upload returned `{stat}`.\n<{url}>\n{url}')
 
 
 def setup(bot):
