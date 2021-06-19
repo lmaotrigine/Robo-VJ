@@ -21,11 +21,10 @@ class Upload(commands.Cog):
         headers = {'Authorization': self.bot.config.cdn_upload_token}
         data = aiohttp.FormData()
         data.add_field('fileupload', bytes_, filename=message.attachments[0].filename)
-        async with self.bot.session.post('https://cdn.varunj.tk/upload', data=data, headers=headers,
+        async with self.bot.session.post('https://cdn.varunj.me/upload', data=data, headers=headers,
                                          params={'randomise': 'true'}) as resp:
-            redirect = resp.url
             stat = resp.status
-        await message.channel.send(f'Upload returned `{stat}`.\n<{redirect}>\n{redirect}')
+        await message.channel.send(f'Upload returned `{stat}`.\n<{await resp.read()}>\n{await resp.read()}')
 
 
 def setup(bot):
