@@ -16,6 +16,7 @@ ROBO_VJ_GUILD = 746769944774967440
 SUPPORT_CHANNEL = 746770608104144946
 TEST_CHANNEL = 746771342774370354
 
+
 def validate_token(token):
     try:
         # Just check if the first part validates as a User ID
@@ -26,8 +27,26 @@ def validate_token(token):
     else:
         return True
 
+
 class GithubError(commands.CommandError):
     pass
+
+
+class GistContent:
+    def __init__(self, argument: str):
+        try:
+            block, code = argument.split('\n', 1)
+        except ValueError:
+            self.source = argument
+            self.language = None
+        else:
+            if not block.startswith('```') and not code.endswith('```'):
+                self.source = argument
+                self.language = None
+            else:
+                self.language = block[3:]
+                self.source = code.rstrip('`').replace('```', '')
+
 
 class Github(commands.Cog):
     """GitHub API things, mostly just uploading files and tracking issues."""
@@ -277,6 +296,17 @@ class Github(commands.Cog):
                               f'• Created at {repo_created_at} • Last commit')
         embed.timestamp = last_pushed
         await ctx.send(embed=embed)
+
+    @commands.command(name='gist', hidden=True)
+    @commands.is_owner()
+    async def gist(self, ctx, *, content: GistContent):
+        """Posts a gist."""
+        if content.language is None:
+            url = await self.create_gist(content.source, filename='input.md', public=False)
+        else:
+            url = await self.create_gist(content.source, filename=f'input.{content.language}', public=False)
+
+        await ctx.send(f'<{url}>')
 
 
 def setup(bot):
