@@ -10,8 +10,8 @@ UPLOADS_ID = 824236694210478121
 ADMINS_ID = 824321929812508724
 TRANSLATORS_ID = 824583293562388500
 
-FILE_REGEX = re.compile(r'^(?P<id>\w+)_(?P<language>TA|UR|HI|BN|KA|PA)\.(?P<extension>pdf|odt|doc|docx)$')
-URL_REGEX = re.compile(r'^<?https?://(www\.)?instagram\.com/(naarivad\.in/)?p/(?P<id>[^\W/]+)/?>?$')
+FILE_REGEX = re.compile(r'^(?P<id>[A-Za-z0-9\-_]+)_(?P<language>TA|UR|HI|BN|KA|PA)\.(?P<extension>pdf|odt|doc|docx)$')
+URL_REGEX = re.compile(r'^<?https?://(www\.)?instagram\.com/(naarivad\.in/)?p/(?P<id>[A-Za-z0-9_\-]+)/?>?$')
 
 
 def is_admin():
@@ -53,6 +53,7 @@ class PostConverter(commands.Converter):
 
 class FileConverter(PostConverter):
     async def convert(self, ctx, argument):
+        _id = None
         if match := FILE_REGEX.match(argument):
             _id = match.group('id')
             language = match.group('language')
@@ -122,7 +123,7 @@ class Naarivad(commands.Cog):
         bytes_ = await attachment.read()
         headers = {'Authorization': self.bot.config.naarivad_upload_token}
         data = aiohttp.FormData()
-        data.add_field('fileupload', bytes_, filename=attachment.filename)
+        data.add_field('file', bytes_, filename=attachment.filename)
         async with self.bot.session.post('https://docs.naarivad.in/upload', data=data, headers=headers) as resp:
             stat = resp.status
         if stat == 200:
