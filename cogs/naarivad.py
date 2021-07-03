@@ -67,7 +67,8 @@ class FileConverter(PostConverter):
     async def validate_id(self, bot, _id):
         async with bot.session.get(f'https://backend.naarivad.in/{_id}') as r:
             if r.status == 404:
-                return False
+                raise commands.BadArgument(f'Post with ID `{_id}` doesn\'t exist in the database. '
+                                           f'Take this up with admins or VJ.')
         return True
 
 
