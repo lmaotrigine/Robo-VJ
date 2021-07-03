@@ -40,7 +40,7 @@ def is_translator_or_admin():
 
 class PostConverter(commands.Converter):
     def __init__(self, _id=None, language=None):
-        self.id = id
+        self.id = _id
         self.language = language
 
     async def convert(self, ctx, argument):
@@ -54,6 +54,7 @@ class PostConverter(commands.Converter):
 class FileConverter(PostConverter):
     async def convert(self, ctx, argument):
         _id = None
+        language = None
         if match := FILE_REGEX.match(argument):
             _id = match.group('id')
             language = match.group('language')
@@ -64,21 +65,10 @@ class FileConverter(PostConverter):
         raise commands.BadArgument(f'Filename `{argument}` is not valid.')
 
     async def validate_id(self, bot, _id):
-        rec = await bot.pool.fetchrow('SELECT * FROM naarivad_posts WHERE id = $1;', _id)
-        if not rec:
-            url = f'https://instagram.com/naarivad.in/p/{_id}'
-            async with bot.session.get(url) as resp:
-                if resp.status == 200:
-                    raise commands.BadArgument(f'The post `{_id}` was found, but not added to the database. Take this '
-                                               f'up with the admins.')
-                else:
-                    raise commands.BadArgument(f'The post `{_id}` was not found. Check the ID once again.')
+        async with bot.session.get(f'https://backend.naarivad.in/{_id}') as r:
+            if r.status == 404:
+                return False
         return True
-
-
-class NaarivadPosts(db.Table, table_name='naarivad_posts'):
-    id = db.Column(db.String, primary_key=True)
-    translated_into = db.Column(db.Array(db.String(length=3)))
 
 
 class Naarivad(commands.Cog):
@@ -111,23 +101,21 @@ class Naarivad(commands.Cog):
         statuses = {}
         for attachment in message.attachments:
             try:
-                post = await FileConverter().convert(await self.bot.get_context(message), attachment.filename)
+                await FileConverter().convert(await self.bot.get_context(message), attachment.filename)
             except commands.BadArgument as e:
                 await message.channel.send(f'{e}. Skipping upload.')
                 continue
-            stat = await self.upload(attachment, post)
+            stat = await self.upload(attachment)
             statuses[attachment.filename] = stat
         await self.webhook.send('\n'.join(f'[`{key}`](https://docs.naarivad.in/{key}): status {val}' for key, val in statuses.items()))
 
-    async def upload(self, attachment, post):
+    async def upload(self, attachment):
         bytes_ = await attachment.read()
         headers = {'Authorization': self.bot.config.naarivad_upload_token}
         data = aiohttp.FormData()
         data.add_field('file', bytes_, filename=attachment.filename)
         async with self.bot.session.post('https://docs.naarivad.in/upload', data=data, headers=headers) as resp:
             stat = resp.status
-        if stat == 200:
-            await self.update(post)
         return stat
 
     @commands.command(aliases=['notify_upload'])
@@ -141,43 +129,51 @@ class Naarivad(commands.Cog):
         of translations will fail.
         """
         posts = list(post_urls)
+        description = 'Unknown Post'
+        headers = {
+            'Authorization': ctx.bot.config.naarivad_backend_auth,
+            'X-Post-Description': description,
+        }
         if not post_urls:
             return await ctx.send_help(ctx.command)
         for post_id in post_urls:
-            try:
-                await ctx.db.execute('INSERT INTO naarivad_posts (id, translated_into) VALUES ($1, $2);', post_id.id, [])
-            except asyncpg.UniqueViolationError:
-                await ctx.send(f'The post {post_id.id} already exists in the database. Skipping.')
-                posts.remove(post_id)
+            headers['X-Post-Url'] = f'https://www.instagram.com/p/{post_id.id}'
+            async with self.bot.session.get(f'https://backend.naarivad.in/{post_id.id}') as r:
+                if r.status == 200:
+                    await ctx.send(f'`{post_id.id}` exists. Skipping.')
+                    posts.remove(post_id)
+                    continue
+            async with self.bot.session.post('https://backend.naarivad.in/update', headers=headers) as res:
+                js = await res.json()
+            if js['message']:
+                return await ctx.send(js['message'])
+
         await ctx.send(f'{ctx.tick(True)} post{"s" if len(posts) != 1 else ""} ha{"ve" if len(posts) != 1 else "s"} '
                        f'been updated in the database\n'
                        f'{chr(10).join(f"https://instagram.com/p/{post_url.id}" for post_url in posts)}\n'
                        f'<@&{TRANSLATORS_ID}>')
 
-    async def update(self, post):
-        async with self.bot.pool.acquire() as con:
-            query = "SELECT translated_into FROM naarivad_posts WHERE id = $1;"
-            langs = await con.fetchval(query, post.id)
-            if post.language not in langs:
-                langs.append(post.language)
-            query = 'UPDATE naarivad_posts SET translated_into = $1 WHERE id = $2;'
-            await con.execute(query, langs, post.id)
-
     @commands.command()
     async def status(self, ctx):
         """Fetch translation status of posts in the database."""
-        records = await ctx.db.fetch("SELECT * FROM naarivad_posts;")
-        res = []
-        for record in records:
-            text = f'<https://instagram.com/p/{record["id"]}>: '
-            if record['translated_into']:
-                text += ", ".join(record["translated_into"])
-            else:
-                text += 'None'
-            res.append(text)
-        embed = discord.Embed(colour=discord.Colour.blurple(), title='Completed Translations')
-        embed.description = '\n'.join(res)
-        await ctx.send(embed=embed)
+        await ctx.send('Deprecated in favour of <https://trello.naarivad.in> and <https://docs.naarivad.in/tree/>')
+
+    @commands.command()
+    @is_admin()
+    async def describe(self, ctx, post: PostConverter, *, description: str):
+        """Provide a user-friendly description to a post.
+
+        This is useful for Trello etc.
+        Also shows up in https://backend.naarivad.in/posts
+        """
+        headers = {
+            'Authorization': ctx.bot.config.naarivad_backend_auth,
+            'X-Post-Url': f'https://www.instagram.com/p/{post.id}',
+            'X-Post-Description': description,
+        }
+        async with self.bot.session.post('https://backend.naarivad.in/update', headers=headers) as r:
+            js = r.json()
+        return await ctx.send(str(js))
 
 
 def setup(bot):
