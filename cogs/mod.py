@@ -1,6 +1,3 @@
-"""
-Moderation cog for Discord bot
-"""
 from typing import Optional
 import re
 import json
@@ -460,8 +457,8 @@ class Moderation(commands.Cog):
         embed.timestamp = now
         embed.set_author(name=str(member), icon_url = member.avatar_url)
         embed.add_field(name='ID', value=member.id)
-        embed.add_field(name='Joined', value=member.joined_at)
-        embed.add_field(name='Created', value=time.human_timedelta(member.created_at), inline=False)
+        embed.add_field(name='Joined', value=time.format_dt(member.joined_at, 'F'))
+        embed.add_field(name='Created', value=time.format_relative(member.created_at), inline=False)
         
         if config.broadcast_channel:
             try:
@@ -556,7 +553,7 @@ class Moderation(commands.Cog):
         e = discord.Embed(title='New Members', colour=discord.Colour.green())
 
         for member in members:
-            body = f'Joined {time.human_timedelta(member.joined_at)}\nCreated {time.human_timedelta(member.created_at)}'
+            body = f'Joined {time.format_relative(member.joined_at)}\nCreated {time.format_relative(member.created_at)}'
             e.add_field(name=f'{member} (ID: {member.id})', value=body, inline=False)
 
         await ctx.send(embed=e)
@@ -1063,7 +1060,7 @@ class Moderation(commands.Cog):
         if reminder is None:
             return await ctx.send('Sorry, this functionality is currently unavailable. Try again later?')
 
-        until = f'until {duration.dt:%Y-%m-%dT%H:%M UTC}'
+        until = f'until {time.format_dt(duration.dt, "F")}'
         heads_up_message = f'You have been banned from {ctx.guild.name} {until}. Reason: {reason}'
 
         try:
@@ -1079,7 +1076,7 @@ class Moderation(commands.Cog):
                                                                     member.id,
                                                                     connection=ctx.db,
                                                                     created=ctx.message.created_at)
-        await ctx.send(f'Banned {member} for {time.human_timedelta(duration.dt, source=timer.created_at)}.')
+        await ctx.send(f'Banned {member} for {time.format_relative(duration.dt)}.')
         e = discord.Embed(title=f'[TEMPBAN] {member}', colour=0xFF0000, timestamp=datetime.datetime.utcnow())
         e.add_field(name='Member ID', value=member.id)
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
@@ -1576,12 +1573,11 @@ class Moderation(commands.Cog):
                                                                      member.id,
                                                                      role_id,
                                                                      created=ctx.message.created_at)
-        delta = time.human_timedelta(duration.dt, source=timer.created_at)
-        await ctx.send(f'Muted {discord.utils.escape_mentions(str(member))} for {delta}.')
+        await ctx.send(f'Muted {discord.utils.escape_mentions(str(member))} for {time.format_relative(duration.dt)}')
         e = discord.Embed(title=f'[TEMPMUTE] {member}', colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
         e.add_field(name='Member ID', value=member.id)
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
-        e.add_field(name='Duration', value=delta)
+        e.add_field(name='Duration', value=time.format_relative(duration.dt))
         e.add_field(name='Reason', value=reason, inline=False)
         modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
         if modlog_channel:
@@ -1839,7 +1835,7 @@ class Moderation(commands.Cog):
         if duration.dt < (created_at + datetime.timedelta(minutes=5)):
             return await ctx.send('Duration is too short. Must be at least 5 minutes.')
 
-        delta = time.human_timedelta(duration.dt, source=created_at)
+        delta = time.format_relative(duration.dt)
         warning = f'Are you sure you want to be muted for {delta}?\n**Do not ask the moderators to undo this!**'
         confirm = await ctx.prompt(warning, reacquire=False)
         if not confirm:
@@ -1949,7 +1945,7 @@ class Moderation(commands.Cog):
         except:
             await ctx.send('\N{THUMBS DOWN SIGN}')
         else:
-            await ctx.send(f'Blocked {member} for {time.human_timedelta(duration.dt, source=timer.created_at)}.')
+            await ctx.send(f'Blocked {member} for {time.format_relative(duration.dt)}.')
             e = discord.Embed(title=f'[TEMPBLOCK] {member}', colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
             e.add_field(name='Member ID', value=member.id)
             e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')

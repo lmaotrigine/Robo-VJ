@@ -1,7 +1,7 @@
 import datetime
 import parsedatetime as pdt
 from dateutil.relativedelta import relativedelta
-from .formats import plural, human_join
+from .formats import plural, human_join, format_dt as format_dt
 from discord.ext import commands
 import re
 
@@ -242,6 +242,9 @@ def human_timedelta(dt, *, source=None, accuracy=3, brief=False, suffix=True):
             return human_join(output, final='and') + suffix
         else:
             return ' '.join(output) + suffix
+
+def format_relative(dt):
+    return format_dt(dt, 'R')
 
 def hf_time(dt: datetime.datetime) -> str:
     date_modif = ordinal(dt.day)

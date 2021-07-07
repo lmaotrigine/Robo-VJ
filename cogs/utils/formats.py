@@ -75,6 +75,11 @@ class TabularData:
         to_draw.append(sep)
         return '\n'.join(to_draw)
 
+def format_dt(dt, style=None):
+    if style is None:
+        return f'<t:{int(dt.timestamp())}>'
+    return f'<t:{int(dt.timestamp())}:{style}>'
+
 def to_codeblock(content, language='py', replace_existing=True, escape_md=True, new="'''"):
     if replace_existing:
         content = content.replace('```', new)
