@@ -76,8 +76,10 @@ class TabularData:
         to_draw.append(sep)
         return '\n'.join(to_draw)
 
-def format_dt(dt, style=None):
-    ts = dt.timestamp() + (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds()
+def format_dt(dt, style=None, *, adjust=True):
+    ts = dt.timestamp() 
+    if adjust:
+        ts += (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds()
     print(dt.timestamp(), ts)
     if style is None:
         return f'<t:{int(ts)}>'

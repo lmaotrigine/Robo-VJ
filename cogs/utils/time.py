@@ -243,8 +243,8 @@ def human_timedelta(dt, *, source=None, accuracy=3, brief=False, suffix=True):
         else:
             return ' '.join(output) + suffix
 
-def format_relative(dt):
-    return format_dt(dt, 'R')
+def format_relative(dt, adjust=True):
+    return format_dt(dt, 'R', adjust=adjust)
 
 def hf_time(dt: datetime.datetime) -> str:
     date_modif = ordinal(dt.day)

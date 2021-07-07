@@ -199,7 +199,7 @@ class Stats(commands.Cog):
         commit_time = datetime.datetime.fromtimestamp(commit.commit_time).astimezone(commit_tz)
 
         # [`hash`](url) message (offset)
-        offset = time.format_relative(commit_time.astimezone(datetime.timezone.utc))
+        offset = time.format_relative(commit_time.astimezone(datetime.timezone.utc), adjust=False)
         return f'[`{short_sha2}`](https://github.com/darthshittious/Robo-VJ/commit/{commit.hex}) {short} ({offset})'
 
     def get_last_commits(self, count=3):
