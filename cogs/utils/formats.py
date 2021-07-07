@@ -1,4 +1,5 @@
 from discord.utils import escape_markdown
+import datetime
 
 class plural:
     def __init__(self, value):
@@ -76,9 +77,11 @@ class TabularData:
         return '\n'.join(to_draw)
 
 def format_dt(dt, style=None):
+    ts = dt.timestamp() + (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds()
+    print(dt.timestamp(), ts)
     if style is None:
-        return f'<t:{int(dt.timestamp())}>'
-    return f'<t:{int(dt.timestamp())}:{style}>'
+        return f'<t:{int(ts)}>'
+    return f'<t:{int(ts)}:{style}>'
 
 def to_codeblock(content, language='py', replace_existing=True, escape_md=True, new="'''"):
     if replace_existing:

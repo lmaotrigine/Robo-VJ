@@ -253,3 +253,4 @@ def hf_time(dt: datetime.datetime) -> str:
 
 def ordinal(number: int) -> str:
     return f"{number}{'tsnrhtdd'[(number//10%10!=1)*(number%10<4)*number%10::4]}"
+
