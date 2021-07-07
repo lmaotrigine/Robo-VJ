@@ -80,7 +80,6 @@ def format_dt(dt, style=None, *, adjust=True):
     ts = dt.timestamp() 
     if adjust:
         ts += (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds()
-    print(dt.timestamp(), ts)
     if style is None:
         return f'<t:{int(ts)}>'
     return f'<t:{int(ts)}:{style}>'
