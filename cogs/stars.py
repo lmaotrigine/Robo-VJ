@@ -195,7 +195,7 @@ class Stars(commands.Cog):
                 embed.add_field(name='Attachment', value=f'[{file.filename}]({file.url})', inline=False)
 
         embed.add_field(name='Original', value=f'[Jump!]({message.jump_url})', inline=False)
-        embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url_as(format='png'))
+        embed.set_author(name=message.author.display_name, icon_url=message.author.avatar.url)
         embed.timestamp = message.created_at
         embed.colour = self.star_gradient_colour(stars)
         return content, embed
@@ -226,8 +226,8 @@ class Stars(commands.Cog):
         if guild is None:
             return
 
-        channel = guild.get_channel(payload.channel_id)
-        if not isinstance(channel, discord.TextChannel):
+        channel = guild.get_channel_or_thread(payload.channel_id)
+        if not isinstance(channel, (discord.Thread, discord.TextChannel)):
             return
 
         method = getattr(self, f'{fmt}_message')
@@ -298,8 +298,12 @@ class Stars(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_clear(self, payload):
-        channel = self.bot.get_channel(payload.channel_id)
-        if channel is None or not isinstance(channel, discord.TextChannel):
+        guild = self.bot.get_guild(payload.guild_id)
+        if guild is None:
+            return
+
+        channel = guild.get_channel_or_thread(payload.channel_id)
+        if channel is None or not isinstance(channel, (discord.Thread, discord.TextChannel)):
             return
 
         async with self.bot.pool.acquire(timeout=300.0) as con:
@@ -372,7 +376,7 @@ class Stars(commands.Cog):
             if record is None:
                 raise StarError("Could not find message in the starboard.")
 
-            ch = channel.guild.get_channel(record['channel_id'])
+            ch = channel.guild.get_channel_or_thread(record['channel_id'])
             if ch is None:
                 raise StarError("Could not find the original channel.")
 
@@ -392,7 +396,7 @@ class Stars(commands.Cog):
         if (len(msg.content) == 0 and len(msg.attachments) == 0) or msg.type is not discord.MessageType.default:
             raise StarError('\N{NO ENTRY SIGN} This message cannot be starred.')
 
-        oldest_allowed = datetime.datetime.utcnow() - starboard.max_age
+        oldest_allowed = discord.utils.utcnow() - starboard.max_age
         if msg.created_at < oldest_allowed:
             raise StarError('\N{NO ENTRY SIGN} This message is too old.')
 
@@ -501,7 +505,7 @@ class Stars(commands.Cog):
             if record is None:
                 raise StarError('Could not find message in the starboard.')
 
-            ch = channel.guild.get_channel(record['channel_id'])
+            ch = channel.guild.get_channel_or_thread(record['channel_id'])
             if ch is None:
                 raise StarError('Could not find original channel.')
 
@@ -754,7 +758,7 @@ class Stars(commands.Cog):
                 return
 
         # slow path, try to fetch the content
-        channel = ctx.guild.get_channel(record['channel_id'])
+        channel = ctx.guild.get_channel_or_thread(record['channel_id'])
         if channel is None:
             return await ctx.send("The message's channel has been deleted.")
 
@@ -893,7 +897,7 @@ class Stars(commands.Cog):
 
     async def star_member_stats(self, ctx, member):
         e = discord.Embed(colour=discord.Colour.gold())
-        e.set_author(name=member.display_name, icon_url=member.avatar_url_as(format='png'))
+        e.set_author(name=member.display_name, icon_url=member.avatar.url)
 
         # this query calculates
         # 1 - stars received,
@@ -1196,7 +1200,7 @@ class Stars(commands.Cog):
         for guild_id, channel_id in records:
             guild = self.bot.get_guild(guild_id)
             if guild:
-                channel = self.bot.get_channel(channel_id)
+                channel = guild.get_channel(channel_id)
                 if channel and channel.permissions_for(guild.me).send_messages:
                     to_send.append(channel)
 

@@ -104,7 +104,7 @@ class Bots(commands.Cog):
 
         # data for the bot to retrieve later
         embed.set_footer(text=ctx.author.id)
-        embed.set_author(name=user.id, icon_url=user.avatar_url_as(format='png'))
+        embed.set_author(name=user.id, icon_url=user.avatar.url)
 
         channel = ctx.guild.get_channel(info['channel'])
         if channel is None:

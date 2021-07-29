@@ -69,8 +69,8 @@ class Miscellaneous(commands.Cog):
                                           f'**Token Created:** `{timestamp}`',
                               colour=discord.Colour.blurple(),
                               timestamp=datetime.datetime.utcnow())
-        embed.set_thumbnail(url=member.avatar_url)
-        embed.set_footer(text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar_url)
+        embed.set_thumbnail(url=member.avatar.url)
+        embed.set_footer(text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar.url)
         await ctx.reply(embed=embed)
 
     @commands.command(aliases=['gt', 'gtoken'], brief='Generates a new token given a user.')
@@ -116,8 +116,8 @@ class Miscellaneous(commands.Cog):
 
         for name, value in fields:
             embed.add_field(name=name, value=value, inline=False)
-        embed.set_thumbnail(url=member.avatar_url)
-        embed.set_footer(text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar_url)
+        embed.set_thumbnail(url=member.avatar.url)
+        embed.set_footer(text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar.url)
         await ctx.reply(embed=embed)
 
     @commands.command(aliases=['threadcount'], brief='Finds the original message of a thread.')
@@ -144,7 +144,7 @@ class Miscellaneous(commands.Cog):
                            f'**Origin:** [`jump`]({msg.jump_url})'
         }
         embed = discord.Embed.from_dict(embed_dict)
-        embed.set_footer(text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar_url)
+        embed.set_footer(text=f'Requested by {ctx.author}', icon_url=ctx.author.avatar.url)
         await ctx.reply(embed=embed)
 
     @commands.command(aliases=['find_type', 'findtypes', 'idtype', 'id_type', 'idtypes'])

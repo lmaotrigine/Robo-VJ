@@ -100,7 +100,7 @@ class DBL(commands.Cog):
             self.votes += 1
 
         embed = discord.Embed(title='New upvote', colour=discord.Colour.blurple())
-        embed.set_author(name=str(user), icon_url=user.avatar_url)
+        embed.set_author(name=str(user), icon_url=user.avatar.url)
         embed.add_field(name='Total Votes', value=self.votes)
         embed.timestamp = datetime.datetime.utcnow()
         await self.webhook.send(embed=embed, avatar_url='https://top.gg/images/dblnew.png', username='Top.gg')

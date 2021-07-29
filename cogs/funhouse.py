@@ -324,7 +324,7 @@ class Funhouse(commands.Cog):
             await ctx.message.delete()
         except discord.HTTPException:
             pass
-        await ctx.send(embed=discord.Embed(title=':game_die:', description=out, colour=discord.Colour.blurple()).set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url))
+        await ctx.send(embed=discord.Embed(title=':game_die:', description=out, colour=discord.Colour.blurple()).set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url))
 
     @commands.command(name='multiroll', aliases=['rr'], hidden=True)
     async def rr(self, ctx, iterations: int, *, rollstr):
@@ -374,7 +374,7 @@ class Funhouse(commands.Cog):
             result_strs = f'{result_strs}...' if len(result_strs) > 100 else result_strs
         
         embed = discord.Embed(title=header, description=result_strs, colour=discord.Colour.blurple())
-        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
         embed.set_footer(text=footer)
         try:
             await ctx.message.delete()
@@ -395,14 +395,14 @@ class Funhouse(commands.Cog):
         """Returns your avatar with a rainbow overlay."""
         url = f"https://some-random-api.ml/canvas/gay"
         user = user or ctx.author
-        params = {'avatar': str(user.avatar_url_as(format='png'))}
+        params = {'avatar': str(user.avatar.url)}
         async with self.bot.session.get(url, params=params) as resp:
             if resp.status != 200:
                 return await ctx.send("Could not complete request. Try again later.")
             url = resp.url
         embed = discord.Embed(colour=user.colour)
         embed.set_image(url=url)
-        embed.set_author(name=str(user), icon_url=user.avatar_url)
+        embed.set_author(name=str(user), icon_url=user.avatar.url)
         await ctx.send(embed=embed)
 
     @commands.command(hidden=True)
@@ -497,12 +497,12 @@ class Funhouse(commands.Cog):
         embed.title = f'Translation from {languages.LANG_TO_FLAG.get(ret.src, "")} `{src}` ' \
                       f'to {languages.LANG_TO_FLAG.get(ret.dest, "")} `{dest}`'
         embed.description = ret.text
-        embed.set_author(name=f'{message.author} said:', icon_url=message.author.avatar_url)
+        embed.set_author(name=f'{message.author} said:', icon_url=message.author.avatar.url)
         #if ret.pronunciation and ret.pronunciation != ret.text:
         #    embed.add_field(name='Pronunciation', value=ret.pronunciation)
         if payload.member is not None:
             embed.set_footer(text=f'Requested by {payload.member} | {payload.message_id}',
-                             icon_url=payload.member.avatar_url)
+                             icon_url=payload.member.avatar.url)
         if message.guild is not None and message.channel.permissions_for(message.guild.me).send_messages:
             await message.channel.send(embed=embed)
 

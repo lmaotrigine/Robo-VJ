@@ -39,7 +39,7 @@ class Poker(commands.Cog):
             self.deck = pydealer.Deck()
             self.deck.shuffle()
             self.pot = 0
-            await ctx.send(embed=discord.Embed(description=f"has started a round of poker\n`{ctx.prefix}poker join` to join\n`{ctx.prefix}poker start` again to start.").set_author(name=f"{ctx.author}", icon_url=ctx.author.avatar_url))
+            await ctx.send(embed=discord.Embed(description=f"has started a round of poker\n`{ctx.prefix}poker join` to join\n`{ctx.prefix}poker start` again to start.").set_author(name=f"{ctx.author}", icon_url=ctx.author.avatar.url))
         elif self.players:
             self.status = 'pre-flop'
             await ctx.send(embed=discord.Embed(description=f"The poker round has started\nPlayers: {', '.join(player.mention for player in self.players)}"))
@@ -94,7 +94,7 @@ class Poker(commands.Cog):
         if self.status == "started":
             self.players.append(ctx.author)
             self.hands[ctx.author.id] = self.deck.deal(2)
-            await ctx.send(embed=discord.Embed(description='has joined the poker game').set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url))
+            await ctx.send(embed=discord.Embed(description='has joined the poker game').set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url))
         elif self.status is None:
             await ctx.send(embed=discord.Embed(description=f"There's not currently a round of poker going on\nUse `{ctx.prefix}poker start` to start one"))
         else:
@@ -106,11 +106,11 @@ class Poker(commands.Cog):
             if points > self.current_bet:
                 self.bets[self.turn.id] = points
                 self.current_bet = points
-                await ctx.send(embed=discord.Embed(description=f"has raised to {points}").set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url))
+                await ctx.send(embed=discord.Embed(description=f"has raised to {points}").set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url))
                 self.turn = None
             elif points == self.current_bet:
                 self.bets[self.turn.id] = points
-                await ctx.send(embed=discord.Embed(description='has called').set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url))
+                await ctx.send(embed=discord.Embed(description='has called').set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url))
                 self.turn = None
             else:
                 await ctx.send(embed=discord.Embed(description=f"{ctx.author.mention}, the current bet is more than that."))
@@ -124,7 +124,7 @@ class Poker(commands.Cog):
                 await ctx.send(embed=discord.Embed(description=f"\N{NO ENTRY} {ctx.author.mention} you can't check."))
             else:
                 self.bets[self.turn.id] = self.current_bet
-                await ctx.send(embed=discord.Embed(description='has checked').set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url))
+                await ctx.send(embed=discord.Embed(description='has checked').set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url))
                 self.turn = None
         else:
             await ctx.send(embed=discord.Embed(description=f"\N{NO ENTRY} {ctx.author.mention} you can't do that right now."))
@@ -134,10 +134,10 @@ class Poker(commands.Cog):
         if self.turn and self.turn.id == ctx.author.id:
             if self.current_bet == 0 or (self.turn.id in self.bets and self.bets[self.turn.id] == self.current_bet):
                 await ctx.send(embed=discord.Embed(description=f"{ctx.author.mention} you can't call. You have checked instead."))
-                await ctx.send(embed=discord.Embed(description='has checked').set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url))
+                await ctx.send(embed=discord.Embed(description='has checked').set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url))
             else:
                 self.bets[self.turn.id] = self.current_bet
-                await ctx.send(embed=discord.Embed(description='has called').set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url))
+                await ctx.send(embed=discord.Embed(description='has called').set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url))
             self.turn = None
         else:
             await ctx.send(embed=discord.Embed(description=f"\N{NO ENTRY} {ctx.author.mention} you can't do that right now."))
@@ -147,7 +147,7 @@ class Poker(commands.Cog):
         if self.turn and self.turn.id == ctx.author.id:
             self.bets[self.turn.id] = -1
             self.folded.append(self.turn)
-            await ctx.send(embed=discord.Embed(description='has folded').set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url))
+            await ctx.send(embed=discord.Embed(description='has folded').set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url))
             self.turn = None
         else:
             await ctx.send(embed=discord.Embed(description=f"\N{NO ENTRY} {ctx.author.mention} you can't do that right now."))

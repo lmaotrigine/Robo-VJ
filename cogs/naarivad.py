@@ -75,8 +75,7 @@ class FileConverter(PostConverter):
 class Naarivad(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.webhook = discord.Webhook.partial(*bot.config.naarivad_webhook,
-                adapter=discord.AsyncWebhookAdapter(session=bot.session))
+        self.webhook = discord.Webhook.partial(*bot.config.naarivad_webhook, session=bot.session)
 
     def cog_check(self, ctx):
         return ctx.guild and ctx.guild.id == GUILD_ID

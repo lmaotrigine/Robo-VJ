@@ -43,13 +43,13 @@ class _Akinator(commands.Cog, name='Akinator'):
 
     def get_q_embed(self, ctx, question: str, num: int):
         embed = discord.Embed(title=f"Question {num + 1}: {question}")
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar_url)
+        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar.url)
         embed.set_footer(text=f'[{ctx.author}] | (y)es | (n)o | (i)dk | (p)robably | (pn)probably not | (b)ack')
         return embed
 
     def get_guess_embed(self, ctx, num_guesses: int, guess: dict):
         embed = discord.Embed(title=guess['name'], description=guess['description'])
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar_url)
+        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar.url)
         embed.set_image(url=guess['absolute_picture_path'])
         embed.set_footer(text=f'{ctx.author} | [Guess {num_guesses} / 3] Did I get it right? (y|n)')
         return embed

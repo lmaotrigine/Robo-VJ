@@ -76,13 +76,12 @@ class TabularData:
         to_draw.append(sep)
         return '\n'.join(to_draw)
 
-def format_dt(dt, style=None, *, adjust=True):
-    ts = dt.timestamp() 
-    if adjust:
-        ts += (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds()
-    if style is None:
-        return f'<t:{int(ts)}>'
-    return f'<t:{int(ts)}:{style}>'
+def format_dt(dt, style=None):
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=datetime.timezone.utc)
+        if style is None:
+            return f'<t:{int(dt.timestamp())}>'
+    return f'<t:{int(dt.timestamp())}:{style}>'
 
 def to_codeblock(content, language='py', replace_existing=True, escape_md=True, new="'''"):
     if replace_existing:

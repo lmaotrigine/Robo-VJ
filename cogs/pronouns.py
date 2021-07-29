@@ -33,7 +33,7 @@ class Pronouns(commands.Cog, command_attrs=dict(hidden=True)):
     async def pronouns(self, ctx, *, user: Optional[Union[discord.Member, discord.User]] = None):
         user = user or ctx.author
         embed = discord.Embed(colour=discord.Colour.random()).set_footer(text='Powered by PronounDB.org') \
-            .set_author(name=f'{user.display_name}\'s pronouns', icon_url=user.avatar_url)
+            .set_author(name=f'{user.display_name}\'s pronouns', icon_url=user.avatar.url)
         if user.bot:
             embed.description = '`beep/boop`'
             return await ctx.send(embed=embed)

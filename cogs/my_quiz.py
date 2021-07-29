@@ -77,7 +77,7 @@ class PubQuiz(commands.Cog, name="The Red Lion"):
 
         if self.wh is None:
             message_logs = self.bot.get_channel(MESSAGE_LOGS)
-            self.wh = await message_logs.create_webhook(name='Message Logs', avatar=(await self.bot.user.avatar_url.read()))
+            self.wh = await message_logs.create_webhook(name='Message Logs', avatar=(await self.bot.user.avatar.read()))
         
     def is_in_bounce(self, state):
         return state.channel is not None and state.channel.id == BOUNCE_VOICE_ID
@@ -300,8 +300,8 @@ class PubQuiz(commands.Cog, name="The Red Lion"):
                 embed.add_field(name='Empty teams', value=empty)
             if available_partial_teams:
                 embed.add_field(name='Partially filled teams', value=partial)
-            embed.set_footer(text="Timeout in 60s", icon_url=ctx.guild.icon_url)
-            embed.timestamp = datetime.datetime.utcnow()
+            embed.set_footer(text="Timeout in 60s", icon_url=ctx.guild.icon.url)
+            embed.timestamp = discord.utils.utcnow()
             await ctx.send(embed=embed)
             done = False
             while not done:
@@ -329,11 +329,11 @@ class PubQuiz(commands.Cog, name="The Red Lion"):
             if len(partial_teams) > 0:
                 embed = discord.Embed(title='No teams available to accommodate {} members', colour=discord.Colour.orange())
                 embed.add_field(name="Current partially filled teams", value='\n'.join([f"{team.mention} : {len(team.members)} / {self.max_per_team}" for team in sorted(partial_teams, key=lambda t: t.name)]))
-                embed.timestamp = datetime.datetime.utcnow()
+                embed.timestamp = discord.utils.utcnow()
                 await ctx.send(embed=embed)
             else:
                 embed = discord.Embed(title='All teams full', description='All teams are currently filled up. You may still spectate for this quiz. Sorry!', colour=0xFF0000)
-                embed.timestamp = datetime.datetime.utcnow()
+                embed.timestamp = discord.utils.utcnow()
                 await ctx.send(f"<@&{QM_ROLE}> teams are filled. Please cross-check and close regs.", embed=embed)
                 
     @commands.command()
@@ -486,8 +486,8 @@ class PubQuiz(commands.Cog, name="The Red Lion"):
         embed.description = f"**{self.rule_head}**{(chr(10)*2).join(self.rules)}"
         embed.add_field(name=self.honour_head, value=self.honour, inline=False)
         embed.add_field(name=self.privacy_head, value=self.privacy, inline=False)
-        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url, url=f"https://discordapp.com/users/{ctx.author.id}")
-        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url, url=f"https://discordapp.com/users/{ctx.author.id}")
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon.url)
         
         await ctx.send(embed=embed)
 
@@ -497,8 +497,8 @@ class PubQuiz(commands.Cog, name="The Red Lion"):
     @checks.is_in_guilds(GUILD_ID)
     async def _rules(self, ctx, num=None):
         embed = discord.Embed(colour=discord.Colour.blurple())
-        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
-        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon.url)
         if num is None:
             embed.title = self.rule_head
             embed.description = '\n\n'.join(self.rules)
@@ -517,8 +517,8 @@ class PubQuiz(commands.Cog, name="The Red Lion"):
     @checks.is_in_guilds(GUILD_ID)
     async def _privacy(self, ctx):
         embed = discord.Embed(colour=discord.Colour.blurple())
-        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
-        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon.url)
         embed.title = self.privacy_head
         embed.description = self.privacy
         await ctx.send(embed=embed)
@@ -529,8 +529,8 @@ class PubQuiz(commands.Cog, name="The Red Lion"):
     @checks.is_in_guilds(GUILD_ID)
     async def _honour(self, ctx):
         embed = discord.Embed(colour=discord.Colour.blurple())
-        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
-        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon.url)
         embed.title = self.honour_head
         embed.description = self.honour
         await ctx.send(embed=embed)

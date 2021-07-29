@@ -129,7 +129,7 @@ class Snipe(commands.Cog):
             if not author:
                 embed.set_author(name='A deleter user...')
             else:
-                embed.set_author(name=str(author), icon_url=author.avatar_url)
+                embed.set_author(name=str(author), icon_url=author.avatar.url)
             embed.title = f'Deleted from #{channel.name}'
             embed.description = f"```\n{record['message_content']}```" if record['message_content'] else None
             if record['attachment_urls']:
@@ -154,7 +154,7 @@ class Snipe(commands.Cog):
             if not author:
                 embed.set_author(name="A deleted user...")
             else:
-                embed.set_author(name=author.name, icon_url=author.avatar_url)
+                embed.set_author(name=author.name, icon_url=author.avatar.url)
             embed.title = f"Edited in #{channel.name}"
             diff_text = self.get_diff(
                 record['before_content'], record['after_content'])

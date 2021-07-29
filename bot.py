@@ -98,10 +98,6 @@ def _prefix_callable(bot, msg):
         base.append('?')
     else:
         base.extend(bot.prefixes.get(msg.guild.id, ['?', '!']))
-
-    if hasattr(msg, 'author') and msg.author.id == bot.owner_id:  # xP
-        if 'hey babe ' not in base:
-            base.append('hey babe ')
     return base
 
 
@@ -112,7 +108,7 @@ class RoboVJ(commands.AutoShardedBot):
         super().__init__(command_prefix=_prefix_callable, status=discord.Status.online, activity=discord.Activity(
             name=f"you | mention for help", type=discord.ActivityType.watching), owner_id=411166117084528640,
                          help_command=commands.DefaultHelpCommand(width=150, no_category='General', dm_help=None),
-                         case_insensitive=True, intents=discord.Intents.all(), allowed_mentions = allowed_mentions)
+                         case_insensitive=True, intents=discord.Intents.all(), allowed_mentions=allowed_mentions)
 
         self.version = __version__
         self.client_id = config.client_id
@@ -166,7 +162,7 @@ class RoboVJ(commands.AutoShardedBot):
         self.identifies = defaultdict(list)
 
     def _clear_gateway_data(self):
-        one_week_ago = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+        one_week_ago = discord.utils.utcnow() - datetime.timedelta(days=7)
         for shard_id, dates in self.identifies.items():
             to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
             for index in reversed(to_remove):
@@ -182,7 +178,7 @@ class RoboVJ(commands.AutoShardedBot):
 
     async def before_identify_hook(self, shard_id, *, initial):
         self._clear_gateway_data()
-        self.identifies[shard_id].append(datetime.datetime.utcnow())
+        self.identifies[shard_id].append(discord.utils.utcnow())
         await super().before_identify_hook(shard_id, initial=initial)
 
     async def on_command_error(self, ctx, error):
@@ -335,7 +331,7 @@ class RoboVJ(commands.AutoShardedBot):
     @discord.utils.cached_property
     def stats_webhook(self):
         wh_id, wh_token = self.config.stat_webhook
-        hook = discord.Webhook.partial(id=wh_id, token=wh_token, adapter=discord.AsyncWebhookAdapter(self.session))
+        hook = discord.Webhook.partial(id=wh_id, token=wh_token, session=self.session)
         return hook
 
     def log_spammer(self, ctx, message, retry_after, *, autoblock=False):
@@ -351,7 +347,7 @@ class RoboVJ(commands.AutoShardedBot):
         embed.add_field(name='Member', value=f'{message.author} (ID: {message.author.id})', inline=False)
         embed.add_field(name='Guild Info', value=f'{guild_name} (ID: {guild_id})', inline=False)
         embed.add_field(name='Channel Info', value=f'{message.channel} (ID: {message.channel.id}', inline=False)
-        embed.timestamp = datetime.datetime.utcnow()
+        embed.timestamp = discord.utils.utcnow()
         return wh.send(embed=embed)
 
     def get_guild_prefixes(self, guild, *, local_inject=_prefix_callable):
@@ -375,13 +371,13 @@ class RoboVJ(commands.AutoShardedBot):
 
     async def on_ready(self):
         if not hasattr(self, 'uptime'):
-            self.uptime = datetime.datetime.utcnow()
+            self.uptime = discord.utils.utcnow()
 
         print(f'Ready: {self.user} (ID: {self.user.id})')
 
     async def on_shard_resumed(self, shard_id):
         print(f'Shard ID {shard_id} has resumed...')
-        self.resumes[shard_id].append(datetime.datetime.utcnow())
+        self.resumes[shard_id].append(discord.utils.utcnow())
 
     async def on_guild_join(self, guild):
         owner = self.get_user(self.owner_id)
@@ -430,7 +426,7 @@ class RoboVJ(commands.AutoShardedBot):
             return
 
         bucket = self.spam_control.get_bucket(message)
-        current = message.created_at.replace(tzinfo=datetime.timezone.utc).timestamp()
+        current = message.created_at.timestamp()
         retry_after = bucket.update_rate_limit(current)
         author_id = message.author.id
         if retry_after and author_id != self.owner_id:

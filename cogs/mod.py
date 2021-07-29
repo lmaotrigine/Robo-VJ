@@ -168,7 +168,7 @@ class SpamChecker:
         self.hit_and_run = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.channel)
 
     def is_new(self, member):
-        now = datetime.datetime.utcnow()
+        now = discord.utils.utcnow()
         seven_days_ago = now - datetime.timedelta(days=7)
         ninety_days_ago = now - datetime.timedelta(days=90)
         return member.created_at > ninety_days_ago and member.joined_at > seven_days_ago
@@ -177,7 +177,7 @@ class SpamChecker:
         if message.guild is None:
             return False
 
-        current = message.created_at.replace(tzinfo=timezone.utc).timestamp()
+        current = message.created_at.timestamp()
 
         if message.author.id in self.fast_joiners:
             bucket = self.hit_and_run.get_bucket(message)
@@ -200,7 +200,7 @@ class SpamChecker:
         return False
 
 def is_fast_join(self, member):
-    joined = member.joined_at or datetime.datetime.utcnow()
+    joined = member.joined_at or discord.utils.utcnow()
     if self.last_join is None:
         self.last_join = joined
         return False
@@ -435,7 +435,7 @@ class Moderation(commands.Cog):
         if not config.raid_mode:
             return
 
-        now = datetime.datetime.utcnow()
+        now = discord.utils.utcnow()
 
         is_new = member.created_at > (now - datetime.timedelta(days=7))
         checker = self._spam_check[guild_id]
@@ -455,7 +455,7 @@ class Moderation(commands.Cog):
 
         embed = discord.Embed(title=title, colour=colour)
         embed.timestamp = now
-        embed.set_author(name=str(member), icon_url = member.avatar_url)
+        embed.set_author(name=str(member), icon_url=member.avatar.url)
         embed.add_field(name='ID', value=member.id)
         embed.add_field(name='Joined', value=time.format_dt(member.joined_at, 'F'))
         embed.add_field(name='Created', value=time.format_relative(member.created_at), inline=False)
@@ -750,7 +750,7 @@ class Moderation(commands.Cog):
 
         await ctx.guild.kick(member, reason=reason)
         await ctx.send('\N{OK HAND SIGN}')
-        e = discord.Embed(title=f'[KICK] {member}', colour=discord.Colour.red(), timestamp=datetime.datetime.utcnow())
+        e = discord.Embed(title=f'[KICK] {member}', colour=discord.Colour.red(), timestamp=discord.utils.utcnow())
         e.add_field(name='Member ID', value=member.id)
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Reason', value=reason, inline=False)
@@ -931,7 +931,7 @@ class Moderation(commands.Cog):
         if args.no_roles:
             predicates.append(lambda m: len(getattr(m, 'roles', [])) <= 1)
 
-        now = datetime.datetime.utcnow()
+        now = discord.utils.utcnow()
         if args.created:
             def created(member, *, offset=now - datetime.timedelta(minutes=args.created)):
                 return member.created_at > offset
@@ -961,7 +961,7 @@ class Moderation(commands.Cog):
         if args.show:
             members = sorted(members, key=lambda m: m.joined_at or now)
             fmt = "\n".join(f'{m.id}\tJoined: {m.joined_at}\tCreated: {m.created_at}\t{m}' for m in members)
-            content = f'Current Time: {datetime.datetime.utcnow()}\nTotal members: {len(members)}\n{fmt}'
+            content = f'Current Time: {discord.utils.utcnow()}\nTotal members: {len(members)}\n{fmt}'
             file = discord.File(io.BytesIO(content.encode('utf-8')), filename='members.txt')
             return await ctx.send(file=file)
 
@@ -1003,7 +1003,7 @@ class Moderation(commands.Cog):
         await ctx.guild.ban(member, reason=reason)
         await ctx.guild.unban(member, reason=reason)
         await ctx.send('\N{OK HAND SIGN}')
-        e = discord.Embed(title=f'[SOFTBAN] {member}', colour=discord.Colour.red(), timestamp=datetime.datetime.utcnow())
+        e = discord.Embed(title=f'[SOFTBAN] {member}', colour=discord.Colour.red(), timestamp=discord.utils.utcnow())
         e.add_field(name='Member ID', value=member.id)
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Reason', value=reason, inline=False)
@@ -1021,7 +1021,7 @@ class Moderation(commands.Cog):
         In order for this to work, the bot must have Ban Member permissions.
         To use this command you must have Ban Members permissions.
         """
-        e = discord.Embed(title=f'[UNBAN] {member.user}', colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
+        e = discord.Embed(title=f'[UNBAN] {member.user}', colour=discord.Colour.green(), timestamp=discord.utils.utcnow())
         e.add_field(name='Member ID', value=member.user.id)
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         modlog_channel = ctx.guild.get_channel(self.modlogs.get(ctx.guild.id))
@@ -1077,7 +1077,7 @@ class Moderation(commands.Cog):
                                                                     connection=ctx.db,
                                                                     created=ctx.message.created_at)
         await ctx.send(f'Banned {member} for {time.format_relative(duration.dt)}.')
-        e = discord.Embed(title=f'[TEMPBAN] {member}', colour=0xFF0000, timestamp=datetime.datetime.utcnow())
+        e = discord.Embed(title=f'[TEMPBAN] {member}', colour=0xFF0000, timestamp=discord.utils.utcnow())
         e.add_field(name='Member ID', value=member.id)
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Duration', value=time.human_timedelta(duration.dt, source=timer.created_at))
@@ -1502,7 +1502,7 @@ class Moderation(commands.Cog):
             await ctx.send('\N{THUMBS UP SIGN}')
         else:
             await ctx.send(f'Muted [{total - failed}/{total}]')
-        e = discord.Embed(title=f'[MUTE] {", ".join([str(member) for member in members])}', colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
+        e = discord.Embed(title=f'[MUTE] {", ".join([str(member) for member in members])}', colour=discord.Colour.dark_orange(), timestamp=discord.utils.utcnow())
         e.add_field(name='Member IDs', value=', '.join(str(member.id) for member in members))
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Reason', value=reason, inline=False)
@@ -1540,7 +1540,7 @@ class Moderation(commands.Cog):
             await ctx.send('\N{THUMBS UP SIGN}')
         else:
             await ctx.send(f'Unmuted [{total - failed}/{total}]')
-        e = discord.Embed(title=f'[UNMUTE] {", ".join([str(member) for member in members])}', colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
+        e = discord.Embed(title=f'[UNMUTE] {", ".join([str(member) for member in members])}', colour=discord.Colour.green(), timestamp=discord.utils.utcnow())
         e.add_field(name='Member IDs', value=', '.join([str(member.id) for member in members]))
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Reason', value=reason, inline=False)
@@ -1574,7 +1574,7 @@ class Moderation(commands.Cog):
                                                                      role_id,
                                                                      created=ctx.message.created_at)
         await ctx.send(f'Muted {discord.utils.escape_mentions(str(member))} for {time.format_relative(duration.dt)}')
-        e = discord.Embed(title=f'[TEMPMUTE] {member}', colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
+        e = discord.Embed(title=f'[TEMPMUTE] {member}', colour=discord.Colour.dark_orange(), timestamp=discord.utils.utcnow())
         e.add_field(name='Member ID', value=member.id)
         e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
         e.add_field(name='Duration', value=time.format_relative(duration.dt))
@@ -1879,7 +1879,7 @@ class Moderation(commands.Cog):
             await ctx.send('\N{THUMBS DOWN SIGN}')
         else:
             await ctx.send('\N{THUMBS UP SIGN}')
-            e = discord.Embed(title=f'[BLOCK] {member}', colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
+            e = discord.Embed(title=f'[BLOCK] {member}', colour=discord.Colour.orange(), timestamp=discord.utils.utcnow())
             e.add_field(name='Member ID', value=member.id)
             e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
             e.add_field(name='Channel', value=ctx.channel.mention)
@@ -1906,7 +1906,7 @@ class Moderation(commands.Cog):
             await ctx.send('\N{THUMBS DOWN SIGN}')
         else:
             await ctx.send('\N{THUMBS UP SIGN}')
-            e = discord.Embed(title=f'[UNBLOCK] {member}', colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
+            e = discord.Embed(title=f'[UNBLOCK] {member}', colour=discord.Colour.green(), timestamp=discord.utils.utcnow())
             e.add_field(name='Member ID', value=member.id)
             e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
             e.add_field(name='Channel', value=ctx.channel.mention)
@@ -1946,7 +1946,7 @@ class Moderation(commands.Cog):
             await ctx.send('\N{THUMBS DOWN SIGN}')
         else:
             await ctx.send(f'Blocked {member} for {time.format_relative(duration.dt)}.')
-            e = discord.Embed(title=f'[TEMPBLOCK] {member}', colour=discord.Colour.orange(), timestamp=datetime.datetime.utcnow())
+            e = discord.Embed(title=f'[TEMPBLOCK] {member}', colour=discord.Colour.orange(), timestamp=discord.utils.utcnow())
             e.add_field(name='Member ID', value=member.id)
             e.add_field(name='Responsible moderator', value=f'{ctx.author} ({ctx.author.id})')
             e.add_field(name='Channel', value=ctx.channel.mention)
@@ -1995,109 +1995,10 @@ class Moderation(commands.Cog):
             except:
                 pass
 
-
-    @commands.command()
-    @checks.is_mod()
-    @commands.guild_only()
-    async def warn(self, ctx, user: discord.Member=None,*, reason=None):
-        """Issues a warning to a user. Current status can be accessed by warnstats"""
-        if not user:
-            return await ctx.send("You must specify a user")
-        current = await self.bot.pool.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
-        async with self.bot.pool.acquire() as conn:
-            if not current:
-                current = 1
-                await self.bot.pool.execute("INSERT INTO warns (guild_id, user_id, num) VALUES ($1, $2, $3)", ctx.guild.id, user.id, current)
-            else:
-                current += 1
-                await self.bot.pool.execute("UPDATE warns SET num = $1 WHERE guild_id = $2 and user_id = $3", current, ctx.guild.id, user.id)
-                if current >=5:
-                    await user.ban(reason="Autoban: 5 warns.")
-                    channel = self.bot.get_channel(self.modlogs.get(ctx.guild.id))
-                    if channel:
-                        warn_embed = discord.Embed(title="WARN", colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
-                        warn_embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
-                        warn_embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
-                        warn_embed.add_field(name="Current warnings", value=current, inline=False)
-                        warn_embed.add_field(name='Responsible Moderator', value=str(ctx.author))
-                        await channel.send(embed=warn_embed)
-                        embed = discord.Embed(title="AUTOBAN", colour=discord.Colour.red(), timestamp=datetime.datetime.utcnow())
-                        embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
-                        embed.add_field(name='Reason', value="Accumulated 5 warns", inline=False)
-                        embed.add_field(name='Responsible Moderator', value=str(ctx.guild.me), inline=False)
-                        await channel.send(embed=embed)
-                    await self.bot.pool.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
-                    return await ctx.send(f"{user.mention} has been autobanned because they have 5 or more warns.")
-        await ctx.send(f"{user.mention} has been warned. Total warnings: {current}")
-        channel = self.bot.get_channel(self.modlogs.get(ctx.guild.id))
-        if channel:
-            embed = discord.Embed(title="WARN", colour=discord.Colour.dark_orange(), timestamp=datetime.datetime.utcnow())
-            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
-            embed.add_field(name='Reason', value=f"{reason if reason else'None specified.'}", inline=False)
-            embed.add_field(name='Current warnings', value=current, inline=False)
-            embed.add_field(name='Responsible Moderator', value=str(ctx.author))
-            await channel.send(embed=embed)
-
-    @commands.command()
-    @commands.guild_only()
-    async def warnstats(self, ctx, user: discord.Member=None):
-        """To check how many warns you have. If you are an admin, you can specify a user."""
-        if not ctx.author.guild_permissions.administrator or not user:
-            user = ctx.author
-        current = await self.bot.pool.fetchval("SELECT num FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
-        if current is None:
-            current = 0
-        await ctx.send(f"Currently, {user.mention} has {current} {'warning' if current == 1 else 'warnings'}.")
-
-    @commands.command()
-    @checks.is_mod()
-    @commands.guild_only()
-    async def unwarn(self, ctx, user: discord.Member=None):
-        """Removes one warning from a user"""
-        if not user:
-            return await ctx.send("You must specify a user")
-        current = await self.bot.pool.fetchval("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
-        async with self.bot.pool.acquire() as conn:
-            if not current:
-                return await ctx.send(f"{user.mention} has no outstanding warnings")
-            else:
-                current -= 1
-                await self.bot.pool.execute("UPDATE warns SET num = $1 WHERE guild_id = $2 and user_id = $3", current, ctx.guild.id, user.id)
-                if current == 0:
-                    await self.bot.pool.execute("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
-        await ctx.send(f"{user.mention} has been pardoned for one warning. Total warns: {current}")
-        channel = self.bot.get_channel(self.modlogs.get(ctx.guild.id))
-        if channel:
-            embed = discord.Embed(title="UNWARN", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
-            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
-            embed.add_field(name='Current warns', value=current)
-            embed.add_field(name='Responsible Moderator', value=str(ctx.author))
-            await channel.send(embed=embed)
-
-    @commands.command(aliases=['cleanslate'])
-    @checks.is_mod()
-    @commands.guild_only()
-    async def clearwarns(self, ctx, user: discord.Member=None):
-        """Removes all warnings for the user"""
-        if not user:
-            return await ctx.send("You must specify a member")
-        current = await self.bot.pool.fetchrow("SELECT num FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
-        if not current:
-            return await ctx.send(f"{user.mention} has no outstanding warnings")
-        async with self.bot.pool.acquire() as conn:
-            await self.bot.pool.execute("DELETE FROM warns WHERE user_id = $1 and guild_id = $2", user.id, ctx.guild.id)
-        await ctx.send(f"Removed all warnings for {user.mention}")
-        channel = self.bot.get_channel(self.modlogs.get(ctx.guild.id))
-        if channel:
-            embed = discord.Embed(title="CLEAR ALL WARNINGS", colour=discord.Colour.green(), timestamp=datetime.datetime.utcnow())
-            embed.add_field(name='User', value=f"{user} ({user.id}) ({user.mention})")
-            embed.add_field(name='Responsible Moderator', value=str(ctx.author))
-            await channel.send(embed=embed)
-
     @commands.command()
     @commands.guild_only()
     @checks.is_admin()
-    async def prune(self, ctx, days:int, *roles):
+    async def prune(self, ctx, days: int, *roles):
         """
         Kick all members who haven't logged on in a certain nember of days, with optional roles.
         If a member has any roles that are not provided, they won't be kicked.
