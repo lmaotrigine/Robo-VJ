@@ -256,7 +256,7 @@ class Stats(commands.Cog):
         embed.add_field(name='Commands Run', value=sum(self.bot.command_stats.values()))
         embed.add_field(name="Uptime", value=self.get_bot_uptime(brief=True))
         embed.add_field(name="Server Invite", value=f"[Official bot server invite](https://discord.gg/rqgRyF8)", inline=False)
-        invite_url = discord.utils.oauth_url(self.bot.user.id, discord.Permissions(administrator=True))
+        invite_url = discord.utils.oauth_url(self.bot.user.id, permissions=discord.Permissions(administrator=True))
         embed.add_field(name="OAuth2 Invite", value=f"[Click here to add the bot to your server.]({invite_url})", inline=False)
         bot_source = "https://github.com/darthshittious/Robo-VJ"
         discord_source = "https://github.com/Rapptz/discord.py"

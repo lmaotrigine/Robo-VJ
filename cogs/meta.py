@@ -498,7 +498,7 @@ class Meta(commands.Cog):
                             f'identified and stabilised.\n\nYou can use `{ctx.prefix}{ctx.invoked_with} min` to get a ' \
                             f'link with the current minimum requirements, though this can change.'
         embed.add_field(name='Invite link', value=discord.utils.oauth_url(self.bot.client_id,
-                                                                          discord.Permissions(administrator=True)))
+                                                                          permissions=discord.Permissions(administrator=True)))
         embed.set_author(name=self.bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name,
                          icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
@@ -531,7 +531,7 @@ class Meta(commands.Cog):
             deafen_members=True,
             move_members=True
         )
-        return await ctx.send(f'<{discord.utils.oauth_url(self.bot.client_id, permissions)}>')
+        return await ctx.send(f'<{discord.utils.oauth_url(self.bot.client_id, permissions=permissions)}>')
 
     @join.error
     async def join_error(self, ctx, error):
