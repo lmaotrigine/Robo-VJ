@@ -1,3 +1,5 @@
+import datetime
+
 import discord
 from discord.ext import commands
 
@@ -83,7 +85,7 @@ class TwitterStreamListener(tweepy.StreamListener):
                             entities = status.entities
                             extended_entities = getattr(status, "extended_entities", None)
                         embed = discord.Embed(title=f'@{status.user.screen_name}', url=f'https://twitter.com/{status.user.screen_name}/status/{status.id}',
-                                              description=self.bot.cogs["Twitter"].process_tweet_text(text, entities), timestamp=status.created_at,
+                                              description=self.bot.cogs["Twitter"].process_tweet_text(text, entities), timestamp=status.created_at.replace(tzinfo=datetime.timezone.utc),
                                               colour=0x00ACED)
                         embed.set_author(name=status.user.name, icon_url=status.user.profile_image_url)
                         if extended_entities and extended_entities["media"][0]["type"] == "photo":
