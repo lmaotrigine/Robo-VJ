@@ -333,7 +333,7 @@ class Stars(commands.Cog):
                 if verify:
                     config = self.bot.get_cog('Config')
                     if config:
-                        plonked = await config.is_plonked(guild_id, starrer_id, channel_id=channel.id, connection=con)
+                        plonked = await config.is_plonked(guild_id, starrer_id, channel=channel, connection=con)
                         if plonked:
                             return
                         perms = await config.get_command_permissions(guild_id, connection=con)
@@ -467,7 +467,7 @@ class Stars(commands.Cog):
                 if verify:
                     config = self.bot.get_cog('Config')
                     if config:
-                        plonked = await config.is_plonked(guild_id, starrer_id, channel_id=channel.id, connection=con)
+                        plonked = await config.is_plonked(guild_id, starrer_id, channel=channel, connection=con)
                         if plonked:
                             return
                         perms = await config.get_command_permissions(guild_id, connection=con)
