@@ -19,8 +19,7 @@ class DBL(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.dbl_client = dbl.DBLClient(self.bot, self.bot.config.dbl_token, autopost=False)
-        self.webhook = discord.Webhook.partial(*self.bot.config.dbl_webhook,
-                                               adapter=discord.AsyncWebhookAdapter(session=self.bot.session))
+        self.webhook = discord.Webhook.partial(*self.bot.config.dbl_webhook, session=self.bot.session)
         self.votes = None
 
     def cog_unload(self):
