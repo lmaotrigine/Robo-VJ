@@ -111,6 +111,8 @@ If there isn't a response after 12 hours, we will close the ticket automatically
     async def on_message(self, message):
         if message.author.bot:
             return
+        if isinstance(message.channel, discord.Thread):
+            return
         if message.guild is None or message.channel.category != self.category:
             return
         
