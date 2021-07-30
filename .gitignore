@@ -30,4 +30,5 @@ restart_from_channel.txt
 # scripts
 push.sh
 blocklist.json
+guild_allowlist.json
 cogs/inktober/credentials.json
