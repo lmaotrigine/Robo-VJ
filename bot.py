@@ -405,7 +405,7 @@ class RoboVJ(commands.AutoShardedBot):
         embed.description = f"For a list of commands, use `{pfx}help`.\n\n" \
                             f"If you have any questions, or want to report bugs or request features, " \
                             f"[click here](https://discord.gg/rqgRyF8) to join the support server."
-        embed.set_footer(text=f"Made by {owner}", icon_url=owner.avatar_url)
+        embed.set_footer(text=f"Made by {owner}", icon_url=owner.avatar.url)
         if guild.system_channel is not None and guild.system_channel.permissions_for(guild.me).send_messages:
             await guild.system_channel.send(embed=embed)
 
