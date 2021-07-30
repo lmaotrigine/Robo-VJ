@@ -22,8 +22,8 @@ class EmbedHelpCommand(commands.DefaultHelpCommand):
         super().__init__(command_attrs={'aliases' : ['h', '?']}, **kwargs)
 
     def get_ending_note(self):
-        return f'''Use {self.clean_prefix}{self.invoked_with} [command] for more info on a command.
-        Use {self.clean_prefix}{self.invoked_with} [category] for more info on a category.'''
+        return f'''Use {self.context.clean_prefix}{self.invoked_with} [command] for more info on a command.
+        Use {self.context.clean_prefix}{self.invoked_with} [category] for more info on a category.'''
 
     def get_command_signature(self, command):
         parent = command.full_parent_name
@@ -319,7 +319,7 @@ class PaginatedHelpCommand(commands.HelpCommand):
         if len(entries) == 0:
             return await self.send_command_help(group)
 
-        source = GroupHelpPageSource(group, entries, prefix=self.clean_prefix)
+        source = GroupHelpPageSource(group, entries, prefix=self.context.clean_prefix)
         self.common_command_formatting(source, group)
         menu = HelpMenu(source)
         await self.context.release()
