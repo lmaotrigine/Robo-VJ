@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import random
-from functools import cached_property, partial
+from functools import cached_property
 from typing import Iterator, Literal, Optional, Union, overload
 
 import discord
@@ -105,9 +105,8 @@ class AI:
 
 
 class NegamaxAI(AI):
-    def __init__(self, player: bool, depth: int = MAX_DEPTH):
+    def __init__(self, player: bool):
         super().__init__(player)
-        self.max_depth = depth
 
     def heuristic(self, game: Board, sign: int) -> float:
         if sign == -1:
@@ -135,7 +134,7 @@ class NegamaxAI(AI):
 
     def negamax(self, game: Board, depth: int = 0,
                 alpha: float = float('-inf'), beta: float = float('inf'), sign: int = 1) -> Union[float, tuple[int, int]]:
-        if depth == self.max_depth or game.over:
+        if game.over:
             return sign * self.heuristic(game, sign)
 
         move = MISSING
@@ -190,7 +189,7 @@ class Button(discord.ui.Button['Game']):
             return
 
         if self.view.current_player.bot:
-            await self.view.make_ai_move()
+            self.view.make_ai_move()
             self.view.update()
 
         if self.view.board.over:
@@ -206,16 +205,15 @@ class Button(discord.ui.Button['Game']):
 class Game(discord.ui.View):
     children: list[Button]
 
-    def __init__(self, bot: RoboVJ, players: tuple[Union[discord.Member, discord.User], Union[discord.Member, discord.User]]):
+    def __init__(self, players: tuple[Union[discord.Member, discord.User], Union[discord.Member, discord.User]]):
         self.players = list(players)
-        self.bot = bot
         random.shuffle(self.players)
 
         super().__init__(timeout=None)
         self.board = Board.new_game()
 
         if self.current_player.bot:
-            self.bot.loop.create_task(self.make_ai_move())  # this is bad, but idk how else to do this
+            self.make_ai_move()
 
         for r in range(3):
             for c in range(3):
@@ -247,12 +245,9 @@ class Game(discord.ui.View):
             await interaction.response.send_message("Sorry, it's not your turn!", ephemeral=True)
         return True
 
-    async def make_ai_move(self):
-        delta = MAX_DEPTH - MIN_DEPTH
-        depth = self.players[self.board.current_player].id % delta + MAX_DEPTH + 1
-        ai = NegamaxAI(self.board.current_player, depth)
-        move_call = partial(ai.move, self.board)
-        self.board = await self.bot.loop.run_in_executor(None, move_call)
+    def make_ai_move(self):
+        ai = NegamaxAI(self.board.current_player)
+        self.board = ai.move(self.board)
         
     @property
     def current_player(self) -> Union[discord.Member, discord.User]:
@@ -316,7 +311,7 @@ class TicTacToe(commands.Cog):
         if opponent is None:
             raise commands.BadArgument('Challenge cancelled.')
 
-        game = Game(self.bot, (ctx.author, opponent))
+        game = Game((ctx.author, opponent))
 
         await ctx.send(f'{game.current_player.mention}\'s ({STATES[game.board.current_player]}) turn!', view=game)
 
