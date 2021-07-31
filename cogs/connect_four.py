@@ -4,7 +4,7 @@ import asyncio
 import random
 from collections.abc import Iterator
 from functools import cache, cached_property, partial
-from typing import Any, Literal, Optional, TypeVar, Union, overload, TYPE_CHECKING
+from typing import Any, Literal, Optional, TypeVar, Union, overload
 
 import discord
 from discord.ext import commands, menus
@@ -13,9 +13,8 @@ from discord.utils import MISSING
 from .utils import db
 from .utils.paginator import RoboPages, SimplePageSource
 
-if TYPE_CHECKING:
-    from bot import RoboVJ
-    from .utils.context import Context
+from bot import RoboVJ
+from .utils.context import Context
 
 REGIONAL_INDICATOR_EMOJI = (
     '\N{REGIONAL INDICATOR SYMBOL LETTER A}',
