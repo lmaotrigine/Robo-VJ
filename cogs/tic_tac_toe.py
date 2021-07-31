@@ -311,7 +311,7 @@ class TicTacToe(commands.Cog):
 
         game = Game((ctx.author, opponent))
 
-        await ctx.send(f'{game.current_player.mention}\'s (X) turn!', view=game)  # type: ignore
+        await ctx.send(f'{game.current_player.mention}\'s ({STATES[game.board.current_player]}) turn!', view=game)
 
 
 def setup(bot: RoboVJ):
