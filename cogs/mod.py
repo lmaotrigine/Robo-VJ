@@ -546,7 +546,7 @@ class Moderation(commands.Cog):
         count = max(min(count, 25), 5)
 
         if not ctx.guild.chunked:
-            await ctx.guild.chunk()
+            members = await ctx.guild.chunk(cache=True)
 
         members = sorted(ctx.guild.members, key=lambda m: m.joined_at, reverse=True)[:count]
 
