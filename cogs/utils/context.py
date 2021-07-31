@@ -230,15 +230,10 @@ class Context(commands.Context):
             return await self.send(content)
 
     # Override send in case bot is muted or something
-    async def send(self, content=None, *, tts=False, embed=None, file=None,
-                                          files=None, delete_after=None, nonce=None,
-                                          allowed_mentions=None, reference=None,
-                                          mention_author=None):
+    async def send(self, *args, **kwargs):
         if self.guild is not None and not self.channel.permissions_for(self.me).send_messages:
             return
-        return await super().send(content=content, tts=tts, embed=embed, file=file, files=files, delete_after=delete_after,
-                           nonce=nonce, allowed_mentions=allowed_mentions, reference=reference,
-                           mention_author=mention_author)
+        return await super().send(*args, **kwargs)
 
     @property
     def player(self):

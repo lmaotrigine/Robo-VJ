@@ -73,6 +73,7 @@ initial_extensions = {
     'cogs.stars',
     'cogs.stats',
     'cogs.tags',
+    'cogs.tic_tac_toe',
     'cogs.tickets',
     'cogs.time',
     'cogs.todo',
