@@ -488,11 +488,12 @@ class ConnectFour(commands.Cog):
             if opponent == ctx.author:
                 raise commands.BadArgument('You cannot play against yourself.')
 
-            if not await ctx.prompt(
-                f'{opponent.mention}, {ctx.author.mention} has challenged you to Connect 4!',
-                author_id=opponent.id
-            ):
-                opponent = None
+            if not opponent.bot:
+                if not await ctx.prompt(
+                    f'{opponent.mention}, {ctx.author.mention} has challenged you to Connect 4!',
+                    author_id=opponent.id
+                ):
+                    opponent = None
 
         # If challenge timed out, or rejected
         if opponent is None:
@@ -510,12 +511,12 @@ class ConnectFour(commands.Cog):
         else:
             if opponent == ctx.author:
                 raise commands.BadArgument('You cannot play against yourself.')
-
-            if not await ctx.prompt(
-                    f'{opponent.mention}, {ctx.author.mention} has challenged you to Connect 4!',
-                    author_id=opponent.id
-            ):
-                opponent = None
+            if not opponent.bot:
+                if not await ctx.prompt(
+                        f'{opponent.mention}, {ctx.author.mention} has challenged you to Connect 4!',
+                        author_id=opponent.id
+                ):
+                    opponent = None
 
         # If challenge timed out, or rejected
         if opponent is None:
