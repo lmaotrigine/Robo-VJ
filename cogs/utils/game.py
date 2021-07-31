@@ -7,7 +7,7 @@ from . import db
 
 
 class GameTable(db.Table, table_name='game'):
-    id = db.Column(db.Integer(big=True))
+    id = db.Column(db.Integer(big=True), primary_key=True)
     name = db.Column(db.String)
     score = db.Column(db.Integer, default=0)
 
