@@ -190,7 +190,7 @@ class Button(discord.ui.Button['Game']):
             return
 
         if self.view.current_player.bot:
-            self.view.make_ai_move()
+            await self.view.make_ai_move()
             self.view.update()
 
         if self.view.board.over:
@@ -215,7 +215,7 @@ class Game(discord.ui.View):
         self.board = Board.new_game()
 
         if self.current_player.bot:
-            self.make_ai_move()
+            self.bot.loop.create_task(self.make_ai_move())  # this is bad, but idk how else to do this
 
         for r in range(3):
             for c in range(3):
@@ -247,7 +247,7 @@ class Game(discord.ui.View):
             await interaction.response.send_message("Sorry, it's not your turn!", ephemeral=True)
         return True
 
-    def make_ai_move(self):
+    async def make_ai_move(self):
         delta = MAX_DEPTH - MIN_DEPTH
         depth = self.players[self.board.current_player].id % delta + MAX_DEPTH + 1
         ai = NegamaxAI(self.board.current_player, depth)
