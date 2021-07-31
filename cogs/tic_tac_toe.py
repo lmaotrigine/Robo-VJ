@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import random
-from functools import cached_property
+from functools import cached_property, partial
 from typing import Iterator, Literal, Optional, Union, overload
 
 import discord
@@ -20,6 +20,8 @@ STATES = (
     '\N{REGIONAL INDICATOR SYMBOL LETTER O}',
 )
 
+MAX_DEPTH = 5
+MIN_DEPTH = 3
 
 class Board:
     def __init__(self, state: BoardState, current_player: bool = False):
@@ -103,8 +105,9 @@ class AI:
 
 
 class NegamaxAI(AI):
-    def __init__(self, player: bool):
+    def __init__(self, player: bool, depth: int = MAX_DEPTH):
         super().__init__(player)
+        self.max_depth = depth
 
     def heuristic(self, game: Board, sign: int) -> float:
         if sign == -1:
@@ -132,7 +135,7 @@ class NegamaxAI(AI):
 
     def negamax(self, game: Board, depth: int = 0,
                 alpha: float = float('-inf'), beta: float = float('inf'), sign: int = 1) -> Union[float, tuple[int, int]]:
-        if game.over:
+        if depth == self.max_depth or game.over:
             return sign * self.heuristic(game, sign)
 
         move = MISSING
@@ -203,8 +206,9 @@ class Button(discord.ui.Button['Game']):
 class Game(discord.ui.View):
     children: list[Button]
 
-    def __init__(self, players: tuple[Union[discord.Member, discord.User], Union[discord.Member, discord.User]]):
+    def __init__(self, bot: RoboVJ, players: tuple[Union[discord.Member, discord.User], Union[discord.Member, discord.User]]):
         self.players = list(players)
+        self.bot = bot
         random.shuffle(self.players)
 
         super().__init__(timeout=None)
@@ -244,8 +248,11 @@ class Game(discord.ui.View):
         return True
 
     def make_ai_move(self):
-        ai = NegamaxAI(self.board.current_player)
-        self.board = ai.move(self.board)
+        delta = MAX_DEPTH - MIN_DEPTH
+        depth = self.players[self.board.current_player].id % delta + MAX_DEPTH + 1
+        ai = NegamaxAI(self.board.current_player, depth)
+        move_call = partial(ai.move, self.board)
+        self.board = await self.bot.loop.run_in_executor(None, move_call)
         
     @property
     def current_player(self) -> Union[discord.Member, discord.User]:
@@ -309,7 +316,7 @@ class TicTacToe(commands.Cog):
         if opponent is None:
             raise commands.BadArgument('Challenge cancelled.')
 
-        game = Game((ctx.author, opponent))
+        game = Game(self.bot, (ctx.author, opponent))
 
         await ctx.send(f'{game.current_player.mention}\'s ({STATES[game.board.current_player]}) turn!', view=game)
 
