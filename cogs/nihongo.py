@@ -505,7 +505,7 @@ class Nihongo(commands.Cog):
         if isinstance(error, asyncio.TimeoutError):
             return await ctx.send('Kanarace has no winners!', delete_after=5.0)
 
-    @commands.command()
+    @commands.command(usage='[level=n5]')
     async def jlpt(self, ctx, level: JLPTConverter = JLPT_N5):
         word, reading, meaning, _ = random.choice(level)
         embed = discord.Embed(title=word, description=meaning, colour=discord.Colour.random())
