@@ -194,6 +194,10 @@ class Stars(commands.Cog):
             else:
                 embed.add_field(name='Attachment', value=f'[{file.filename}]({file.url})', inline=False)
 
+        ref = message.reference
+        if ref and isinstance(ref.resolved, discord.Message):
+            embed.add_field(name='Replying to...', value=f'[{ref.resolved.author}]({ref.resolved.jump_url})', inline=False)
+
         embed.add_field(name='Original', value=f'[Jump!]({message.jump_url})', inline=False)
         embed.set_author(name=message.author.display_name, icon_url=message.author.avatar.url)
         embed.timestamp = message.created_at
@@ -293,7 +297,7 @@ class Stars(commands.Cog):
             return
 
         async with self.bot.pool.acquire(timeout=300.0) as con:
-            query = "DELETE FROM starboard_entries WHERE bot_,essage_id = ANY($1::BIGINT[]);"
+            query = "DELETE FROM starboard_entries WHERE bot_message_id = ANY($1::BIGINT[]);"
             await con.execute(query, list(payload.message_ids))
 
     @commands.Cog.listener()
@@ -393,7 +397,8 @@ class Stars(commands.Cog):
         if msg.author.id == starrer_id:
             raise StarError('\N{NO ENTRY SIGN} You cannot star your own message.')
 
-        if (len(msg.content) == 0 and len(msg.attachments) == 0) or msg.type is not discord.MessageType.default:
+        empty_message = len(msg.content) == 0 and len(msg.attachments) == 0
+        if empty_message or msg.type not in (discord.MessageType.default, discord.MessageType.reply):
             raise StarError('\N{NO ENTRY SIGN} This message cannot be starred.')
 
         oldest_allowed = discord.utils.utcnow() - starboard.max_age
