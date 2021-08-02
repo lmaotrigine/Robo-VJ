@@ -485,10 +485,10 @@ class Meta(commands.Cog):
             return await ctx.send(f'<{discord.utils.oauth_url(bot.id)}>')
         embed = discord.Embed(colour=discord.Colour.blurple())
         embed.description = f'To add me to your server, please ensure it meets the following requirements:\n' \
-                            f'```\n- Has at least 10 human members.\n' \
-                            f'  - Servers smaller than this won\'t find me too useful.\n' \
+                            f'- Has at least 10 human members.\n' \
+                            f'\u200b \u200b \u200b \u200b - Servers smaller than this won\'t find me too useful.\n' \
                             f'- Has more humans than bots.\n' \
-                            f'  - Bot collection servers are frowned upon.\n```\n' \
+                            f'\u200b \u200b \u200b \u200b - Bot collection servers are frowned upon.\n' \
                             f'If you want to add me to a server that does not meet these requirements, make your ' \
                             f'case in the [support server](https://discord.gg/rqgRyF8) and your server __*might*__ ' \
                             f'be whitelisted.\n\nThe link below lazily asks for admin perms. You can edit this to ' \
@@ -499,8 +499,7 @@ class Meta(commands.Cog):
                             f'link with the current minimum requirements, though this can change.'
         embed.add_field(name='Invite link', value=discord.utils.oauth_url(self.bot.client_id,
                                                                           permissions=discord.Permissions(administrator=True)))
-        embed.set_author(name=self.bot.user.display_name if ctx.guild is None else ctx.guild.me.display_name,
-                         icon_url=self.bot.user.avatar_url)
+        embed.set_author(name=ctx.me.display_name, icon_url=self.bot.user.avatar.url)
         await ctx.send(embed=embed)
 
     @join.command(name='min')
@@ -558,11 +557,6 @@ class Meta(commands.Cog):
         name = guild.name
         await guild.leave()
         await self.bot.owner.send(f"Left '{name}'")
-
-    @commands.command(hidden=True, aliases=["good bot"])
-    async def goodbot(self, ctx):
-        """Appreci8 that wun"""
-        await ctx.send(f"Thanks {ctx.author.mention}, I try :slight_smile:")
 
     @commands.command(hidden=True)
     async def ping(self, ctx):
