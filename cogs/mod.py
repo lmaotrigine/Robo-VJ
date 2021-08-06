@@ -810,10 +810,14 @@ class Moderation(commands.Cog):
     @checks.has_permissions(ban_members=True)
     async def massban(self, ctx, *, args):
         """Mass bans multiple members from the server.
+
         This command has a powerful "command line" syntax. To use this command
         you and the bot must both have Ban Members permission. **Every option is optional.**
+
         Users are only banned **if and only if** all conditions are met.
+
         The following options are valid.
+
         `--channel` or `-c`: Channel to search for message history.
         `--reason` or `-r`: The reason for the ban.
         `--regex`: Regex that usernames must match.
@@ -824,7 +828,9 @@ class Moderation(commands.Cog):
         `--no-avatar`: Matches users who have no avatar. (no arguments)
         `--no-roles`: Matches users that have no role. (no arguments)
         `--show`: Show members instead of banning them (no arguments).
+
         Message history filters (Requires `--channel`):
+
         `--contains`: A substring to search for in the message.
         `--starts`: A substring to search if the message starts with.
         `--ends`: A substring to search if the message ends with.
@@ -927,7 +933,7 @@ class Moderation(commands.Cog):
                 predicates.append(lambda m, x=_regex: x.match(m.name))
 
         if args.no_avatar:
-            predicates.append(lambda m: m.avatar is None)
+            predicates.append(lambda m: m.avatar == m.default_avatar)
         if args.no_roles:
             predicates.append(lambda m: len(getattr(m, 'roles', [])) <= 1)
 
