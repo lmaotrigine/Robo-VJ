@@ -254,7 +254,7 @@ class Player(wavelink.Player):
         track = self.current
         embed = discord.Embed(colour=3553598, title="Now Playing")
         embed.description = f"[{track.title}]({track.uri} \"{track.title}\")\nby {track.author}"
-        embed.set_author(name=f"Requested by {track.requester}", icon_url=track.requester.avatar_url)
+        embed.set_author(name=f"Requested by {track.requester}", icon_url=track.requester.avatar.url)
         embed.timestamp = datetime.datetime.utcnow()
         self.last_np = await channel.send(embed=embed)
 
