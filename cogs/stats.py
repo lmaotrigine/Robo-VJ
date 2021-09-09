@@ -1075,7 +1075,7 @@ async def on_error(self, event, *args, **kwargs):
 
     e = discord.Embed(title='Event Error', colour=0xa32952)
     e.add_field(name='Event', value=event)
-    e.description = f'```py\n{traceback.format_exception(exc_type, exc, tb)}\n```'
+    e.description = f'```py\n{"".join(traceback.format_exception(exc_type, exc, tb))}\n```'
     e.timestamp = discord.utils.utcnow()
 
     args_str = ['```py']
