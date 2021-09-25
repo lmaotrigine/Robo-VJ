@@ -69,8 +69,6 @@ class UrbanDictionaryPageSource(menus.ListPageSource):
         return embed
 
 class RedditMediaURL:
-    VALID_PATH = re.compile(r'/r/[A-Za-z0-9_]+/comments/[A-Za-z0-9]+(?:/.+)?')
-
     def __init__(self, url):
         self.url = url
         self.filename = url.parts[1] + '.mp4'
@@ -91,7 +89,7 @@ class RedditMediaURL:
             async with ctx.session.get(url, headers=headers) as resp:
                 url = resp.url
 
-        is_valid_path = url.host and url.host.endswith('.reddit.com') and cls.VALID_PATH.match(url.path)
+        is_valid_path = url.host and url.host.endswith('.reddit.com')
         if not is_valid_path:
             raise commands.BadArgument('Not a reddit URL.')
 
