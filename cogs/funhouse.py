@@ -416,8 +416,9 @@ class Funhouse(commands.Cog):
         await ctx.send(embed=discord.Embed(title="Random panda").set_image(url=js["image"]))
 
     async def do_ocr(self, url: str) -> Optional[str]:
-        headers = {'Authorization': self.bot.config.tsu_token}
-        async with self.bot.session.get('https://api.tsu.sh/google/ocr', headers=headers, params={'q': url}) as resp:
+        #headers = {'Authorization': self.bot.config.tsu_token}
+        # evan#1697 made this. 
+        async with self.bot.session.get('https://ocr.evan.lol', params={'q': url}) as resp:
             if resp.status >= 400:
                 error = await resp.text()
                 raise OCRError(f'An error occurred: {error}')
