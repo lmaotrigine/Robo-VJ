@@ -359,6 +359,8 @@ class RoboVJ(commands.AutoShardedBot):
                                     sorted(set(prefixes), reverse=True), guild.id)
 
     async def on_ready(self):
+        if not hasattr(self, 'owner') or self.owner is None:
+            self.owner = self.get_user(self.owner_id)
         if not hasattr(self, 'uptime'):
             self.uptime = discord.utils.utcnow()
 
@@ -471,7 +473,6 @@ class RoboVJ(commands.AutoShardedBot):
             await self.load_extension('assets.kannan')  # random inside joke stuff
         except commands.ExtensionNotFound:
             pass
-        self.owner = self.get_user(self.owner_id)
         records = await self.pool.fetch("SELECT id, prefixes FROM guild_prefixes;")
         for record in records:
             self.prefixes[record['id']] = record['prefixes']
