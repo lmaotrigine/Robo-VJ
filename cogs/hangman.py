@@ -182,5 +182,5 @@ class Hangman(GameCogBase):
         await self._error(ctx, error)
 
 
-def setup(bot):
-    bot.add_cog(Hangman(bot))
+async def setup(bot):
+    await bot.add_cog(Hangman(bot))

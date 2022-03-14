@@ -118,7 +118,7 @@ class Stars(commands.Cog):
         self._locks = weakref.WeakValueDictionary()
         self.spoilers = re.compile(r'\|\|(.+?)\|\|')
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.clean_message_cache.cancel()
 
     async def cog_command_error(self, ctx, error):
@@ -1227,5 +1227,5 @@ class Stars(commands.Cog):
         delta = time.time() - start
         await ctx.send(f'Successfully sent to {success} channels (out of {len(to_send)}) in {delta:.2f}s.')
 
-def setup(bot):
-    bot.add_cog(Stars(bot))
+async def setup(bot):
+    await bot.add_cog(Stars(bot))

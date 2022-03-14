@@ -394,7 +394,7 @@ class Virus(commands.Cog):
         self._timer_has_data = asyncio.Event()
         self._task = bot.loop.create_task(self.day_cycle())
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self._task.cancel()
 
     def init_storage(self):
@@ -1272,5 +1272,5 @@ class Virus(commands.Cog):
                                     f'Check the store.')
 
 
-def setup(bot):
-    bot.add_cog(Virus(bot))
+async def setup(bot):
+    await bot.add_cog(Virus(bot))

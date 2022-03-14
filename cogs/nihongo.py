@@ -575,5 +575,5 @@ class Nihongo(commands.Cog):
         await menu.start(ctx)
 
 
-def setup(bot):
-    bot.add_cog(Nihongo(bot))
+async def setup(bot):
+    await bot.add_cog(Nihongo(bot))

@@ -72,8 +72,8 @@ class TMDBBaseCog(commands.Cog, name="Search"):
             icon_url="attachment://tmdb.png"
         )
         return (embed, [icon, footer_icon])
-    def cog_unload(self):
-        self.bot.loop.create_task(self.client.http.session.close())
+    async def cog_unload(self):
+        self.client.http.session.close()
 
     @commands.group(name='film', aliases=['films', 'movie', 'movies'], invoke_without_command=True)
     async def movie(self, ctx, *, name):
@@ -110,5 +110,5 @@ class TMDBBaseCog(commands.Cog, name="Search"):
 
         await ctx.channel.send(embed=embed, files=files)
 
-def setup(bot):
-    bot.add_cog(TMDBBaseCog(bot))
+async def setup(bot):
+    await bot.add_cog(TMDBBaseCog(bot))

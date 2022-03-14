@@ -464,5 +464,5 @@ class Doc(commands.Cog):
         return tag.name == 'table'
 
 
-def setup(bot):
-    bot.add_cog(Doc(bot))
+async def setup(bot):
+    await bot.add_cog(Doc(bot))

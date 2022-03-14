@@ -22,8 +22,8 @@ class DBL(commands.Cog):
         self.webhook = discord.Webhook.partial(*self.bot.config.dbl_webhook, session=self.bot.session)
         self.votes = None
 
-    def cog_unload(self):
-        self.bot.loop.create_task(self.dbl_client.close())
+    async def cog_unload(self):
+        await self.dbl_client.close()
 
     async def update(self):
         guild_count = len(self.bot.guilds)
@@ -109,5 +109,5 @@ class DBL(commands.Cog):
         await self.webhook.send(str(data))
 
 
-def setup(bot):
-    bot.add_cog(DBL(bot))
+async def setup(bot):
+    await bot.add_cog(DBL(bot))

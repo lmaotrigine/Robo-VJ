@@ -264,7 +264,7 @@ class Moderation(commands.Cog):
     def __repr__(self):
         return '<cogs.Moderation>'
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.batch_updates.stop()
         self.bulk_send_messages.stop()
         self.task.cancel()
@@ -2075,5 +2075,5 @@ class Moderation(commands.Cog):
                 count = await ctx.guild.prune_members(days=days, roles=roles)
                 await ctx.send(f"Operation complete. {count} members were pruned.")
 
-def setup(bot):
-    bot.add_cog(Moderation(bot))
+async def setup(bot):
+    await bot.add_cog(Moderation(bot))

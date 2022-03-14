@@ -623,5 +623,5 @@ class OCRError(commands.CommandError):
     pass
 
 
-def setup(bot):
-    bot.add_cog(Funhouse(bot))
+async def setup(bot):
+    await bot.add_cog(Funhouse(bot))

@@ -1279,5 +1279,5 @@ class Tags(commands.Cog):
         """This is a reserved tag command. Check back later."""
         pass
 
-def setup(bot):
-    bot.add_cog(Tags(bot))
+async def setup(bot):
+    await bot.add_cog(Tags(bot))

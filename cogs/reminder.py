@@ -69,7 +69,7 @@ class Reminder(commands.Cog):
         self._current_timer = None
         self._task = bot.loop.create_task(self.dispatch_timers())
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self._task.cancel()
 
     async def cog_command_error(self, ctx, error):
@@ -336,8 +336,8 @@ class Reminder(commands.Cog):
             return
 
 
-def setup(bot):
-    bot.add_cog(Reminder(bot))
+async def setup(bot):
+    await bot.add_cog(Reminder(bot))
 
 
         

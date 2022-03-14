@@ -553,5 +553,5 @@ class PubQuiz(commands.Cog, name="The Red Lion"):
         await self.toggle_role(ctx, CY_ROLE)
 
 
-def setup(bot):
-    bot.add_cog(PubQuiz(bot))
+async def setup(bot):
+    await bot.add_cog(PubQuiz(bot))

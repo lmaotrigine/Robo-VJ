@@ -173,5 +173,5 @@ class _Akinator(commands.Cog, name='Akinator'):
                 await ctx.db.execute(query, ctx.author.id, True)
                 return await ctx.send(f"NSFW mode is OFF for {ctx.author}. Aki will not ask you questions about things that are NSFW.")
     
-def setup(bot: RoboVJ):
-    bot.add_cog(_Akinator(bot))
+async def setup(bot: RoboVJ):
+    await bot.add_cog(_Akinator(bot))

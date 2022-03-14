@@ -214,9 +214,9 @@ class Manga(commands.Cog):
         if stats:
             await stats.webhook.send(f'```py\n{tb_str}\n```')
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.rss_parser.cancel()
 
 
-def setup(bot: RoboVJ):
-    bot.add_cog(Manga(bot))
+async def setup(bot: RoboVJ):
+    await bot.add_cog(Manga(bot))

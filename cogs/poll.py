@@ -89,5 +89,5 @@ class Poll(commands.Cog):
             await poll.add_reaction(emoji)
 
 
-def setup(bot):
-    bot.add_cog(Poll(bot))
+async def setup(bot):
+    await bot.add_cog(Poll(bot))

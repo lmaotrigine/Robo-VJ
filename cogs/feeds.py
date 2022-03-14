@@ -175,5 +175,5 @@ class Feeds(commands.Cog):
         # then make the role unmentionable
         await role.edit(mentionable=False)
 
-def setup(bot):
-    bot.add_cog(Feeds(bot))
+async def setup(bot):
+    await bot.add_cog(Feeds(bot))

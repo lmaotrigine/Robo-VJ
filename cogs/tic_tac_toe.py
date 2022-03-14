@@ -316,5 +316,5 @@ class TicTacToe(commands.Cog):
         await ctx.send(f'{game.current_player.mention}\'s ({STATES[game.board.current_player]}) turn!', view=game)
 
 
-def setup(bot: RoboVJ):
-    bot.add_cog(TicTacToe(bot))
+async def setup(bot: RoboVJ):
+    await bot.add_cog(TicTacToe(bot))

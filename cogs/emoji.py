@@ -130,7 +130,7 @@ class Emoji(commands.Cog):
         self.bulk_insert.add_exception_type(asyncpg.PostgresConnectionError)
         self.bulk_insert.start()
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.bulk_insert.stop()
 
     async def cog_command_error(self, ctx, error):
@@ -470,5 +470,5 @@ class Emoji(commands.Cog):
                     return await ctx.send(f'Created {created}')
 
 
-def setup(bot):
-    bot.add_cog(Emoji(bot))
+async def setup(bot):
+    await bot.add_cog(Emoji(bot))

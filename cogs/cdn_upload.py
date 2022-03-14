@@ -28,5 +28,5 @@ class Upload(commands.Cog):
         await message.channel.send(f'Upload returned `{stat}`.\n<{url}>\n{url}')
 
 
-def setup(bot):
-    bot.add_cog(Upload(bot))
+async def setup(bot):
+    await bot.add_cog(Upload(bot))

@@ -134,7 +134,7 @@ class Twitter(commands.Cog):
         self.stream_listener = TwitterStreamListener(bot)
         self.task = self.bot.loop.create_task(self.start_twitter_feeds(), name = "Start Twitter Stream")
 
-    def cog_unload(self):
+    async def cog_unload(self):
         if self.stream_listener.stream:
             self.stream_listener.stream.disconnect()
         self.task.cancel()
@@ -271,5 +271,5 @@ class Twitter(commands.Cog):
             traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr)
             return
 
-def setup(bot):
-    bot.add_cog(Twitter(bot))
+async def setup(bot):
+    await bot.add_cog(Twitter(bot))

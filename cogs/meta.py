@@ -42,7 +42,7 @@ class Meta(commands.Cog):
         bot.help_command = PaginatedHelpCommand()
         bot.help_command.cog = self
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.bot.help_command = self._original_help_command
 
     async def cog_command_error(self, ctx, error):
@@ -585,5 +585,5 @@ class Meta(commands.Cog):
         await message.edit(content='Pong!', embed=embed)
 
 
-def setup(bot):
-    bot.add_cog(Meta(bot))
+async def setup(bot):
+    await bot.add_cog(Meta(bot))

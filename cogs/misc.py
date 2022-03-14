@@ -186,5 +186,5 @@ class Miscellaneous(commands.Cog):
         await ctx.reply('idk')
 
 
-def setup(bot):
-    bot.add_cog(Miscellaneous(bot))
+async def setup(bot):
+    await bot.add_cog(Miscellaneous(bot))

@@ -22,7 +22,7 @@ class Tickets(commands.Cog):
         self.task = self.bot.loop.create_task(self._prepare_tickets())
         self.guild = None
         self.category = None
-    def cog_unload(self):
+    async def cog_unload(self):
         self.task.cancel()
 
     async def _prepare_tickets(self):
@@ -164,5 +164,5 @@ If there isn't a response after 12 hours, we will close the ticket automatically
         except KeyError:
             pass
         
-def setup(bot):
-    bot.add_cog(Tickets(bot))
+async def setup(bot):
+    await bot.add_cog(Tickets(bot))

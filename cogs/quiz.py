@@ -67,7 +67,7 @@ class Quiz(commands.Cog):
                 self.qchannels[record['guild_id']] = record['qchannel']
                 self.pchannels[record['guild_id']] = record['pchannel']
     
-    def cog_unload(self):
+    async def cog_unload(self):
         self.task.cancel()
 
     @commands.command()
@@ -456,5 +456,5 @@ class Quiz(commands.Cog):
         await ctx.send('\N{OK HAND SIGN}')
 
 
-def setup(bot):
-    bot.add_cog(Quiz(bot))
+async def setup(bot):
+    await bot.add_cog(Quiz(bot))

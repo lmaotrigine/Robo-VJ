@@ -176,5 +176,5 @@ class Naarivad(commands.Cog):
         return await ctx.send(str(js))
 
 
-def setup(bot):
-    bot.add_cog(Naarivad(bot))
+async def setup(bot):
+    await bot.add_cog(Naarivad(bot))

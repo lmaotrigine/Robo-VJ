@@ -533,5 +533,5 @@ class Config(commands.Cog):
         await ctx.send(ctx.tick(True))
 
 
-def setup(bot):
-    bot.add_cog(Config(bot))
+async def setup(bot):
+    await bot.add_cog(Config(bot))

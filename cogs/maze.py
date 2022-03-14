@@ -7,8 +7,8 @@ import io
 import random
 
 
-def setup(bot):
-    bot.add_cog(MazeCog())
+async def setup(bot):
+    await bot.add_cog(MazeCog())
 
 
 class Direction(IntEnum):
@@ -187,7 +187,7 @@ class MazeCog(commands.Cog, name="Maze"):
                              "up": Direction.UP, "left": Direction.LEFT, "down": Direction.DOWN,
                              "right": Direction.RIGHT}
 
-    def cog_unload(self):
+    async def cog_unload(self):
         # TODO: Persistence - store running mazes and add way to continue previous ones
         for menu in self.menus:
             menu.stop()

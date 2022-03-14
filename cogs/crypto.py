@@ -357,5 +357,5 @@ class Cryptography(commands.Cog):
         h.update(message.encode('UTF-8'))
         await ctx.send(embed=discord.Embed(title='Encode WHIRLPOOL', colour=discord.Colour.blurple(), description=h.hexdigest()))
 
-def setup(bot):
-    bot.add_cog(Cryptography(bot))
+async def setup(bot):
+    await bot.add_cog(Cryptography(bot))

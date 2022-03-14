@@ -65,7 +65,7 @@ class RSS(commands.Cog):
 
         self.check_feeds.start().set_name('RSS')
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.check_feeds.cancel()
 
     @commands.group(invoke_without_command=True, case_insensitive=True)
@@ -291,5 +291,5 @@ class RSS(commands.Cog):
         print('RSS task cancelled.')
 
 
-def setup(bot):
-    bot.add_cog(RSS(bot))
+async def setup(bot):
+    await bot.add_cog(RSS(bot))

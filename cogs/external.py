@@ -110,5 +110,5 @@ class External(commands.Cog):
         """Generate Python Enhancement Proposal URL."""
         await ctx.send(f'https://www.python.org/dev/peps/pep-{number:04}/')
 
-def setup(bot):
-    bot.add_cog(External(bot))
+async def setup(bot):
+    await bot.add_cog(External(bot))

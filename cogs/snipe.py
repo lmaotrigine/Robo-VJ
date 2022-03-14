@@ -97,7 +97,7 @@ class Snipe(commands.Cog):
         self.snipe_delete_update.start()
         self.snipe_edit_update.start()
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.snipe_delete_update.stop()
         self.snipe_edit_update.stop()
 
@@ -452,5 +452,5 @@ class Snipe(commands.Cog):
         if isinstance(error, commands.CommandOnCooldown):
             return await ctx.send(f'Ha! Snipes are on cooldown for {error.retry_after:.02f}s.')
 
-def setup(bot):
-    bot.add_cog(Snipe(bot))
+async def setup(bot):
+    await bot.add_cog(Snipe(bot))

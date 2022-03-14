@@ -53,5 +53,5 @@ class SauceNao(commands.Cog):
             await ctx.send(error)
 
 
-def setup(bot):
-    bot.add_cog(SauceNao(bot))
+async def setup(bot):
+    await bot.add_cog(SauceNao(bot))

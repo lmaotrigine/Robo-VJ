@@ -174,5 +174,5 @@ class Poker(commands.Cog):
     def cards_to_string(self, cards):
         return " ".join(f":{card.suit.lower()}: {card.value}" for card in cards)
 
-def setup(bot):
-    bot.add_cog(Poker(bot))
+async def setup(bot):
+    await bot.add_cog(Poker(bot))

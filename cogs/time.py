@@ -170,5 +170,5 @@ class Time(commands.Cog):
         if isinstance(error, commands.MissingRequiredArgument):
             return await ctx.send("How am I supposed to do this if you don't supply the timezone?")
 
-def setup(bot):
-    bot.add_cog(Time(bot))
+async def setup(bot):
+    await bot.add_cog(Time(bot))

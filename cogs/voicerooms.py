@@ -16,7 +16,7 @@ class VoiceRooms(commands.Cog):
         self.bot = bot
         self.startup.start()
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self.startup.cancel()
 
     def is_in_voice(self, state):
@@ -116,5 +116,5 @@ class VoiceRooms(commands.Cog):
             current.pop(channel.id)
         self.mapping[ctx.guild.id] = current
 
-def setup(bot):
-    bot.add_cog(VoiceRooms(bot))
+async def setup(bot):
+    await bot.add_cog(VoiceRooms(bot))

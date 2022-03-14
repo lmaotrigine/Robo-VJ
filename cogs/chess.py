@@ -46,7 +46,7 @@ class ChessCog(commands.Cog, name='Chess'):
     def __init__(self):
         self.matches = []
 
-    def cog_unload(self):
+    async def cog_unload(self):
         # TODO: Persistence - store running chess matches and add a way to continue previous ones
         for match in self.matches:
             match.task.cancel()
@@ -317,5 +317,5 @@ class ChessMatch(chess.Board):
         await self.update_match_embed(orientation=orientation, footer_text=footer_text)
 
 
-def setup(bot):
-    bot.add_cog(ChessCog())
+async def setup(bot):
+    await bot.add_cog(ChessCog())

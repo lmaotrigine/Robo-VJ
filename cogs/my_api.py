@@ -20,8 +20,8 @@ class API(commands.Cog, command_attrs=dict(hidden=True)):
             pool = await asyncpg.create_pool(ctx.bot.config.api_db)
             self.token_handler = tokens.TokenUtils(pool)
 
-    def cog_unload(self):
-        self.bot.loop.create_task(self.close_db())
+    async def cog_unload(self):
+        await self.close_db()
 
     async def close_db(self):
         await self.token_handler.pool.close()
@@ -108,5 +108,5 @@ class API(commands.Cog, command_attrs=dict(hidden=True)):
             await message.reply(f'Oh no! It was **{answers[js["type"]]}**\n\n_{js["text"]}_')
 
 
-def setup(bot):
-    bot.add_cog(API(bot))
+async def setup(bot):
+    await bot.add_cog(API(bot))

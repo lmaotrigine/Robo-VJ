@@ -61,8 +61,7 @@ def setup_logging():
             hdlr.close()
             log.removeHandler(hdlr)
 
-def run_bot():
-    loop = asyncio.get_event_loop()
+async def run_bot():
     log = logging.getLogger()
     kwargs = {
         'command_timeout': 60,
@@ -70,7 +69,7 @@ def run_bot():
         'min_size': 20
     }
     try:
-        pool = loop.run_until_complete(Table.create_pool(config.postgresql, **kwargs))
+        pool = await Table.create_pool(config.postgresql, **kwargs)
     except Exception as e:
         click.echo('Could not set up PostgreSQL. Exiting.', file=sys.stderr)
         log.exception('Could not set up PostgreSQL. Exiting.')
@@ -78,7 +77,7 @@ def run_bot():
 
     bot = RoboVJ()
     bot.pool = pool
-    bot.run()
+    await bot.start()
 
 @click.group(invoke_without_command=True, options_metavar='[options]')
 @click.pass_context
@@ -87,7 +86,7 @@ def main(ctx):
     if ctx.invoked_subcommand is None:
         loop = asyncio.get_event_loop()
         with setup_logging():
-            run_bot()
+            asyncio.run(run_bot())
 
 @main.group(short_help='database stuff', options_metavar='[options]')
 def db():

@@ -20,7 +20,7 @@ import traceback
 import pyowm
 import tweepy
 from mystbin import Client as MystbinClient
-import spotify
+#import spotify
 
 log = logging.getLogger(__name__)
 os.environ['JISHAKU_HIDE'] = 'true'
@@ -56,7 +56,7 @@ initial_extensions = {
     'cogs.meta',
     'cogs.misc',
     'cogs.mod',
-    'cogs.music',
+#    'cogs.music',
     'cogs.my_api',
     'cogs.my_quiz',
     'cogs.naarivad',
@@ -120,7 +120,7 @@ class RoboVJ(commands.AutoShardedBot):
         self._auto_spam_count = Counter()
         self.guild_allowlist = Config('guild_allowlist.json')
 
-        self.session = aiohttp.ClientSession(loop=self.loop)
+        self.session = aiohttp.ClientSession()
 
         # external clients
         ## OpenWeatherMap
@@ -136,22 +136,10 @@ class RoboVJ(commands.AutoShardedBot):
         self.twitter_api = tweepy.API(self.twitter_auth)
 
         ## Spotify
-        self.spotify_client = spotify.Client(config.spotify_client_id, config.spotify_client_secret, loop=self.loop)
+        #self.spotify_client = spotify.Client(config.spotify_client_id, config.spotify_client_secret, loop=self.loop)
 
         ## Pokeapi
         self.pokeapi = pokeapi.PokeAPI(self)
-
-        for extension in initial_extensions:
-            try:
-                self.load_extension(extension)
-            except Exception as e:
-                print(f'Failed to load extension {extension}.', file=sys.stderr)
-                traceback.print_exc()
-
-        try:
-            self.load_extension('assets.kannan')  # random inside joke stuff
-        except commands.ExtensionNotFound:
-            pass
 
         self.mb_client = MystbinClient(session=self.session)
 
@@ -470,23 +458,27 @@ class RoboVJ(commands.AutoShardedBot):
         await super().close()
         await self.session.close()
 
-    @tasks.loop(count=1)
-    async def startup(self):
+    async def setup_hook(self):
         # await bot.init_db()
         # await self.wait_until_ready()
+        for extension in initial_extensions:
+            try:
+                await self.load_extension(extension)
+            except Exception as e:
+                print(f'Failed to load extension {extension}.', file=sys.stderr)
+                traceback.print_exc()
+        try:
+            await self.load_extension('assets.kannan')  # random inside joke stuff
+        except commands.ExtensionNotFound:
+            pass
         self.owner = self.get_user(self.owner_id)
         records = await self.pool.fetch("SELECT id, prefixes FROM guild_prefixes;")
         for record in records:
             self.prefixes[record['id']] = record['prefixes']
 
-    @startup.before_loop
-    async def before_startup(self):
-        await self.wait_until_ready()
-
-    def run(self):
-        self.startup.start()
+    async def start(self):
         try:
-            super().run(config.token, reconnect=True)
+            await super().start(config.token, reconnect=True)
         finally:
             with open('prev_events.log', 'w', encoding='utf-8') as fp:
                 for data in self._prev_events:

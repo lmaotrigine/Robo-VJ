@@ -294,5 +294,5 @@ class Tools(commands.Cog):
         await ctx.reply(embed=discord.Embed(description=str(math.tanh(value))))
 
 
-def setup(bot):
-    bot.add_cog(Tools(bot))
+async def setup(bot):
+    await bot.add_cog(Tools(bot))

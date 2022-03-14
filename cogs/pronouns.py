@@ -53,5 +53,5 @@ class Pronouns(commands.Cog, command_attrs=dict(hidden=True)):
         await ctx.send(embed=embed)
 
 
-def setup(bot):
-    bot.add_cog(Pronouns())
+async def setup(bot):
+    await bot.add_cog(Pronouns())

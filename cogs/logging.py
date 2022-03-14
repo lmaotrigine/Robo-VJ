@@ -32,7 +32,7 @@ class Logging(commands.Cog):
 
         self._logging_task.start()
 
-    def cog_unload(self):
+    async def cog_unload(self):
         self._logging_task.stop()
 
     @tasks.loop(seconds=60.0)
@@ -120,8 +120,8 @@ class Logging(commands.Cog):
                                       message.author.id, message.content, message.channel.is_nsfw()))
 
 
-def setup(bot):
+async def setup(bot):
     if not hasattr(bot, '_logging'):
         bot._logging = True
         bot._message_log = list()
-    bot.add_cog(Logging(bot))
+    await bot.add_cog(Logging(bot))

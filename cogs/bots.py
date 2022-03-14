@@ -186,5 +186,5 @@ class Bots(commands.Cog):
         if member.guild == 718378271800033318 and member.bot:
             await member.add_roles(discord.Object(id=792679027626344459))  # Bot role ID
 
-def setup(bot):
-    bot.add_cog(Bots(bot))
+async def setup(bot):
+    await bot.add_cog(Bots(bot))

@@ -2,7 +2,7 @@ from discord.ext import commands
 import asyncio
 import discord
 import io
-from . import objects as _objects
+#from . import objects as _objects
 
 class _ContextDBAcquire:
     __slots__ = ('ctx', 'timeout')
@@ -235,6 +235,6 @@ class Context(commands.Context):
             return
         return await super().send(*args, **kwargs)
 
-    @property
-    def player(self):
-        return self.bot.wavelink.get_player(self.guild.id, cls=_objects.Player)
+    #@property
+    #def player(self):
+    #    return self.bot.wavelink.get_player(self.guild.id, cls=_objects.Player)

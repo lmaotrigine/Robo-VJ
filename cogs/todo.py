@@ -181,5 +181,5 @@ class Todo(commands.Cog):
             await ctx.send('Deleted all todo items for this channel.')
 
 
-def setup(bot):
-    bot.add_cog(Todo(bot))
+async def setup(bot):
+    await bot.add_cog(Todo(bot))

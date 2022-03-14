@@ -14,7 +14,7 @@ class Entertainment(commands.Cog):
         self.bot = bot
         self.menus = []
 
-    def cog_unload(self):
+    async def cog_unload(self):
         for menu in self.menus:
             menu.stop()
 
@@ -334,5 +334,5 @@ class XKCDMenu(menus.MenuPages):
         await menus.Menu.start(self, ctx, wait=wait)
 
 
-def setup(bot):
-    bot.add_cog(Entertainment(bot))
+async def setup(bot):
+    await bot.add_cog(Entertainment(bot))

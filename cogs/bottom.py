@@ -50,5 +50,5 @@ class Bottom(commands.Cog, command_attrs=dict(hidden=True)):
             await ctx.send('Failed to decode message.')
 
 
-def setup(bot):
-    bot.add_cog(Bottom(bot))
+async def setup(bot):
+    await bot.add_cog(Bottom(bot))

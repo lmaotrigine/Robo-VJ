@@ -570,5 +570,5 @@ class Astronomy(commands.Cog):
             await ctx.reply(error)
 
 
-def setup(bot):
-    bot.add_cog(Astronomy(bot))
+async def setup(bot):
+    await bot.add_cog(Astronomy(bot))

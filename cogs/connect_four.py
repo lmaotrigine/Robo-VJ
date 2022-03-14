@@ -565,5 +565,5 @@ class RankingSource(SimplePageSource):
         return embed
 
 
-def setup(bot: RoboVJ):
-    bot.add_cog(ConnectFour(bot))
+async def setup(bot: RoboVJ):
+    await bot.add_cog(ConnectFour(bot))
